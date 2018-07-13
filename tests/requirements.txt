@@ -1,0 +1,3 @@
+numpy
+tensorflow-serving-api
+pytest
