@@ -89,7 +89,8 @@ def test_prediction_batch_with_certificates():
         assert max_outputs[i] == LABELS[i]
         assert label == test_label
 
-def test_wrong_cert():
+
+def test_wrong_certificates():
     trusted_cert, wrong_key, wrong_ca = prepare_certs('server.crt', 'wrong-client.key', 'wrong-ca.crt')
     creds = implementations.ssl_channel_credentials(root_certificates=trusted_cert, private_key=wrong_key, certificate_chain=wrong_ca)
     stub, request = prepare_stub_and_request(creds)
@@ -100,6 +101,23 @@ def test_wrong_cert():
         tf.contrib.util.make_tensor_proto(input, shape=[1, 224, 224, 3]))
 
     with pytest.raises(face.CancellationError) as context:   
+        prediction_response = stub.Predict(request, 10.0)
+
+    print(context.value.code)
+    assert context.value.details == 'Received http2 header with status: 400'
+
+
+def test_no_certificates():
+    trusted_cert, _, _ = prepare_certs('server.crt')
+    creds = implementations.ssl_channel_credentials(root_certificates=trusted_cert)
+    stub, request = prepare_stub_and_request(creds)
+
+    input = numpy.zeros((1, 224, 224, 3), numpy.dtype('<f'))
+
+    request.inputs['import/input_tensor'].CopyFrom(
+        tf.contrib.util.make_tensor_proto(input, shape=[1, 224, 224, 3]))
+
+    with pytest.raises(face.CancellationError) as context:
         prediction_response = stub.Predict(request, 10.0)
 
     print(context.value.code)
