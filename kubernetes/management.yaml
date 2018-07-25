@@ -1,0 +1,48 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: management-api
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: management-api
+    spec:
+      serviceAccountName: namespace-creator
+      containers:
+      - name: management-api
+        image: gcr.io/constant-cubist-173123/<image-name>
+        ports:
+        - containerPort: 5000
+        env:
+        - name: HOSTNAME
+          value: "0.0.0.0"
+        - name: PORT
+          value: "5000"
+        - name: MINIO_ENDPOINT_ADDR
+          value: "<minio-endpoint>:9000"
+        - name: MINIO_ACCESS_KEY_ID
+          value: "<minio-access-key>"
+        - name: MINIO_SECRET_ACCESS_KEY
+          value: "<minio-secret-key>"
+        command:
+        - /bin/sh
+        - -c
+        args:
+        - /management/run.sh
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: management-api
+  name: management-api
+spec:
+  ports:
+  - port: 5000
+    targetPort: 5000
+  selector:
+    app: management-api
+  type: LoadBalancer
+

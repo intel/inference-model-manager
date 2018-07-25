@@ -1,0 +1,6 @@
+kubernetes
+falcon
+jsonschema
+requests
+boto3
+botocore
