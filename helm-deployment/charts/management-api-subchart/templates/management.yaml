@@ -9,10 +9,10 @@ spec:
       labels:
         app: management-api
     spec:
-      serviceAccountName: namespace-creator
+      serviceAccountName: api-client
       containers:
       - name: management-api
-        image: gcr.io/constant-cubist-173123/<image-name>
+        image: {{ .Values.management.image }}
         ports:
         - containerPort: 5000
         env:
@@ -21,11 +21,10 @@ spec:
         - name: PORT
           value: "5000"
         - name: MINIO_ENDPOINT_ADDR
-          value: "<minio-endpoint>:9000"
-        - name: MINIO_ACCESS_KEY_ID
-          value: "<minio-access-key>"
-        - name: MINIO_SECRET_ACCESS_KEY
-          value: "<minio-secret-key>"
+          value: "http://{{ .Release.Name }}-minio.default.svc.cluster.local:9000"
+        envFrom:
+            - secretRef:
+                name: management-api-secrets
         command:
         - /bin/sh
         - -c

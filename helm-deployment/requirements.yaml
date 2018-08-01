@@ -1,0 +1,9 @@
+# run 'helm dep up .'
+dependencies:
+  - name: minio
+    version: 1.6.0
+    repository: https://kubernetes-charts.storage.googleapis.com
+    condition: minio.enabled
+  - name: dex
+    version: 0.2.0
+    repository: https://kubernetes-charts.storage.googleapis.com

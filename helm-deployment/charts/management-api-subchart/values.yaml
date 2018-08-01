@@ -1,0 +1,4 @@
+management:
+  minio_access_key: "AKIAIOSFODNN7EXAMPLE"
+  minio_secret_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+  image: "gcr.io/constant-cubist-173123/management-api-test"
