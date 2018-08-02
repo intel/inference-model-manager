@@ -1,4 +1,4 @@
-from management_api.tenants import Tenants
+from management_api.tenants.tenants import Tenants
 
 routes = [
     dict(resource=Tenants(), url='/tenants')

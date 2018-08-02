@@ -8,4 +8,3 @@ def get_logger(name):
     logger.setLevel(logging_level)
     logging.basicConfig(level=logging_level)
     return logger
-

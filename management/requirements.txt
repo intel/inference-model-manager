@@ -5,3 +5,4 @@ requests
 boto3
 botocore
 cryptography
+flake8

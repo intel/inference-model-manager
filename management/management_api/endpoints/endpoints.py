@@ -1,0 +1,2 @@
+class Endpoints(object):
+    pass

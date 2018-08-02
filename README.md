@@ -31,24 +31,24 @@ helpers/get_minio_credentials.sh)
     ```
 * run (`management-api`)
 
-### k8s deployment
-* `make build` - build docker image
-* `make tag` - tag image
-* `make push` - push image to grc
-* update MINIO_ACCESS_KEY and MINIO_SECRET_KEY with proper values (in kubernetes/minio.yaml)
-* `kubectl create -f kubernetes/minio.yaml` - create minio deployment
-* using `kubectl get svc` get minio's external_ip 
-* update MINIO_ENDPOINT in kubernetes/management.yaml with minio's external_ip (remember about http:// at the beginning and port at the end)
-* update MINIO_ACCESS_KEY and MINIO_SECRET_KEY with proper values(in kubernetes/management.yaml)
-* `kubectl create -f kubernetes/management.yaml`
-* get external_ip of management-api (with `kubectl get svc`)
-* test k8s deployment with example provided below (remember to change localhost to management-api's external_ip)
+#### local development + testing on external environment (i.e. gcloud)
+* *can be done locally* 
+	* `make build` - build docker image
+	* `make tag` - tag image
+	* `make push` - push image to gcr
+* *on environment, i.e. on gcloud)*
+	* goto helm-deployment catalog 
+	* remove existing k8s resources and helm release (i.e. you can use script 
+	`delete_all.sh` from helpers catalog)
+	* *optional* change values (i.e. management-api image)
+	(`helm-deployment/charts/management-api-subchart/values.yaml`)
+	* `helm install .`
+	
 
 ### example
 * create new tenant: 
 ```
-curl -X POST "http://localhost:8000/tenants" -H "accept: application/json" -H "Authorization: <jwt_token>" \
--H "Content-Type: application/json" -d "{\"name\": \"tenantname\", \"cert\":\"cert\", \"scope\":\"scope_name\"}"
+curl -X POST "http://<management_api_address>:5000/tenants" -H "accept: application/json"-H "Authorization: '<token>'" -H "Content-Type: application/json" -d "{\"cert\":\"<cert_encoded_with_base64>\", \"scope\":\"<scope_name>\", \"name\": \"<name>\"}"
 ```
 Cert field value is used in kubernetes secret. Because of that, cert shall be provided in Base64 encoded format.
 * example with valid certificate:

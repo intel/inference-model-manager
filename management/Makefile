@@ -6,7 +6,7 @@ MANAGEMENT_PORT := 5000
 
 MINIO_ENDPOINT ?= 'http://127.0.0.1:9000'
 
-.PHONY: install build run tag push
+.PHONY: install build run tag push style
 
 install:
 	pip install -r requirements.txt
@@ -26,5 +26,7 @@ tag:
 push:
 	gcloud docker -- push gcr.io/constant-cubist-173123/$(IMAGE)-$(TAG)
 
+style:
+	flake8 --max-line-length 81
 
 

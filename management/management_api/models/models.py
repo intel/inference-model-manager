@@ -1,0 +1,2 @@
+class Models(object):
+    pass

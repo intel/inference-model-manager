@@ -16,7 +16,7 @@ CERT_SECRET_NAME = "ca-cert-secret"
 
 try:
     configuration = config.load_kube_config()
-except:
+except Exception:
     configuration = config.load_incluster_config()
 
 api_instance = client.CoreV1Api(client.ApiClient(configuration))
