@@ -16,3 +16,6 @@ subchart:
 in parent chart.
 
 WARNING: There are test keys and certificates included in this helm deployment (/inferno-platform/helm-deployment/certs), please replace them with secure certificates in case of production deployment.
+
+In order to overwrite minio credentials edit values.yaml file. 
+Please do not provide minio credentials as argument in `helm install .` command

@@ -22,9 +22,15 @@ spec:
             - name: AWS_ENDPOINT_URL
               value: http://{{ .Release.Name }}-minio.default.svc.cluster.local
             - name: AWS_ACCESS_KEY_ID
-              value: AKIAIOSFODNN7EXAMPLE
+              valueFrom:
+                secretKeyRef:
+                  name: minio-access-info
+                  key: minio.access_key_id
             - name: AWS_SECRET_ACCESS_KEY
-              value: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-access-info
+                  key: minio.access_secret_key
             - name: AWS_REGION
               value: us-east-1
             - name: BUCKET_NAME

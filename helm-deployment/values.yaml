@@ -46,5 +46,10 @@ resources: {}
   #  memory: 128Mi
 minio:
   enabled: true
+  accessKey: &accessKey "AKIAIOSFODNN7EXAMPLE"
+  secretKey: &secretKey "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+global:
+  accessKey: *accessKey
+  secretKey: *secretKey
 tf-serving-subchart:
   enabled: true

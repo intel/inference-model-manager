@@ -22,9 +22,16 @@ spec:
           value: "5000"
         - name: MINIO_ENDPOINT_ADDR
           value: "http://{{ .Release.Name }}-minio.default.svc.cluster.local:9000"
-        envFrom:
-            - secretRef:
-                name: management-api-secrets
+        - name: MINIO_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: minio-access-info
+              key: minio.access_key_id
+        - name: MINIO_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-access-info
+              key: minio.access_secret_key
         command:
         - /bin/sh
         - -c
