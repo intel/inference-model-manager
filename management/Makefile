@@ -1,5 +1,5 @@
-IMAGE ?= 'management-api'
-TAG ?= 'latest'
+IMAGE ?= management-api
+TAG ?= latest
 
 MANAGEMENT_HOSTNAME := "0.0.0.0"
 MANAGEMENT_PORT := 5000

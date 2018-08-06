@@ -10,7 +10,7 @@ MINIO_SECRET_ACCESS_KEY = os.environ['MINIO_SECRET_ACCESS_KEY']
 MINIO_ENDPOINT_ADDR = os.getenv('MINIO_ENDPOINT_ADDR', 'http://127.0.0.1:9000')
 
 MINIO_REGION = 'us-east-1'
-MINIO_SIGNATURE_VERSION = 's3v4'
+SIGNATURE_VERSION = 's3v4'
 
 CERT_SECRET_NAME = "ca-cert-secret"
 
@@ -21,9 +21,18 @@ except Exception:
 
 api_instance = client.CoreV1Api(client.ApiClient(configuration))
 
-minio = boto3.resource('s3',
-                       endpoint_url=MINIO_ENDPOINT_ADDR,
-                       aws_access_key_id=MINIO_ACCESS_KEY_ID,
-                       aws_secret_access_key=MINIO_SECRET_ACCESS_KEY,
-                       config=Config(signature_version=MINIO_SIGNATURE_VERSION),
-                       region_name=MINIO_REGION)
+minio_client = boto3.client('s3',
+                            endpoint_url=MINIO_ENDPOINT_ADDR,
+                            aws_access_key_id=MINIO_ACCESS_KEY_ID,
+                            aws_secret_access_key=MINIO_SECRET_ACCESS_KEY,
+                            config=Config(
+                                    signature_version=SIGNATURE_VERSION),
+                            region_name=MINIO_REGION)
+
+minio_resource = boto3.resource('s3',
+                                endpoint_url=MINIO_ENDPOINT_ADDR,
+                                aws_access_key_id=MINIO_ACCESS_KEY_ID,
+                                aws_secret_access_key=MINIO_SECRET_ACCESS_KEY,
+                                config=Config(
+                                        signature_version=SIGNATURE_VERSION),
+                                region_name=MINIO_REGION)

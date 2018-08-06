@@ -11,7 +11,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=["falcon", "kubernetes", "jsonschema", "requests",
-                      "boto3", "botocore", "cryptography"],
+                      "boto3", "botocore", "cryptography", "retrying"],
     entry_points={
         'console_scripts': [
             'management_api = management_api.main:main',

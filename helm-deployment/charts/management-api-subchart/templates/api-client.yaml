@@ -5,7 +5,7 @@ metadata:
 rules:
 - apiGroups: [""]
   resources: ["namespaces"]
-  verbs: ["create", "list", "get"]
+  verbs: ["create", "list", "get", "delete"]
 - apiGroups: [""]
   resources: ["secrets"]
   verbs: ["create", "list", "get"]
