@@ -1,0 +1,75 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: server-controller
+rules:
+- apiGroups: ["apiextensions.k8s.io"]
+  resources: ["customresourcedefinitions"]
+  verbs: ["*"]
+- apiGroups: ["intel.com"]
+  resources: ["servers"]
+  verbs: ["*"]
+- apiGroups: ["extensions"]
+  resources: ["deployments"]
+  verbs: ["*"]
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["*"]
+- apiGroups: ["extensions"]
+  resources: ["ingresses"]
+  verbs: ["*"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: server-controller
+subjects:
+- kind: ServiceAccount
+  name: server-controller
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: server-controller
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: server-controller
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: server-controller
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: server-controller
+    spec:
+      serviceAccountName: server-controller
+      containers:
+      - name: server-controller
+        image: gcr.io/constant-cubist-173123/server-controller-prod
+        ports:
+        - containerPort: 80
+        command:
+        - /bin/sh
+        - -c
+        args:
+        - /go/bin/server-controller
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: server-controller
+  name: server-controller
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: server-controller
+  type: LoadBalancer
