@@ -1,0 +1,64 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: "{{.Spec.ModelName}}-{{.Spec.ModelVersion}}"
+  namespace: "{{.ObjectMeta.Namespace}}"
+  labels:
+    id: "{{.Spec.ModelName}}-{{.Spec.ModelVersion}}"
+    endpoint: "{{.Spec.EndpointName}}"
+  ownerReferences:
+  - apiVersion: {{.APIVersion}}
+    kind: {{.Kind}}
+    name: {{.Name}}
+    uid: {{.UID}}
+    controller: {{.Controller}}
+    blockOwnerDeletion: {{.BlockOwnerDeletion}}
+spec:
+  replicas: {{or .Spec.Replicas 1}}
+  minReadySeconds: 60
+  template:
+    metadata:
+      labels:
+        id: "{{.Spec.ModelName}}-{{.Spec.ModelVersion}}"
+        endpoint: "{{.Spec.EndpointName}}"
+    spec:
+      containers:
+      - name: tf-serving
+        image: "gcr.io/constant-cubist-173123/tf-s-native-centos-clean"
+        imagePullPolicy: Always
+        command:
+        - /bin/sh
+        - -c
+        args:
+        - ./tensorflow_model_server --port=9000 --model_name=resnet --model_base_path="s3://{{.ObjectMeta.Namespace}}/{{.Spec.ModelName}}-{{.Spec.ModelVersion}}"
+        ports:
+        - containerPort: 9000
+        env:
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: minio-access-info
+                key: minio.access_key_id
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: minio-access-info
+                key: minio.access_secret_key
+          - name: S3_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: minio-access-info
+                key: minio.endpoint
+          - name: AWS_ENDPOINT_URL
+            valueFrom:
+              secretKeyRef:
+                name: minio-access-info
+                key: minio.endpoint_url
+          - name: AWS_REGION
+            value: us-east-1
+          - name: BUCKET_NAME
+            value: {{.ObjectMeta.Namespace}}
+          - name: S3_USE_HTTPS
+            value: "0"
+          - name: S3_VERIFY_SSL
+            value: "0"

@@ -1,0 +1,6 @@
+FROM golang:1.8.3
+
+ADD server-controller /go/bin/
+ADD resources /go/bin/resources/
+WORKDIR /go/bin
+CMD server-controller
