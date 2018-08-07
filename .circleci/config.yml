@@ -1,0 +1,15 @@
+version: 2.0
+
+jobs:
+  build:
+    docker:
+      - image: circleci/python:3.6.6-jessie-browsers
+    steps:
+      - run: 
+          command: | 
+            echo "update to circleci 2"
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - build
