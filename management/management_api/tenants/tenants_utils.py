@@ -11,7 +11,7 @@ from kubernetes.client.rest import ApiException
 from retrying import retry
 
 from management_api.config import CERT_SECRET_NAME, api_instance, \
-    minio_resource
+    minio_resource, minio_client
 from management_api.utils.logger import get_logger
 
 
