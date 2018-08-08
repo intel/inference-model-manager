@@ -7,3 +7,4 @@ botocore
 cryptography
 flake8
 retrying
+pytest

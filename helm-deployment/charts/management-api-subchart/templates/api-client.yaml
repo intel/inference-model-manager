@@ -9,6 +9,9 @@ rules:
 - apiGroups: [""]
   resources: ["secrets"]
   verbs: ["create", "list", "get"]
+- apiGroups: [""]
+  resources: ["resourcequotas"]
+  verbs: ["create", "list", "get"]
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1

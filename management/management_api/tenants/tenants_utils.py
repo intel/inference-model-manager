@@ -1,6 +1,7 @@
 import falcon
 import json
 import base64
+import re
 
 from botocore.exceptions import ClientError
 from cryptography import x509
@@ -10,7 +11,7 @@ from kubernetes.client.rest import ApiException
 from retrying import retry
 
 from management_api.config import CERT_SECRET_NAME, api_instance, \
-    minio_client, minio_resource
+    minio_resource
 from management_api.utils.logger import get_logger
 
 
@@ -37,16 +38,31 @@ def get_params(body):
         name = body['name']
         cert = body['cert']
         scope = body['scope']
+        quota = body['quota']
     except KeyError as keyError:
         logger.error('{} parameter required'.format(keyError))
         raise falcon.HTTPBadRequest('{} parameter required'.format(keyError))
-    logger.info('Creating new tenant: name={}, cert={}, scope={}'
-                .format(name, cert, scope))
-    return name, cert, scope
+    return name, cert, scope, quota
 
 
-def create_namespace(name):
-    name_object = client.V1ObjectMeta(name=name)
+def create_tenant(name, cert, scope, quota):
+    logger.info('Creating new tenant: name={}, cert={}, scope={}, quota={}'
+                .format(name, cert, scope, quota)) 
+    if is_cert_valid(cert):
+            validate_quota(quota)
+            create_namespace(name, quota)
+            create_bucket(minio_client, name)
+            create_secret(name, cert)
+            create_resource_quota(name, quota)
+    return True
+
+
+def create_namespace(name, quota):
+    if 'maxEndpoints' in quota:
+        name_object = client.V1ObjectMeta(name=name,
+                                          annotations={'maxEndpoints': quota.pop('maxEndpoints')})
+    else:
+        name_object = client.V1ObjectMeta(name=name)
     namespace = client.V1Namespace(metadata=name_object)
     try:
         response = api_instance.create_namespace(namespace)
@@ -79,7 +95,7 @@ def create_bucket(minio_client, name):
                                     'creation: {}'.format(e))
     finally:
         if error_occurred:
-            delete_namespace(api_instance, name)
+            delete_namespace(name)
     logger.info('Bucket created: {}'.format(response))
     return response
 
@@ -111,11 +127,64 @@ def create_secret(name, cert):
                                                          body=cert_secret)
     except ApiException as apiException:
         delete_bucket(minio_resource, name)
-        delete_namespace(api_instance, name)
+        delete_namespace(name)
         logger.error('Did not create secret: {}'.format(apiException))
         raise falcon.HTTPBadRequest('Did not create secret: {}'
                                     .format(apiException))
     logger.info('Secret {} created'.format(CERT_SECRET_NAME))
+    return response
+
+
+def validate_quota(quota):
+    int_keys = ['maxEndpoints', 'requests.cpu', 'limits.cpu']
+    alpha_keys = ['requests.memory', 'limits.memory']
+    regex_k8s = '^([+]?[0-9.]+)([eEinumkKMGTP]*[+]?[0-9]*)$'
+
+    test_quota = dict(quota)
+    for key, value in quota.items():
+        if key in int_keys:
+            if not value.isdigit() > 0:
+                logger.error('Invalid value {} of {} field: '
+                             'must be integer greater than or equal to 0'.format(value, key))
+                raise falcon.HTTPBadRequest('Invalid value {} of {} field: '
+                             'must be integer greater than or equal to 0'.format(value, key))
+            test_quota.pop(key)
+        if key in alpha_keys:
+            if not re.match(regex_k8s, value):
+                logger.error('Invalid value {} of {} field. '
+                             'Please provide value that matches Kubernetes convention. '
+                             'Some example values: '
+                             '\'1Gi\', \'200Mi\', \'300m\''.format(value, key))
+                raise falcon.HTTPBadRequest('Invalid value {} of {} field. '
+                             'Please provide value that matches Kubernetes convention. '
+                             'Some example values: '
+                             '\'1Gi\', \'200Mi\', \'300m\''.format(value, key))
+            test_quota.pop(key)
+
+    if test_quota:
+        logger.info("There's some redundant values provided that won't be used:")
+        for key, value in test_quota.items():
+            logger.info(key + ": " + value)
+            quota.pop(key)
+    logger.info('Resource quota {} is valid'.format(quota))
+    return True
+
+
+def create_resource_quota(name, quota):
+    name_object = client.V1ObjectMeta(name=name)
+    resource_quota_spec = client.V1ResourceQuotaSpec(hard=quota)
+    body = client.V1ResourceQuota(spec=resource_quota_spec, metadata=name_object)
+
+    try:
+        response = api_instance.create_namespaced_resource_quota(name, body)
+        logger.info("Resource quota {} created".format(quota))
+    except ApiException as apiException:
+        delete_bucket(minio_resource, name)
+        delete_namespace(name)
+        logger.error("Resource quota not created: {}".format(apiException))
+        raise falcon.HTTPError(status=falcon.HTTP_400,
+                               description='An error occured during resource quota creation: {}'
+                               .format(apiException))
     return response
 
 
@@ -149,3 +218,4 @@ def delete_namespace(name):
                                     'deletion: {}'.format(apiException))
     logger.info('Namespace {} deleted'.format(name))
     return response
+

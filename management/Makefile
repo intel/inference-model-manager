@@ -27,6 +27,6 @@ push:
 	gcloud docker -- push gcr.io/constant-cubist-173123/$(IMAGE)-$(TAG)
 
 style:
-	flake8 --max-line-length 81
+	flake8 --max-line-length 100
 
 
