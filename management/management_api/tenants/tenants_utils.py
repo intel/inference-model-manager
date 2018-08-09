@@ -1,12 +1,8 @@
 import falcon
 import json
-import base64
-import binascii
-import re
 
+import re
 from botocore.exceptions import ClientError
-from cryptography import x509
-from cryptography.hazmat.backends import default_backend
 from kubernetes import client
 from kubernetes.client.rest import ApiException
 from retrying import retry
@@ -14,6 +10,7 @@ from retrying import retry
 from management_api.config import CERT_SECRET_NAME, PORTABLE_SECRETS_PATHS,\
     api_instance, minio_client, minio_resource
 from management_api.utils.logger import get_logger
+from management_api.utils.cert import validate_cert
 
 
 logger = get_logger(__name__)
@@ -68,9 +65,9 @@ def validate_tenant_name(name):
                      'and must start and end with an alphanumeric character '
                      '(e.g. \'my-name\', or \'123-abc\')'.format(name))
         raise falcon.HTTPBadRequest('Tenant name {} is not valid: must consist of '
-                     'lower case alphanumeric characters or \'-\', '
-                     'and must start and end with an alphanumeric character '
-                     '(e.g. \'my-name\', or \'123-abc\')'.format(name))
+                                    'lower case alphanumeric characters or \'-\', '
+                                    'and must start and end with an alphanumeric character '
+                                    '(e.g. \'my-name\', or \'123-abc\')'.format(name))
     if len(name) < 3:
         logger.error('Tenant name {} is not valid: too short'.format(name))
         raise falcon.HTTPBadRequest('Tenant name {} is not valid: '
@@ -126,27 +123,6 @@ def create_bucket(minio_client, name):
     return response
 
 
-def validate_cert(cert):
-    try:
-        pem_data = base64.b64decode(cert, validate=True)
-        x509.load_pem_x509_certificate(pem_data, default_backend())
-    except binascii.Error:
-        logger.error('Incorrect certificate data in request body. '
-                     'Base64 decoding failure.')
-        raise falcon.HTTPBadRequest('Incorrect certificate data in request body'
-                                    '. Base64 decoding failure.')
-    except ValueError:
-        logger.error('Incorrect certificate format')
-        raise falcon.HTTPBadRequest('Incorrect certificate format')
-    except Exception as e:
-        logger.error('An error occurred during certificate validation:'
-                     ' {}'.format(e))
-        raise falcon.HTTPBadRequest('An error occurred during certificate '
-                                    'validation: {}'.format(e))
-    logger.info('Initial certificate validation succeeded')
-    return True
-
-
 def create_secret(name, cert):
     cert_secret_metadata = client.V1ObjectMeta(name=CERT_SECRET_NAME)
     cert_secret_data = {"ca.crt": cert}
@@ -183,7 +159,8 @@ def validate_quota(quota):
                 logger.error('Invalid value {} of {} field: '
                              'must be integer greater than or equal to 0'.format(value, key))
                 raise falcon.HTTPBadRequest('Invalid value {} of {} field: '
-                             'must be integer greater than or equal to 0'.format(value, key))
+                                            'must be integer greater than or equal to 0'.
+                                            format(value, key))
             test_quota.pop(key)
         if key in alpha_keys:
             if not re.match(regex_k8s, value):
@@ -192,9 +169,9 @@ def validate_quota(quota):
                              'Some example values: '
                              '\'1Gi\', \'200Mi\', \'300m\''.format(value, key))
                 raise falcon.HTTPBadRequest('Invalid value {} of {} field. '
-                             'Please provide value that matches Kubernetes convention. '
-                             'Some example values: '
-                             '\'1Gi\', \'200Mi\', \'300m\''.format(value, key))
+                                            'Please provide value that matches '
+                                            'Kubernetes convention. Some example values: '
+                                            '\'1Gi\', \'200Mi\', \'300m\''.format(value, key))
             test_quota.pop(key)
 
     if test_quota:
@@ -286,4 +263,3 @@ def portable_secrets_propagation(target_namespace):
 
     logger.info(
         'Portable secrets copied from default to {}'.format(target_namespace))
-

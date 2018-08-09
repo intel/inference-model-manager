@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import find_packages, setup
 
 setup(
     name='management-api',
@@ -7,11 +7,12 @@ setup(
     long_description="""Management API""",
     keywords='',
     author_email='',
-    packages=['management_api'],
+    packages=find_packages(exclude=['ez_setup']),
     include_package_data=True,
     zip_safe=False,
     install_requires=["falcon", "kubernetes", "jsonschema", "requests",
-                      "boto3", "botocore", "cryptography", "retrying"],
+                      "boto3", "botocore", "cryptography", "retrying",
+                      "gevent", "gunicorn"],
     entry_points={
         'console_scripts': [
             'management_api = management_api.main:main',

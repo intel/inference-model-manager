@@ -1,6 +1,8 @@
 import falcon
 
-from management_api.tenants.tenants_utils import get_body, get_params, create_tenant
+
+from management_api.tenants.tenants_utils import get_body, get_params, \
+    create_tenant
 
 
 class Tenants(object):

@@ -1,4 +1,4 @@
-from wsgiref import simple_server
+from gevent import pywsgi
 
 import falcon
 from management_api.config import HOSTNAME, PORT
@@ -28,13 +28,13 @@ class AuthMiddleware(object):
         return True
 
 
+app = falcon.API(middleware=[AuthMiddleware()])
+register_routes(app)
+
+
 def main():
-    app = falcon.API(middleware=[AuthMiddleware()])
-    register_routes(app)
-    hostname = HOSTNAME
-    port = PORT
-    httpd = simple_server.make_server(hostname, port, app)
-    httpd.serve_forever()
+    pywsgi.WSGIServer((HOSTNAME, PORT),
+                      app).serve_forever()
 
 
 if __name__ == '__main__':
