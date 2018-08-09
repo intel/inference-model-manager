@@ -12,7 +12,8 @@ MINIO_ENDPOINT_ADDR = os.getenv('MINIO_ENDPOINT_ADDR', 'http://127.0.0.1:9000')
 MINIO_REGION = 'us-east-1'
 SIGNATURE_VERSION = 's3v4'
 
-CERT_SECRET_NAME = "ca-cert-secret"
+CERT_SECRET_NAME = 'ca-cert-secret'
+PORTABLE_SECRETS_PATHS = ['default/minio-access-info', 'default/tls-secret']
 
 try:
     configuration = config.load_kube_config()

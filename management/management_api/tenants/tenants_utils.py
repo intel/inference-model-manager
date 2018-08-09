@@ -1,6 +1,7 @@
 import falcon
 import json
 import base64
+import binascii
 import re
 
 from botocore.exceptions import ClientError
@@ -10,8 +11,8 @@ from kubernetes import client
 from kubernetes.client.rest import ApiException
 from retrying import retry
 
-from management_api.config import CERT_SECRET_NAME, api_instance, \
-    minio_resource, minio_client
+from management_api.config import CERT_SECRET_NAME, PORTABLE_SECRETS_PATHS,\
+    api_instance, minio_client, minio_resource
 from management_api.utils.logger import get_logger
 
 
@@ -47,14 +48,16 @@ def get_params(body):
 
 def create_tenant(name, cert, scope, quota):
     logger.info('Creating new tenant: name={}, cert={}, scope={}, quota={}'
-                .format(name, cert, scope, quota)) 
+                .format(name, cert, scope, quota))
     validate_cert(cert)
     validate_tenant_name(name)
     validate_quota(quota)
     create_namespace(name, quota)
+    portable_secrets_propagation(target_namespace=name)
     create_bucket(minio_client, name)
     create_secret(name, cert)
     create_resource_quota(name, quota)
+    logger.info('Tenant {} created'.format(name))
 
 
 def validate_tenant_name(name):
@@ -77,7 +80,7 @@ def validate_tenant_name(name):
         logger.error('Tenant name {} is not valid: too long'.format(name))
         raise falcon.HTTPBadRequest('Tenant name {} is not valid: '
                                     'too long. Provide a tenant name '
-                                    'which is max 63 character long'.format(name)) 
+                                    'which is max 63 character long'.format(name))
 
 
 def create_namespace(name, quota):
@@ -119,15 +122,15 @@ def create_bucket(minio_client, name):
     finally:
         if error_occurred:
             delete_namespace(name)
-    logger.info('Bucket created: {}'.format(response))
+    logger.info('Bucket {} created'.format(name))
     return response
 
 
 def validate_cert(cert):
     try:
-        pem_data = base64.b64decode(cert)
+        pem_data = base64.b64decode(cert, validate=True)
         x509.load_pem_x509_certificate(pem_data, default_backend())
-    except TypeError:
+    except binascii.Error:
         logger.error('Incorrect certificate data in request body. '
                      'Base64 decoding failure.')
         raise falcon.HTTPBadRequest('Incorrect certificate data in request body'
@@ -135,6 +138,11 @@ def validate_cert(cert):
     except ValueError:
         logger.error('Incorrect certificate format')
         raise falcon.HTTPBadRequest('Incorrect certificate format')
+    except Exception as e:
+        logger.error('An error occurred during certificate validation:'
+                     ' {}'.format(e))
+        raise falcon.HTTPBadRequest('An error occurred during certificate '
+                                    'validation: {}'.format(e))
     logger.info('Initial certificate validation succeeded')
     return True
 
@@ -149,11 +157,16 @@ def create_secret(name, cert):
         response = api_instance.create_namespaced_secret(namespace=name,
                                                          body=cert_secret)
     except ApiException as apiException:
-        delete_bucket(minio_resource, name)
+        delete_bucket(name)
         delete_namespace(name)
         logger.error('Did not create secret: {}'.format(apiException))
         raise falcon.HTTPBadRequest('Did not create secret: {}'
                                     .format(apiException))
+    except Exception as e:
+        logger.error('An error occurred during secret creation:'
+                     ' {}'.format(e))
+        raise falcon.HTTPBadRequest('An error occurred during secret '
+                                    'creation: {}'.format(e))
     logger.info('Secret {} created'.format(CERT_SECRET_NAME))
     return response
 
@@ -202,7 +215,7 @@ def create_resource_quota(name, quota):
         response = api_instance.create_namespaced_resource_quota(name, body)
         logger.info("Resource quota {} created".format(quota))
     except ApiException as apiException:
-        delete_bucket(minio_resource, name)
+        delete_bucket(name)
         delete_namespace(name)
         logger.error("Resource quota not created: {}".format(apiException))
         raise falcon.HTTPError(status=falcon.HTTP_400,
@@ -241,4 +254,36 @@ def delete_namespace(name):
                                     'deletion: {}'.format(apiException))
     logger.info('Namespace {} deleted'.format(name))
     return response
+
+
+def propagate_secret(source_secret_path, target_namespace):
+    source_secret_namespace, source_secret_name = source_secret_path.split('/')
+    try:
+        source_secret = api_instance.read_namespaced_secret(
+            source_secret_name, source_secret_namespace)
+    except ApiException as apiException:
+        logger.error('Error reading secret to propagate: {}'.format(
+            apiException))
+        raise falcon.HTTPBadRequest(
+            'Error reading secret to propagate:'.format(apiException))
+
+    source_secret.metadata.namespace = target_namespace
+    source_secret.metadata.resource_version = None
+
+    try:
+        api_instance.create_namespaced_secret(namespace=target_namespace,
+                                              body=source_secret)
+    except ApiException as apiException:
+        logger.error('Error creating propagated secret in new ''namespace: {}'
+                     .format(apiException))
+        raise falcon.HTTPBadRequest(
+            'Error creating propagated secret in new namespace: {}'.format(apiException))
+
+
+def portable_secrets_propagation(target_namespace):
+    for portable_secret_path in PORTABLE_SECRETS_PATHS:
+        propagate_secret(portable_secret_path, target_namespace)
+
+    logger.info(
+        'Portable secrets copied from default to {}'.format(target_namespace))
 
