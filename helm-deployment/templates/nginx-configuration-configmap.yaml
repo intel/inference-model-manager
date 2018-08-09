@@ -5,5 +5,3 @@ metadata:
   namespace: ingress-nginx
   labels:
     app: ingress-nginx
-data:
-  domain-name: "serving-service.com"

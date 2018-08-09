@@ -51,5 +51,6 @@ minio:
 global:
   accessKey: *accessKey
   secretKey: *secretKey
+  platformDomain: "serving-service.com"
 tf-serving-subchart:
   enabled: true

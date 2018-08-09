@@ -59,6 +59,12 @@ spec:
         - -c
         args:
         - /go/bin/server-controller
+        env:
+          - name: PLATFORM_DOMAIN
+            valueFrom:
+              configMapKeyRef:
+                name: platform-domain
+                key: platform.domain
 ---
 apiVersion: v1
 kind: Service

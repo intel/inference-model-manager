@@ -1,10 +1,10 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: "{{.Spec.ModelName}}-{{.Spec.ModelVersion}}"
+  name: "{{.Spec.ModelName}}-{{.Spec.ModelVersion}}-{{.Spec.EndpointName}}"
   namespace: "{{.ObjectMeta.Namespace}}"
   labels:
-    id: "{{.Spec.ModelName}}-{{.Spec.ModelVersion}}"
+    id: "{{.Spec.ModelName}}-{{.Spec.ModelVersion}}-{{.Spec.EndpointName}}"
     endpoint: "{{.Spec.EndpointName}}"
   ownerReferences:
   - apiVersion: {{.APIVersion}}

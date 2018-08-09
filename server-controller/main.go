@@ -21,6 +21,8 @@ import (
 	"context"
 	"flag"
 	"time"
+	"os"
+	"errors"
 
 	apiv1 "k8s.io/api/core/v1"
 	extv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -46,6 +48,10 @@ func main() {
 	deploymentTemplateFile := flag.String("deploymentFile", "./resources/deployment.tmpl", "Path to a deployment file")
 	serviceTemplateFile := flag.String("serviceFile", "./resources/service.tmpl", "Path to a service file")
 	ingressTemplateFile := flag.String("ingressFile", "./resources/ingress.tmpl", "Path to an ingress file")
+	platformDomain, ok := os.LookupEnv("PLATFORM_DOMAIN")
+	if !ok {
+		panic(errors.New("PLATFORM_DOMAIN environment variable not set. Controller unable to start."))
+	}
 	flag.Parse()
 
 	// Create the client config. Use kubeconfig if given, otherwise assume
@@ -97,6 +103,7 @@ func main() {
 	}
 
 	globalTemplateValues := resource.GlobalTemplateValues{}
+	globalTemplateValues["platformDomain"] = platformDomain
 	deploymentClient := resource.NewDeploymentClient(globalTemplateValues, k8sclientset, *deploymentTemplateFile)
 	serviceClient := resource.NewServiceClient(globalTemplateValues, k8sclientset, *serviceTemplateFile)
 	ingressClient := resource.NewIngressClient(globalTemplateValues, k8sclientset, *ingressTemplateFile)

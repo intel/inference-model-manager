@@ -5,5 +5,5 @@ metadata:
 spec:
   modelName: "jrozansk"
   modelVersion: 1
-  subjectName: "serving.intel.com"
+  subjectName: "client"
   endpointName: "classification"
