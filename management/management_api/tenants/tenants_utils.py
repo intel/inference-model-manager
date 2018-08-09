@@ -123,7 +123,6 @@ def create_bucket(minio_client, name):
     return response
 
 
-
 def create_secret(name, cert):
     cert_secret_metadata = client.V1ObjectMeta(name=CERT_SECRET_NAME)
     cert_secret_data = {"ca.crt": cert}
@@ -160,7 +159,8 @@ def validate_quota(quota):
                 logger.error('Invalid value {} of {} field: '
                              'must be integer greater than or equal to 0'.format(value, key))
                 raise falcon.HTTPBadRequest('Invalid value {} of {} field: '
-                                            'must be integer greater than or equal to 0'.format(value, key))
+                                            'must be integer greater than or equal to 0'.
+                                            format(value, key))
             test_quota.pop(key)
         if key in alpha_keys:
             if not re.match(regex_k8s, value):
@@ -169,8 +169,8 @@ def validate_quota(quota):
                              'Some example values: '
                              '\'1Gi\', \'200Mi\', \'300m\''.format(value, key))
                 raise falcon.HTTPBadRequest('Invalid value {} of {} field. '
-                                            'Please provide value that matches Kubernetes convention. '
-                                            'Some example values: '
+                                            'Please provide value that matches '
+                                            'Kubernetes convention. Some example values: '
                                             '\'1Gi\', \'200Mi\', \'300m\''.format(value, key))
             test_quota.pop(key)
 
