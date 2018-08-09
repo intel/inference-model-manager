@@ -55,7 +55,6 @@ def create_tenant(name, cert, scope, quota):
     create_bucket(minio_client, name)
     create_secret(name, cert)
     create_resource_quota(name, quota)
-    return True
 
 
 def validate_tenant_name(name):
@@ -79,8 +78,6 @@ def validate_tenant_name(name):
         raise falcon.HTTPBadRequest('Tenant name {} is not valid: '
                                     'too long. Provide a tenant name '
                                     'which is max 63 character long'.format(name)) 
-
-    return True
 
 
 def create_namespace(name, quota):

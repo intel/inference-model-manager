@@ -7,13 +7,13 @@ import pytest
 from tensorflow_serving.apis import predict_pb2
 from tensorflow_serving.apis import prediction_service_pb2
 
-import classes
-from config import HOST_NAME, HOST_PORT
+from utils import classes
+from conftest import TFSERVING_HOST_NAME, TFSERVING_HOST_PORT
 
 
-IMAGES = numpy.load("images.npy")[:2]
+IMAGES = numpy.load("utils/images.npy")[:2]
 IMAGE = numpy.expand_dims(IMAGES[0], axis=0)
-LABELS = numpy.load("labels.npy")[:2]
+LABELS = numpy.load("utils/labels.npy")[:2]
 LABEL = LABELS[0]
 
 
@@ -31,7 +31,7 @@ def prepare_certs(server_cert=None, client_key=None, client_ca=None):
 
 
 def prepare_stub_and_request(creds):
-    channel = implementations.secure_channel(HOST_NAME, HOST_PORT, creds)
+    channel = implementations.secure_channel(TFSERVING_HOST_NAME, TFSERVING_HOST_PORT, creds)
     stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
     request = predict_pb2.PredictRequest()
     request.model_spec.name = 'resnet'
@@ -39,7 +39,7 @@ def prepare_stub_and_request(creds):
 
 
 def test_prediction_with_certificates():
-    trusted_cert, trusted_key, trusted_ca = prepare_certs('server.crt', 'client.key', 'ca.crt')
+    trusted_cert, trusted_key, trusted_ca = prepare_certs('utils/certs/server.crt', 'utils/certs/client.key', 'utils/certs/ca.crt')
     creds = implementations.ssl_channel_credentials(root_certificates=trusted_cert, private_key=trusted_key, certificate_chain=trusted_ca)
     stub, request = prepare_stub_and_request(creds)
 
@@ -62,7 +62,7 @@ def test_prediction_with_certificates():
 
 
 def test_prediction_batch_with_certificates():
-    trusted_cert, trusted_key, trusted_ca = prepare_certs('server.crt', 'client.key', 'ca.crt')
+    trusted_cert, trusted_key, trusted_ca = prepare_certs('utils/certs/server.crt', 'utils/certs/client.key', 'utils/certs/ca.crt')
     creds = implementations.ssl_channel_credentials(root_certificates=trusted_cert, private_key=trusted_key, certificate_chain=trusted_ca)
     stub, request = prepare_stub_and_request(creds)
 
@@ -91,7 +91,7 @@ def test_prediction_batch_with_certificates():
 
 
 def test_wrong_certificates():
-    trusted_cert, wrong_key, wrong_ca = prepare_certs('server.crt', 'wrong-client.key', 'wrong-ca.crt')
+    trusted_cert, wrong_key, wrong_ca = prepare_certs('utils/certs/server.crt', 'utils/certs/wrong-client.key', 'utils/certs/wrong-ca.crt')
     creds = implementations.ssl_channel_credentials(root_certificates=trusted_cert, private_key=wrong_key, certificate_chain=wrong_ca)
     stub, request = prepare_stub_and_request(creds)
 
@@ -108,7 +108,7 @@ def test_wrong_certificates():
 
 
 def test_no_certificates():
-    trusted_cert, _, _ = prepare_certs('server.crt')
+    trusted_cert, _, _ = prepare_certs('utils/certs/server.crt')
     creds = implementations.ssl_channel_credentials(root_certificates=trusted_cert)
     stub, request = prepare_stub_and_request(creds)
 
