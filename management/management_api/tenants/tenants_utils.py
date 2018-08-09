@@ -48,12 +48,38 @@ def get_params(body):
 def create_tenant(name, cert, scope, quota):
     logger.info('Creating new tenant: name={}, cert={}, scope={}, quota={}'
                 .format(name, cert, scope, quota)) 
-    if is_cert_valid(cert):
-            validate_quota(quota)
-            create_namespace(name, quota)
-            create_bucket(minio_client, name)
-            create_secret(name, cert)
-            create_resource_quota(name, quota)
+    validate_cert(cert)
+    validate_tenant_name(name)
+    validate_quota(quota)
+    create_namespace(name, quota)
+    create_bucket(minio_client, name)
+    create_secret(name, cert)
+    create_resource_quota(name, quota)
+    return True
+
+
+def validate_tenant_name(name):
+    regex_k8s = '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+    if not re.match(regex_k8s, name):
+        logger.error('Tenant name {} is not valid: must consist of '
+                     'lower case alphanumeric characters or \'-\', '
+                     'and must start and end with an alphanumeric character '
+                     '(e.g. \'my-name\', or \'123-abc\')'.format(name))
+        raise falcon.HTTPBadRequest('Tenant name {} is not valid: must consist of '
+                     'lower case alphanumeric characters or \'-\', '
+                     'and must start and end with an alphanumeric character '
+                     '(e.g. \'my-name\', or \'123-abc\')'.format(name))
+    if len(name) < 3:
+        logger.error('Tenant name {} is not valid: too short'.format(name))
+        raise falcon.HTTPBadRequest('Tenant name {} is not valid: '
+                                    'too short. Provide a tenant name '
+                                    'which is at least 3 character long'.format(name))
+    if len(name) > 63:
+        logger.error('Tenant name {} is not valid: too long'.format(name))
+        raise falcon.HTTPBadRequest('Tenant name {} is not valid: '
+                                    'too long. Provide a tenant name '
+                                    'which is max 63 character long'.format(name)) 
+
     return True
 
 
@@ -100,7 +126,7 @@ def create_bucket(minio_client, name):
     return response
 
 
-def is_cert_valid(cert):
+def validate_cert(cert):
     try:
         pem_data = base64.b64decode(cert)
         x509.load_pem_x509_certificate(pem_data, default_backend())
