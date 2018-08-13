@@ -1,5 +1,4 @@
 import falcon
-import json
 
 import re
 from botocore.exceptions import ClientError
@@ -11,41 +10,24 @@ from management_api.config import CERT_SECRET_NAME, PORTABLE_SECRETS_PATHS,\
     api_instance, minio_client, minio_resource
 from management_api.utils.logger import get_logger
 from management_api.utils.cert import validate_cert
+from management_api.utils.kubernetes_resources import validate_quota
 
 
 logger = get_logger(__name__)
 
 
-def get_body(req):
-    try:
-        body = json.loads(req.stream.read().decode("utf-8"))
-    except IOError as ie:
-        logger.error('Request body is not a proper json: {}'.format(ie))
-        raise falcon.HTTPBadRequest('Request body is not a proper json: {}'
-                                    .format(ie))
-    except Exception as e:
-        logger.error('Error occurred during decoding request body: {}'
-                     .format(e))
-        raise falcon.HTTPBadRequest('Error occurred during decoding request '
-                                    'body: {}'.format(e))
-    return body
+CREATE_TENANT_REQUIRED_PARAMETERS = ['name', 'cert', 'scope', 'quota']
 
 
-def get_params(body):
-    try:
-        name = body['name']
-        cert = body['cert']
-        scope = body['scope']
-        quota = body['quota']
-    except KeyError as keyError:
-        logger.error('{} parameter required'.format(keyError))
-        raise falcon.HTTPBadRequest('{} parameter required'.format(keyError))
-    return name, cert, scope, quota
+def create_tenant(parameters):
+    name = parameters['name']
+    cert = parameters['cert']
+    scope = parameters['scope']
+    quota = parameters['quota']
 
-
-def create_tenant(name, cert, scope, quota):
-    logger.info('Creating new tenant: name={}, cert={}, scope={}, quota={}'
+    logger.info('Creating new tenant: {}'
                 .format(name, cert, scope, quota))
+
     validate_cert(cert)
     validate_tenant_name(name)
     validate_quota(quota)
@@ -145,42 +127,6 @@ def create_secret(name, cert):
                                     'creation: {}'.format(e))
     logger.info('Secret {} created'.format(CERT_SECRET_NAME))
     return response
-
-
-def validate_quota(quota):
-    int_keys = ['maxEndpoints', 'requests.cpu', 'limits.cpu']
-    alpha_keys = ['requests.memory', 'limits.memory']
-    regex_k8s = '^([+]?[0-9.]+)([eEinumkKMGTP]*[+]?[0-9]*)$'
-
-    test_quota = dict(quota)
-    for key, value in quota.items():
-        if key in int_keys:
-            if not value.isdigit() > 0:
-                logger.error('Invalid value {} of {} field: '
-                             'must be integer greater than or equal to 0'.format(value, key))
-                raise falcon.HTTPBadRequest('Invalid value {} of {} field: '
-                                            'must be integer greater than or equal to 0'.
-                                            format(value, key))
-            test_quota.pop(key)
-        if key in alpha_keys:
-            if not re.match(regex_k8s, value):
-                logger.error('Invalid value {} of {} field. '
-                             'Please provide value that matches Kubernetes convention. '
-                             'Some example values: '
-                             '\'1Gi\', \'200Mi\', \'300m\''.format(value, key))
-                raise falcon.HTTPBadRequest('Invalid value {} of {} field. '
-                                            'Please provide value that matches '
-                                            'Kubernetes convention. Some example values: '
-                                            '\'1Gi\', \'200Mi\', \'300m\''.format(value, key))
-            test_quota.pop(key)
-
-    if test_quota:
-        logger.info("There's some redundant values provided that won't be used:")
-        for key, value in test_quota.items():
-            logger.info(key + ": " + value)
-            quota.pop(key)
-    logger.info('Resource quota {} is valid'.format(quota))
-    return True
 
 
 def create_resource_quota(name, quota):

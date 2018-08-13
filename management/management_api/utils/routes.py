@@ -1,7 +1,9 @@
 from management_api.tenants.tenants import Tenants
+from management_api.endpoints.endpoints import Endpoints
 
 routes = [
-    dict(resource=Tenants(), url='/tenants')
+    dict(resource=Tenants(), url='/tenants'),
+    dict(resource=Endpoints(), url='/endpoint')
 ]
 
 

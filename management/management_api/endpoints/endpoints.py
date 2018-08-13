@@ -1,2 +1,35 @@
+import falcon
+
+from management_api.utils.parse_request import get_body, get_params
+from management_api.endpoints.endpoint_utils import CREATE_ENDPOINT_REQUIRED_PARAMETERS, \
+    create_endpoint, delete_endpoint, create_url_to_service, DELETE_ENDPOINT_REQUIRED_PARAMETERS, \
+    validate_params
+from management_api.utils.kubernetes_resources import validate_quota
+
+
 class Endpoints(object):
-    pass
+    def on_post(self, req, resp):
+        """Handles POST requests"""
+        # TODO This needs to be replaced with the logic to obtain namespace out of JWT token
+        namespace = req.get_header('Authorization')
+        body = get_body(req)
+        get_params(body, required_keys=CREATE_ENDPOINT_REQUIRED_PARAMETERS)
+        validate_params(params=body)
+        if 'resources' in body:
+            validate_quota(body['resources'])
+        create_endpoint(parameters=body, namespace=namespace)
+        endpoint_url = create_url_to_service(body['endpointName'], namespace=namespace)
+        resp.status = falcon.HTTP_200
+        resp.body = 'Endpoint {} created\n'.format(endpoint_url)
+
+    def on_delete(self, req, resp):
+        """Handles DELETE requests"""
+        # TODO This needs to be replaced with the logic to obtain namespace out of JWT token
+        namespace = req.get_header('Authorization')
+        body = get_body(req)
+        get_params(body, required_keys=DELETE_ENDPOINT_REQUIRED_PARAMETERS)
+        delete_endpoint(namespace=namespace, endpoint_name=body['endpointName'])
+        resp.status = falcon.HTTP_200  # This is the default status
+        resp.body = 'Delete completed'
+
+
