@@ -32,6 +32,8 @@ spec:
             secretKeyRef:
               name: minio-access-info
               key: minio.access_secret_key
+        - name: PLATFORM_DOMAIN
+          value: "{{ .Values.global.platformDomain }}"
         command:
         - /bin/sh
         - -c
