@@ -13,16 +13,3 @@ $ python3 -m venv .venv
 $ . .venv/bin/activate
 $ pip install -r requirements.txt
 ```
-
-
-
-#### Management testing
-
-* export MANAGEMENT_API_URL=http://<url>:5000/tenants
-* export MINIO_SECRET_KEY='<key>' (remember about ' chars)
-* export MINIO_ACCESS_KEY='<key>' (remember about ' chars)
-* export MINIO_ENDPOINT_ADDR=http://<minio_ip>:9000
-* pytest -v .
-
-* you can check how to get required values in get_test_envs.sh script
-

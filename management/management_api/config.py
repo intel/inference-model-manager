@@ -50,3 +50,7 @@ minio_resource = boto3.resource('s3',
                                 config=Config(
                                         signature_version=SIGNATURE_VERSION),
                                 region_name=MINIO_REGION)
+
+RESOURCE_DOES_NOT_EXIST = 404
+NAMESPACE_BEING_DELETED = 409
+NO_SUCH_BUCKET_EXCEPTION = 'NoSuchBucket'

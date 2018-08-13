@@ -18,4 +18,4 @@ class Tenants(object):
     def on_delete(self, req, resp):
         """Handles DELETE requests"""
         resp.status = falcon.HTTP_200  # This is the default status
-        resp.body = 'Delete completed'
+        resp.body = 'Delete completed\n'

@@ -1,13 +1,14 @@
 import falcon
-
 import re
+
 from botocore.exceptions import ClientError
 from kubernetes import client
 from kubernetes.client.rest import ApiException
 from retrying import retry
 
 from management_api.config import CERT_SECRET_NAME, PORTABLE_SECRETS_PATHS,\
-    api_instance, minio_client, minio_resource
+    api_instance, minio_client, minio_resource, RESOURCE_DOES_NOT_EXIST, \
+    NAMESPACE_BEING_DELETED, NO_SUCH_BUCKET_EXCEPTION
 from management_api.utils.logger import get_logger
 from management_api.utils.cert import validate_cert
 from management_api.utils.kubernetes_resources import validate_quota
@@ -31,11 +32,16 @@ def create_tenant(parameters):
     validate_cert(cert)
     validate_tenant_name(name)
     validate_quota(quota)
-    create_namespace(name, quota)
-    portable_secrets_propagation(target_namespace=name)
-    create_bucket(minio_client, name)
-    create_secret(name, cert)
-    create_resource_quota(name, quota)
+    try:
+        create_namespace(name, quota)
+        portable_secrets_propagation(target_namespace=name)
+        create_bucket(name)
+        create_secret(name, cert)
+        create_resource_quota(name, quota)
+    except falcon.HTTPError:
+        delete_namespace(name)
+        delete_bucket(name)
+        raise
     logger.info('Tenant {} created'.format(name))
 
 
@@ -73,8 +79,7 @@ def create_namespace(name, quota):
         response = api_instance.create_namespace(namespace)
     except ApiException as apiException:
         logger.error('Did not create namespace: {}'.format(apiException))
-        raise falcon.HTTPBadRequest('Did not create namespace: {}'
-                                    .format(apiException))
+        raise falcon.HTTPBadRequest('Did not create namespace: {}'.format(apiException))
     except Exception as e:
         logger.error('An error occurred during namespace creation: {}'
                      .format(e))
@@ -84,24 +89,17 @@ def create_namespace(name, quota):
     return response
 
 
-def create_bucket(minio_client, name):
-    error_occurred = False
+def create_bucket(name):
     try:
         response = minio_client.create_bucket(Bucket=name)
     except ClientError as clientError:
-        error_occurred = True
         logger.error('ClientError occurred: {}'.format(clientError))
-        raise falcon.HTTPBadRequest('ClientError occurred: {}'
-                                    .format(clientError))
+        raise falcon.HTTPBadRequest('ClientError occurred: {}'.format(clientError))
     except Exception as e:
-        error_occurred = True
         logger.error('An error occurred during bucket creation: {}'.format(e))
         raise falcon.HTTPBadRequest('An error occurred during bucket '
                                     'creation: {}'.format(e))
-    finally:
-        if error_occurred:
-            delete_namespace(name)
-    logger.info('Bucket {} created'.format(name))
+    logger.info('Bucket created: {}'.format(response))
     return response
 
 
@@ -115,8 +113,6 @@ def create_secret(name, cert):
         response = api_instance.create_namespaced_secret(namespace=name,
                                                          body=cert_secret)
     except ApiException as apiException:
-        delete_bucket(name)
-        delete_namespace(name)
         logger.error('Did not create secret: {}'.format(apiException))
         raise falcon.HTTPBadRequest('Did not create secret: {}'
                                     .format(apiException))
@@ -138,26 +134,26 @@ def create_resource_quota(name, quota):
         response = api_instance.create_namespaced_resource_quota(name, body)
         logger.info("Resource quota {} created".format(quota))
     except ApiException as apiException:
-        delete_bucket(name)
-        delete_namespace(name)
         logger.error("Resource quota not created: {}".format(apiException))
-        raise falcon.HTTPError(status=falcon.HTTP_400,
-                               description='An error occured during resource quota creation: {}'
-                               .format(apiException))
+        raise falcon.HTTPBadRequest('An error occurred during resource quota creation: {}'.format(
+                apiException))
+    except Exception as e:
+        logger.error('Error occurred: {}'.format(e))
+        raise falcon.HTTPBadRequest('Error occurred: {}'.format(e))
     return response
 
 
 @retry(stop_max_attempt_number=5, wait_fixed=2000)
 def delete_bucket(name):
+    response = 'Bucket {} does not exist'.format(name)
     try:
         bucket = minio_resource.Bucket(name)
         bucket.objects.all().delete()
         response = bucket.delete()
     except ClientError as clientError:
-        error_code = int(clientError.response['Error']['Code'])
         logger.error('Error occurred during bucket deletion: {}'.
                      format(clientError))
-        if error_code != 404:
+        if clientError.response['Error']['Code'] != NO_SUCH_BUCKET_EXCEPTION:
             raise falcon.HTTPBadRequest('Error occurred during bucket '
                                         'deletion: {}'.format(clientError))
     logger.info('Bucket {} deleted'.format(name))
@@ -168,13 +164,13 @@ def delete_bucket(name):
 def delete_namespace(name):
     body = client.V1DeleteOptions()
     try:
-        response = api_instance.delete_namespace(name, body,
-                                                 propagation_policy='Background')
+        response = api_instance.delete_namespace(name, body)
     except ApiException as apiException:
-        logger.error('Error occurred during namespace deletion: {}'.
-                     format(apiException))
-        raise falcon.HTTPBadRequest('Error occurred during namespace '
-                                    'deletion: {}'.format(apiException))
+        if apiException.status != RESOURCE_DOES_NOT_EXIST and \
+                        apiException.status != NAMESPACE_BEING_DELETED:
+            logger.error('Error occurred during namespace deletion: {}'.format(apiException.status))
+            raise falcon.HTTPBadRequest('Error occurred during namespace deletion: {}'
+                                        .format(apiException))
     logger.info('Namespace {} deleted'.format(name))
     return response
 
@@ -205,7 +201,8 @@ def propagate_secret(source_secret_path, target_namespace):
 
 def portable_secrets_propagation(target_namespace):
     for portable_secret_path in PORTABLE_SECRETS_PATHS:
-        propagate_secret(portable_secret_path, target_namespace)
-
-    logger.info(
-        'Portable secrets copied from default to {}'.format(target_namespace))
+        try:
+            propagate_secret(portable_secret_path, target_namespace)
+        except Exception:
+            raise falcon.HTTPBadRequest('Error occurred on secret propagation')
+    logger.info('Portable secrets copied from default to {}'.format(target_namespace))

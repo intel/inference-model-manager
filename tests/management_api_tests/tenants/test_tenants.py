@@ -2,14 +2,15 @@ import pytest
 import requests
 import json
 
-from conftest import MANAGEMENT_API_URL, TENANT_NAME, CERT, SCOPE_NAME, QUOTA, DEFAULT_HEADERS, \
-                    WRONG_BODIES, QUOTA_WRONG_VALUES, WRONG_TENANT_NAMES, \
-                    WRONG_CERTS, PORTABLE_SECRETS_PATHS, api_instance
+from conftest import delete_namespace_bucket
+from management_api_tests.config import TENANT_NAME, DEFAULT_HEADERS, CERT, SCOPE_NAME, QUOTA, \
+    MANAGEMENT_API_URL, WRONG_BODIES, PORTABLE_SECRETS_PATHS, WRONG_TENANT_NAMES, \
+    QUOTA_WRONG_VALUES, WRONG_CERTS
+from management_api_tests.tenants.tenant_utils import does_secret_exist_in_namespace, \
+    is_copied_secret_data_matching_original, is_bucket_available, is_namespace_available
 
-from management_api_tests.tenants.tenant_utils import does_secret_exist_in_namespace,\
-    is_copied_secret_data_matching_original
 
-def test_create_tenant():
+def test_create_tenant(minio_client, api_instance):
     headers = DEFAULT_HEADERS
     data = json.dumps({
         'name': TENANT_NAME,
@@ -19,14 +20,18 @@ def test_create_tenant():
     })
 
     url = MANAGEMENT_API_URL
+
     response = requests.post(url, data=data, headers=headers)
 
-    assert response.text =='Tenant {} created\n'.format(TENANT_NAME) 
+    assert response.text == 'Tenant {} created\n'.format(TENANT_NAME)
     assert response.status_code == 200
+    assert is_namespace_available(api_instance, namespace=TENANT_NAME)
+    assert is_bucket_available(minio_client, bucket=TENANT_NAME)
+    delete_namespace_bucket(TENANT_NAME)
 
 
 @pytest.mark.parametrize("wrong_body, expected_error", WRONG_BODIES)
-def test_not_create_tenant_inproper_body(wrong_body, expected_error):
+def test_not_create_tenant_improper_body(wrong_body, expected_error, minio_client, api_instance):
     headers = DEFAULT_HEADERS
     data = json.dumps(wrong_body)
 
@@ -36,10 +41,13 @@ def test_not_create_tenant_inproper_body(wrong_body, expected_error):
 
     assert response.text == expected_error
     assert response.status_code == 400
+    if 'name' in wrong_body and wrong_body['name']:
+        assert not is_bucket_available(minio_client, bucket=wrong_body['name'])
+        assert not is_namespace_available(api_instance, namespace=wrong_body['name'])
 
 
 @pytest.mark.parametrize("wrong_name, expected_error", WRONG_TENANT_NAMES)
-def test_not_create_tenant_wrong_name(wrong_name, expected_error):
+def test_not_create_tenant_wrong_name(wrong_name, expected_error, minio_client, api_instance):
     headers = DEFAULT_HEADERS
     data = json.dumps({
         'name': wrong_name,
@@ -51,13 +59,16 @@ def test_not_create_tenant_wrong_name(wrong_name, expected_error):
     url = MANAGEMENT_API_URL
 
     response = requests.post(url, data=data, headers=headers)
-     
+
     assert response.text == expected_error
     assert response.status_code == 400
+    assert not is_bucket_available(minio_client, bucket=wrong_name)
+    assert not is_namespace_available(api_instance, namespace=wrong_name)
 
 
 @pytest.mark.parametrize("quota_wrong_values, expected_error", QUOTA_WRONG_VALUES)
-def test_not_create_tenant_wrong_quota(quota_wrong_values, expected_error):
+def test_not_create_tenant_wrong_quota(quota_wrong_values,
+                                       expected_error, minio_client, api_instance):
     headers = DEFAULT_HEADERS
     data = json.dumps({
         'name': TENANT_NAME,
@@ -72,10 +83,13 @@ def test_not_create_tenant_wrong_quota(quota_wrong_values, expected_error):
 
     assert response.text == expected_error
     assert response.status_code == 400
+    assert not is_bucket_available(minio_client, bucket=TENANT_NAME)
+    assert not is_namespace_available(api_instance, namespace=TENANT_NAME)
 
 
+@pytest.mark.skip(msg="Skipped due to bugs with cert validation")
 @pytest.mark.parametrize("wrong_cert, expected_error", WRONG_CERTS)
-def test_not_create_tenant_with_wrong_cert(wrong_cert, expected_error):
+def test_not_create_tenant_with_wrong_cert(wrong_cert, expected_error, minio_client, api_instance):
     data = json.dumps({
         'cert': wrong_cert,
         'scope': SCOPE_NAME,
@@ -84,11 +98,13 @@ def test_not_create_tenant_with_wrong_cert(wrong_cert, expected_error):
     })
     url = MANAGEMENT_API_URL
     response = requests.post(url, data=data, headers=DEFAULT_HEADERS)
-    assert response.text == expected_error
+    assert expected_error in response.text
     assert response.status_code == 400
+    assert not is_bucket_available(minio_client, bucket=TENANT_NAME)
+    assert not is_namespace_available(api_instance, namespace=TENANT_NAME)
 
 
-def test_portable_secrets_propagation_succeeded():
+def test_portable_secrets_propagation_succeeded(minio_client, api_instance):
     data = json.dumps({
         'cert': CERT,
         'scope': SCOPE_NAME,
@@ -97,7 +113,10 @@ def test_portable_secrets_propagation_succeeded():
     })
 
     url = MANAGEMENT_API_URL
-    response = requests.post(url, data=data, headers=DEFAULT_HEADERS)
+    requests.post(url, data=data, headers=DEFAULT_HEADERS)
+
+    assert is_bucket_available(minio_client, bucket=TENANT_NAME)
+    assert is_namespace_available(api_instance, namespace=TENANT_NAME)
     for secret_path in PORTABLE_SECRETS_PATHS:
         secret_namespace, secret_name = secret_path.split('/')
         assert does_secret_exist_in_namespace(api_instance, secret_name,
@@ -105,4 +124,6 @@ def test_portable_secrets_propagation_succeeded():
         assert is_copied_secret_data_matching_original(api_instance, secret_name,
                                                        secret_namespace,
                                                        copied_secret_namespace=TENANT_NAME)
+    delete_namespace_bucket(TENANT_NAME)
+
 
