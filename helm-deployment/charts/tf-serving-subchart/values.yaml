@@ -27,6 +27,7 @@ ingress:
      nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
      # Specify if certificates are passed to upstream server
      nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream: "false"
+     nginx.ingress.kubernetes.io/proxy-body-size: 8m
      allowed-values: CN=client
   tls:
      # Secrets must be manually created in the namespace.

@@ -7,14 +7,15 @@ import pytest
 from tensorflow_serving.apis import predict_pb2
 from tensorflow_serving.apis import prediction_service_pb2
 
-from utils import classes
+from tfserving_tests.utils import classes
+from tfserving_tests.utils.load_numpy import IMAGES, LABELS
 from conftest import TFSERVING_HOST_NAME, TFSERVING_HOST_PORT
 
 
-IMAGES = numpy.load("utils/images.npy")[:2]
-IMAGE = numpy.expand_dims(IMAGES[0], axis=0)
-LABELS = numpy.load("utils/labels.npy")[:2]
-LABEL = LABELS[0]
+images = IMAGES
+image = numpy.expand_dims(images[0], axis=0)
+labels = LABELS
+label = labels[0]
 
 
 def prepare_certs(server_cert=None, client_key=None, client_ca=None):
@@ -39,12 +40,12 @@ def prepare_stub_and_request(creds):
 
 
 def test_prediction_with_certificates():
-    trusted_cert, trusted_key, trusted_ca = prepare_certs('utils/certs/server.crt', 'utils/certs/client.key', 'utils/certs/ca.crt')
+    trusted_cert, trusted_key, trusted_ca = prepare_certs(
+                                            'tfserving_tests/utils/certs/server.crt', 
+                                            'tfserving_tests/utils/certs/client.key', 
+                                            'tfserving_tests/utils/certs/client.crt')
     creds = implementations.ssl_channel_credentials(root_certificates=trusted_cert, private_key=trusted_key, certificate_chain=trusted_ca)
     stub, request = prepare_stub_and_request(creds)
-
-    image = IMAGE
-    label = LABEL
 
     request.inputs['import/input_tensor'].CopyFrom(
         tf.contrib.util.make_tensor_proto(image, shape=image.shape)) 
@@ -62,12 +63,12 @@ def test_prediction_with_certificates():
 
 
 def test_prediction_batch_with_certificates():
-    trusted_cert, trusted_key, trusted_ca = prepare_certs('utils/certs/server.crt', 'utils/certs/client.key', 'utils/certs/ca.crt')
+    trusted_cert, trusted_key, trusted_ca = prepare_certs(
+                                            'tfserving_tests/utils/certs/server.crt', 
+                                            'tfserving_tests/utils/certs/client.key', 
+                                            'tfserving_tests/utils/certs/client.crt')
     creds = implementations.ssl_channel_credentials(root_certificates=trusted_cert, private_key=trusted_key, certificate_chain=trusted_ca)
     stub, request = prepare_stub_and_request(creds)
-
-    images = IMAGES
-    labels = LABELS
 
     request.inputs['import/input_tensor'].CopyFrom(
         tf.contrib.util.make_tensor_proto(images, shape=images.shape))
@@ -78,20 +79,23 @@ def test_prediction_batch_with_certificates():
     OFFSET = 1001
     max_outputs = []
 
-    for i in xrange(0, len(response), OFFSET):
+    for i in range(0, len(response), OFFSET):
         one_output = response[i:i + OFFSET]
         max_output = numpy.argmax(one_output) - 1
         max_outputs.append(max_output)
     
     for i in range(len(max_outputs)):
         label = classes.imagenet_classes[max_outputs[i]]
-        test_label = classes.imagenet_classes[LABELS[i]]
-        assert max_outputs[i] == LABELS[i]
+        test_label = classes.imagenet_classes[labels[i]]
+        assert max_outputs[i] == labels[i]
         assert label == test_label
 
 
 def test_wrong_certificates():
-    trusted_cert, wrong_key, wrong_ca = prepare_certs('utils/certs/server.crt', 'utils/certs/wrong-client.key', 'utils/certs/wrong-ca.crt')
+    trusted_cert, wrong_key, wrong_ca = prepare_certs(
+                                        'tfserving_tests/utils/certs/server.crt', 
+                                        'tfserving_tests/utils/certs/bad-client.key', 
+                                        'tfserving_tests/utils/certs/bad-client.crt')
     creds = implementations.ssl_channel_credentials(root_certificates=trusted_cert, private_key=wrong_key, certificate_chain=wrong_ca)
     stub, request = prepare_stub_and_request(creds)
 
@@ -104,11 +108,11 @@ def test_wrong_certificates():
         prediction_response = stub.Predict(request, 10.0)
 
     print(context.value.code)
-    assert context.value.details == 'Received http2 header with status: 400'
+    assert context.value.details == 'Received http2 header with status: 403'
 
 
 def test_no_certificates():
-    trusted_cert, _, _ = prepare_certs('utils/certs/server.crt')
+    trusted_cert, _, _ = prepare_certs('tfserving_tests/utils/certs/server.crt')
     creds = implementations.ssl_channel_credentials(root_certificates=trusted_cert)
     stub, request = prepare_stub_and_request(creds)
 

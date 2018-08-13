@@ -4,9 +4,9 @@ import json
 
 from conftest import MANAGEMENT_API_URL, TENANT_NAME, CERT, SCOPE_NAME, QUOTA, DEFAULT_HEADERS, \
                     WRONG_BODIES, QUOTA_WRONG_VALUES, WRONG_TENANT_NAMES, \
-    WRONG_CERTS, PORTABLE_SECRETS_PATHS, api_instance
+                    WRONG_CERTS, PORTABLE_SECRETS_PATHS, api_instance
 
-from tenant_utils import does_secret_exist_in_namespace, \
+from management_api_tests.tenants.tenant_utils import does_secret_exist_in_namespace,\
     is_copied_secret_data_matching_original
 
 def test_create_tenant():
@@ -19,8 +19,8 @@ def test_create_tenant():
     })
 
     url = MANAGEMENT_API_URL
-
     response = requests.post(url, data=data, headers=headers)
+
     assert response.text =='Tenant {} created\n'.format(TENANT_NAME) 
     assert response.status_code == 200
 

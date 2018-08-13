@@ -1,8 +1,9 @@
 import os
 from kubernetes import config, client
 
+
 # TF serving tests
-TFSERVING_HOST_NAME = os.environ.get('HOST_NAME', "serving-service.kube.cluster")
+TFSERVING_HOST_NAME = os.environ.get('HOST_NAME', "resnet.serving-service.com")
 TFSERVING_HOST_PORT = os.environ.get('HOST_PORT', 443)
 
 # Management API tests

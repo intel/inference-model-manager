@@ -1,4 +1,6 @@
 numpy
-tensorflow-serving-api
+tensorflow-serving-api==1.9
+tensorflow==1.8
 pytest
 requests
+kubernetes

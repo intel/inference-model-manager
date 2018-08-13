@@ -23,3 +23,4 @@ def is_copied_secret_data_matching_original(api_instance, secret_name,
     if original_secret.data == copied_secret.data:
         return True
     return False
+
