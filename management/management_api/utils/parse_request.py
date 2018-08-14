@@ -25,5 +25,5 @@ def get_body(req):
 def get_params(body, required_keys):
     for required_key in required_keys:
         if required_key not in body:
-            logger.error('{} parameter required'.format(required_key))
-            raise falcon.HTTPBadRequest('{} parameter required'.format(required_key))
+            logger.error("{} parameter required".format(required_key))
+            raise falcon.HTTPBadRequest("{} parameter required".format(required_key))

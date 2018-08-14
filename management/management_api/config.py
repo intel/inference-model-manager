@@ -51,6 +51,9 @@ minio_resource = boto3.resource('s3',
                                         signature_version=SIGNATURE_VERSION),
                                 region_name=MINIO_REGION)
 
+CREATE_TENANT_REQUIRED_PARAMETERS = ['name', 'cert', 'scope', 'quota']
+DELETE_TENANT_REQUIRED_PARAMETERS = ['name']
+
 RESOURCE_DOES_NOT_EXIST = 404
 NAMESPACE_BEING_DELETED = 409
 NO_SUCH_BUCKET_EXCEPTION = 'NoSuchBucket'

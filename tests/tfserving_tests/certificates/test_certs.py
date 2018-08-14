@@ -9,7 +9,7 @@ from tensorflow_serving.apis import prediction_service_pb2
 
 from tfserving_tests.utils import classes
 from tfserving_tests.utils.load_numpy import IMAGES, LABELS
-from conftest import TFSERVING_HOST_NAME, TFSERVING_HOST_PORT
+from tfserving_tests.config import TFSERVING_HOST_NAME, TFSERVING_HOST_PORT
 
 
 images = IMAGES

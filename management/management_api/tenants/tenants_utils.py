@@ -17,9 +17,6 @@ from management_api.utils.kubernetes_resources import validate_quota
 logger = get_logger(__name__)
 
 
-CREATE_TENANT_REQUIRED_PARAMETERS = ['name', 'cert', 'scope', 'quota']
-
-
 def create_tenant(parameters):
     name = parameters['name']
     cert = parameters['cert']
@@ -156,6 +153,11 @@ def delete_bucket(name):
         if clientError.response['Error']['Code'] != NO_SUCH_BUCKET_EXCEPTION:
             raise falcon.HTTPBadRequest('Error occurred during bucket '
                                         'deletion: {}'.format(clientError))
+    except Exception as e:
+        logger.error('Unexpected error occurred during bucket deletion: {}'.format(e))
+        raise falcon.HTTPBadRequest('Unexpected error occurred during bucket deletion: {}'
+                                    .format(e))
+
     logger.info('Bucket {} deleted'.format(name))
     return response
 
@@ -163,6 +165,7 @@ def delete_bucket(name):
 @retry(stop_max_attempt_number=5, wait_fixed=2000)
 def delete_namespace(name):
     body = client.V1DeleteOptions()
+    response = 'Namespace {} does not exist'.format(name)
     try:
         response = api_instance.delete_namespace(name, body)
     except ApiException as apiException:
@@ -171,8 +174,20 @@ def delete_namespace(name):
             logger.error('Error occurred during namespace deletion: {}'.format(apiException.status))
             raise falcon.HTTPBadRequest('Error occurred during namespace deletion: {}'
                                         .format(apiException))
+    except Exception as e:
+        logger.error('Error occurred during namespace deletion: {}'.format(e.status))
+        raise falcon.HTTPBadRequest('Error occurred during namespace deletion: {}'
+                                    .format(e))
     logger.info('Namespace {} deleted'.format(name))
     return response
+
+
+def delete_tenant(parameters):
+    name = parameters['name']
+    logger.info('Deleting tenant: {}'.format(name))
+    delete_bucket(name)
+    delete_namespace(name)
+    logger.info('Tenant {} deleted'.format(name))
 
 
 def propagate_secret(source_secret_path, target_namespace):

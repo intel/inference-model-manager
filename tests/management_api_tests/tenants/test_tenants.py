@@ -87,7 +87,6 @@ def test_not_create_tenant_wrong_quota(quota_wrong_values,
     assert not is_namespace_available(api_instance, namespace=TENANT_NAME)
 
 
-@pytest.mark.skip(msg="Skipped due to bugs with cert validation")
 @pytest.mark.parametrize("wrong_cert, expected_error", WRONG_CERTS)
 def test_not_create_tenant_with_wrong_cert(wrong_cert, expected_error, minio_client, api_instance):
     data = json.dumps({
@@ -127,3 +126,22 @@ def test_portable_secrets_propagation_succeeded(minio_client, api_instance):
     delete_namespace_bucket(TENANT_NAME)
 
 
+def test_delete_tenant(minio_client, api_instance):
+    url = MANAGEMENT_API_URL
+
+    data = json.dumps({
+        'cert': CERT,
+        'scope': SCOPE_NAME,
+        'name': TENANT_NAME,
+        'quota': QUOTA,
+    })
+
+    requests.post(url, data=data, headers=DEFAULT_HEADERS)
+    data = json.dumps({
+        'name': TENANT_NAME,
+    })
+    response = requests.delete(url, data=data, headers=DEFAULT_HEADERS)
+    assert response.text == 'Tenant {} deleted\n'.format(TENANT_NAME)
+    assert response.status_code == 200
+    assert not is_bucket_available(minio_client, bucket=TENANT_NAME)
+    assert not is_namespace_available(api_instance, namespace=TENANT_NAME)

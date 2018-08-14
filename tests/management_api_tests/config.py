@@ -8,11 +8,6 @@ MINIO_ENDPOINT_ADDR = os.environ.get('MINIO_ENDPOINT_ADDR', 'http://127.0.0.1:90
 MINIO_REGION = os.environ.get('MINIO_REGION', 'us-east-1')
 SIGNATURE_VERSION = 's3v4'
 
-# TF serving tests
-TFSERVING_HOST_NAME = os.environ.get('HOST_NAME', "serving-service.kube.cluster")
-TFSERVING_HOST_PORT = os.environ.get('HOST_PORT', 443)
-
-# Management API tests
 DEFAULT_HEADERS = {
     'accept': 'application/json',
     'Authorization': 'gg',
