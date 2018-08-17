@@ -1,9 +1,0 @@
-apiVersion: "intel.com/v1"
-kind: Server
-metadata:
-  name: my-super-server
-spec:
-  modelName: "jrozansk"
-  modelVersion: 1
-  subjectName: "client"
-  endpointName: "classification"
