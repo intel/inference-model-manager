@@ -4,3 +4,5 @@ tensorflow==1.8
 pytest
 requests
 kubernetes
+utils
+boto3

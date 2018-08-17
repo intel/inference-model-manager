@@ -1,2 +1,2 @@
-management:
-  image: "gcr.io/constant-cubist-173123/management-api-test"
+image: "gcr.io/constant-cubist-173123/management-api"
+tag: "latest"

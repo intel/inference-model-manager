@@ -12,7 +12,7 @@ spec:
       serviceAccountName: api-client
       containers:
       - name: management-api
-        image: {{ .Values.management.image }}
+        image: {{ .Values.image }}:{{ .Values.tag }}
         ports:
         - containerPort: 5000
         env:

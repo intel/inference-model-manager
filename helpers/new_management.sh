@@ -13,5 +13,5 @@ make build
 make tag
 make push
 kubectl create -f ~/management.yaml
-chmod +x ../tests/management_api_tests/*.sh
-chmod +x ../helpers/*
+chmod +x ../tests/*.sh
+chmod +x ../helpers/*.sh
