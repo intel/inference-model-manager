@@ -59,5 +59,11 @@ curl -X POST "http://localhost:8000/tenants" -H "accept: application/json" -H "A
 example create new endpoint
 
 ```
- curl -X POST "http://localhost:5000/endpoint" -H "accept: application/json" -H "Authorization: 'default'" -H "Content-Type: application/json" -d "{\"modelName\":\"<cert_encoded_with_base64>\", \"modelVersion\":\"<scope_name>\", \"endpointName\": \"<name>\", \"subjectName\": \"sdad\"}"
+curl -X POST "http://<management_api_address>:5000/endpoint" -H "accept: application/json" -H "Authorization: default" -H "Content-Type: application/json" -d "{\"modelName\":\"<some_model_name>\", \"modelVersion\":1, \"endpointName\": \"name\", \"subjectName\": \"sdad\"}"
+```
+
+example scale endpoint
+
+```
+curl -X PATCH "http://<management_api_address>:500/endpoint" -H "accept: application/json" -H "Authorization: default" -H "Content-Type: application/json" -d "{ \"endpointName\": \"name\", \"replicas\":<number_of_replicas>}"
 ```

@@ -18,9 +18,9 @@ PORTABLE_SECRETS_PATHS = ['default/minio-access-info', 'default/tls-secret']
 PLATFORM_DOMAIN = os.environ['PLATFORM_DOMAIN']
 
 # CRD DEFINITIONS:
-CRD_GROUP = 'intel.com' # str | The custom resource's group name
-CRD_VERSION = 'v1' # str | The custom resource's version
-CRD_PLURAL = 'servers' # str | The custom resource's plural name. For TPRs this would be lowercase plural kind.
+CRD_GROUP = 'intel.com'  # str | The custom resource's group name
+CRD_VERSION = 'v1'  # str | The custom resource's version
+CRD_PLURAL = 'servers'  # str | The custom resource's plural name. For TPRs this would be lowercase plural kind.
 CRD_API_VERSION = 'intel.com/v1'
 CRD_KIND = 'Server'
 
@@ -40,7 +40,7 @@ minio_client = boto3.client('s3',
                             aws_access_key_id=MINIO_ACCESS_KEY_ID,
                             aws_secret_access_key=MINIO_SECRET_ACCESS_KEY,
                             config=Config(
-                                    signature_version=SIGNATURE_VERSION),
+                                signature_version=SIGNATURE_VERSION),
                             region_name=MINIO_REGION)
 
 minio_resource = boto3.resource('s3',
@@ -48,12 +48,30 @@ minio_resource = boto3.resource('s3',
                                 aws_access_key_id=MINIO_ACCESS_KEY_ID,
                                 aws_secret_access_key=MINIO_SECRET_ACCESS_KEY,
                                 config=Config(
-                                        signature_version=SIGNATURE_VERSION),
+                                    signature_version=SIGNATURE_VERSION),
                                 region_name=MINIO_REGION)
+
+# TENANT RELATED CONSTANTS
 
 CREATE_TENANT_REQUIRED_PARAMETERS = ['name', 'cert', 'scope', 'quota']
 DELETE_TENANT_REQUIRED_PARAMETERS = ['name']
 
+# -----------------------------------------
+
+# ENDPOINT RELATED CONSTANTS
+
+CREATE_ENDPOINT_REQUIRED_PARAMETERS = ['modelName', 'modelVersion', 'endpointName', 'subjectName',
+                                       'subjectName']
+SCALE_ENDPOINT_REQUIRED_PARAMETERS = ['endpointName', 'replicas']
+DELETE_ENDPOINT_REQUIRED_PARAMETERS = ['endpointName']
+
+# To edit this object please first use deep copy
+DELETE_BODY = client.V1DeleteOptions()
+
+SUBJECT_NAME_RE = '^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|' \
+                  '[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$'
+
+# -------------------------------------------
 RESOURCE_DOES_NOT_EXIST = 404
 NAMESPACE_BEING_DELETED = 409
 NO_SUCH_BUCKET_EXCEPTION = 'NoSuchBucket'

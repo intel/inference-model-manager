@@ -9,6 +9,8 @@ from management_api_tests.config import TENANT_NAME, DEFAULT_HEADERS, CERT, SCOP
 from management_api_tests.tenants.tenant_utils import does_secret_exist_in_namespace, \
     is_copied_secret_data_matching_original, is_bucket_available, is_namespace_available
 
+url = MANAGEMENT_API_URL + '/tenants'
+
 
 def test_create_tenant(minio_client, api_instance):
     headers = DEFAULT_HEADERS
@@ -18,8 +20,6 @@ def test_create_tenant(minio_client, api_instance):
         'scope': SCOPE_NAME,
         'quota': QUOTA,
     })
-
-    url = MANAGEMENT_API_URL
 
     response = requests.post(url, data=data, headers=headers)
 
@@ -34,8 +34,6 @@ def test_create_tenant(minio_client, api_instance):
 def test_not_create_tenant_improper_body(wrong_body, expected_error, minio_client, api_instance):
     headers = DEFAULT_HEADERS
     data = json.dumps(wrong_body)
-
-    url = MANAGEMENT_API_URL
 
     response = requests.post(url, data=data, headers=headers)
 
@@ -55,8 +53,6 @@ def test_not_create_tenant_wrong_name(wrong_name, expected_error, minio_client, 
         'scope': SCOPE_NAME,
         'quota': QUOTA,
     })
-    
-    url = MANAGEMENT_API_URL
 
     response = requests.post(url, data=data, headers=headers)
 
@@ -77,8 +73,6 @@ def test_not_create_tenant_wrong_quota(quota_wrong_values,
         'quota': quota_wrong_values,
     })
 
-    url = MANAGEMENT_API_URL
-
     response = requests.post(url, data=data, headers=headers)
 
     assert response.text == expected_error
@@ -95,7 +89,7 @@ def test_not_create_tenant_with_wrong_cert(wrong_cert, expected_error, minio_cli
         'name': TENANT_NAME,
         'quota': QUOTA,
     })
-    url = MANAGEMENT_API_URL
+
     response = requests.post(url, data=data, headers=DEFAULT_HEADERS)
     assert expected_error in response.text
     assert response.status_code == 400
@@ -111,7 +105,7 @@ def test_portable_secrets_propagation_succeeded(minio_client, api_instance):
         'quota': QUOTA,
     })
 
-    url = MANAGEMENT_API_URL
+
     requests.post(url, data=data, headers=DEFAULT_HEADERS)
 
     assert is_bucket_available(minio_client, bucket=TENANT_NAME)
@@ -127,8 +121,6 @@ def test_portable_secrets_propagation_succeeded(minio_client, api_instance):
 
 
 def test_delete_tenant(minio_client, api_instance):
-    url = MANAGEMENT_API_URL
-
     data = json.dumps({
         'cert': CERT,
         'scope': SCOPE_NAME,

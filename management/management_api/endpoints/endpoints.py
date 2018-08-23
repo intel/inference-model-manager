@@ -1,9 +1,10 @@
 import falcon
 
+from management_api.config import CREATE_ENDPOINT_REQUIRED_PARAMETERS, \
+    DELETE_ENDPOINT_REQUIRED_PARAMETERS, SCALE_ENDPOINT_REQUIRED_PARAMETERS
 from management_api.utils.parse_request import get_body, get_params
-from management_api.endpoints.endpoint_utils import CREATE_ENDPOINT_REQUIRED_PARAMETERS, \
-    create_endpoint, delete_endpoint, create_url_to_service, DELETE_ENDPOINT_REQUIRED_PARAMETERS, \
-    validate_params
+from management_api.endpoints.endpoint_utils import create_endpoint, delete_endpoint, \
+    create_url_to_service, validate_params, scale_endpoint
 from management_api.utils.kubernetes_resources import validate_quota
 
 
@@ -28,8 +29,19 @@ class Endpoints(object):
         namespace = req.get_header('Authorization')
         body = get_body(req)
         get_params(body, required_keys=DELETE_ENDPOINT_REQUIRED_PARAMETERS)
-        delete_endpoint(namespace=namespace, endpoint_name=body['endpointName'])
+        delete_endpoint(parameters=body, namespace=namespace)
+        endpoint_url = create_url_to_service(body['endpointName'], namespace=namespace)
         resp.status = falcon.HTTP_200  # This is the default status
-        resp.body = 'Delete completed'
+        resp.body = 'Endpoint {} deleted\n'.format(endpoint_url)
 
-
+    def on_patch(self, req, resp):
+        """Handles PATCH requests"""
+        # TODO This needs to be replaced with the logic to obtain namespace out of JWT token
+        namespace = req.get_header('Authorization')
+        body = get_body(req)
+        get_params(body, required_keys=SCALE_ENDPOINT_REQUIRED_PARAMETERS)
+        scale_endpoint(parameters=body, namespace=namespace)
+        endpoint_url = create_url_to_service(body['endpointName'], namespace=namespace)
+        resp.status = falcon.HTTP_200  # This is the default status
+        resp.body = 'Endpoint {} scaled. Number of replicas changed to {}\n'.\
+            format(endpoint_url, body['replicas'])

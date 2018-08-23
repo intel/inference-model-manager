@@ -12,6 +12,12 @@ rules:
 - apiGroups: [""]
   resources: ["resourcequotas"]
   verbs: ["create", "list", "get"]
+- apiGroups: ["intel.com"]
+  resources: ["servers"]
+  verbs: ["create", "delete", "get", "patch"]
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get", "list"]
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
