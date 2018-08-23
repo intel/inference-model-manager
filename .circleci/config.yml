@@ -56,7 +56,7 @@ jobs:
       - run:
           name: Run tests
           command: |
-            export ING_IP=`kubectl get ing -o=jsonpath='{.items..status.loadBalancer.ingress..ip}'`
+            while [ -z $ING_IP ]; do sleep 10; ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}'); done
             export ING_DOMAIN=`kubectl get ing -o=jsonpath='{.items..spec.tls..hosts}' | sed 's/[][]//g'`
             echo "${ING_IP} ${ING_DOMAIN}" | sudo tee -a /etc/hosts
             cd ~/inferno-platform/tests
