@@ -1,16 +1,14 @@
-import logging
-
 import boto3
-import pytest
 from botocore.client import Config
-from botocore.exceptions import ClientError
+import pytest
+from retrying import retry
 from kubernetes import config, client
 from kubernetes.client.rest import ApiException
-from time import sleep
 
-from management_api_tests.config import MINIO_SECRET_ACCESS_KEY, MINIO_ACCESS_KEY_ID, MINIO_REGION, \
-    MINIO_ENDPOINT_ADDR, SIGNATURE_VERSION, CRD_VERSION, CRD_PLURAL, CRD_KIND, CRD_GROUP, \
-    CRD_API_VERSION
+from management_api_tests.config import MINIO_SECRET_ACCESS_KEY, MINIO_ACCESS_KEY_ID, \
+    MINIO_REGION, MINIO_ENDPOINT_ADDR, SIGNATURE_VERSION, CRD_GROUP, CRD_VERSION, CRD_PLURAL, \
+    CRD_API_VERSION, CRD_KIND
+from management_api_tests.context import Context
 
 
 @pytest.fixture(scope="session")
@@ -24,8 +22,17 @@ def api_instance():
 
 
 @pytest.fixture(scope="session")
-def custom_obj_api_instance():
-    return client.CustomObjectsApi(client.ApiClient(configuration()))
+def get_k8s_custom_obj_client(configuration):
+    custom_obj_api_instance = client.CustomObjectsApi(client.ApiClient(configuration))
+    return custom_obj_api_instance
+
+
+@pytest.fixture(scope="function")
+def function_context(request, get_k8s_custom_obj_client, api_instance, minio_resource):
+    context = Context(k8s_client=api_instance, k8s_client_custom=get_k8s_custom_obj_client,
+                      minio_resource_client=minio_resource)
+    request.addfinalizer(context.delete_all_objects)
+    return context
 
 
 @pytest.fixture(scope="session")
@@ -50,23 +57,10 @@ def minio_resource():
                           region_name=MINIO_REGION)
 
 
-def delete_namespace_bucket(name):
-    try:
-        bucket = minio_resource().Bucket(name)
-        bucket.objects.all().delete()
-        bucket.delete()
-    except ClientError as clientError:
-        logging.error(clientError)
-    body = client.V1DeleteOptions()
-    try:
-        api_instance().delete_namespace(name, body)
-    except ApiException as apiException:
-        logging.error(apiException)
-    sleep(2)
-    logging.info('{} deleted.'.format(name))
-
-
-def create_default_endpoint():
+@pytest.fixture(scope="function")
+def create_endpoint(function_context, get_k8s_custom_obj_client):
+    namespace = 'default'
+    metadata = {"name": "predict"}
     spec = {
         'modelName': 'resnet',
         'modelVersion': 1,
@@ -74,24 +68,21 @@ def create_default_endpoint():
         'subjectName': 'client',
         'replicas': 1
     }
-    metadata = {"name": "predict"}
-    body = {"apiVersion": CRD_API_VERSION, "kind": CRD_KIND, "spec": spec, "metadata": metadata}
+    body = {"spec": spec, 'kind': CRD_KIND, "replicas": 1,
+            "apiVersion": CRD_API_VERSION,  "metadata": metadata}
+    api_response = get_k8s_custom_obj_client. \
+        create_namespaced_custom_object(CRD_GROUP, CRD_VERSION, namespace, CRD_PLURAL, body)
+    object_to_delete = {'name': "predict", 'namespace': namespace}
+    function_context.add_object(object_type='CRD', object_to_delete=object_to_delete)
+    return api_response, namespace, body
 
+
+@retry(stop_max_attempt_number=3, wait_fixed=200)
+def get_all_pods_in_namespace(k8s_client, namespace, label_selector=''):
     try:
-        custom_obj_api_instance(). \
-            create_namespaced_custom_object(CRD_GROUP, CRD_VERSION, 'default', CRD_PLURAL, body)
+        api_response = k8s_client.list_namespaced_pod(namespace=namespace,
+                                                      label_selector=label_selector)
     except ApiException as e:
-        logging.error('An error occurred during endpoint creation: {}'.format(e))
-    logging.info('Default endpoint created')
+        print("Exception when calling CoreV1Api->list_pod_for_all_namespaces: %s\n" % e)
 
-
-def delete_default_endpoint():
-    delete_body = client.V1DeleteOptions()
-    try:
-        custom_obj_api_instance(). \
-            delete_namespaced_custom_object(CRD_GROUP, CRD_VERSION, 'default', CRD_PLURAL,
-                                            'predict', delete_body,
-                                            grace_period_seconds=0)
-    except ApiException as e:
-        logging.error('Error occurred during endpoint deletion: {}'.format(e))
-    logging.info('Default endpoint deleted')
+    return api_response

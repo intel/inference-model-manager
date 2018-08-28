@@ -2,17 +2,14 @@ import pytest
 import requests
 import json
 
-from conftest import delete_namespace_bucket
 from management_api_tests.config import TENANT_NAME, DEFAULT_HEADERS, CERT, SCOPE_NAME, QUOTA, \
-    MANAGEMENT_API_URL, WRONG_BODIES, PORTABLE_SECRETS_PATHS, WRONG_TENANT_NAMES, \
-    QUOTA_WRONG_VALUES, WRONG_CERTS
+    WRONG_BODIES, PORTABLE_SECRETS_PATHS, WRONG_TENANT_NAMES, \
+    QUOTA_WRONG_VALUES, WRONG_CERTS, TENANTS_MANAGEMENT_API_URL
 from management_api_tests.tenants.tenant_utils import does_secret_exist_in_namespace, \
     is_copied_secret_data_matching_original, is_bucket_available, is_namespace_available
 
-url = MANAGEMENT_API_URL + '/tenants'
 
-
-def test_create_tenant(minio_client, api_instance):
+def test_create_tenant(function_context, minio_client, api_instance):
     headers = DEFAULT_HEADERS
     data = json.dumps({
         'name': TENANT_NAME,
@@ -21,19 +18,23 @@ def test_create_tenant(minio_client, api_instance):
         'quota': QUOTA,
     })
 
+    url = TENANTS_MANAGEMENT_API_URL
+
     response = requests.post(url, data=data, headers=headers)
+    function_context.add_object(object_type='tenant', object_to_delete={'name': TENANT_NAME})
 
     assert response.text == 'Tenant {} created\n'.format(TENANT_NAME)
     assert response.status_code == 200
     assert is_namespace_available(api_instance, namespace=TENANT_NAME)
     assert is_bucket_available(minio_client, bucket=TENANT_NAME)
-    delete_namespace_bucket(TENANT_NAME)
 
 
 @pytest.mark.parametrize("wrong_body, expected_error", WRONG_BODIES)
 def test_not_create_tenant_improper_body(wrong_body, expected_error, minio_client, api_instance):
     headers = DEFAULT_HEADERS
     data = json.dumps(wrong_body)
+
+    url = TENANTS_MANAGEMENT_API_URL
 
     response = requests.post(url, data=data, headers=headers)
 
@@ -54,6 +55,8 @@ def test_not_create_tenant_wrong_name(wrong_name, expected_error, minio_client, 
         'quota': QUOTA,
     })
 
+    url = TENANTS_MANAGEMENT_API_URL
+
     response = requests.post(url, data=data, headers=headers)
 
     assert response.text == expected_error
@@ -73,6 +76,8 @@ def test_not_create_tenant_wrong_quota(quota_wrong_values,
         'quota': quota_wrong_values,
     })
 
+    url = TENANTS_MANAGEMENT_API_URL
+
     response = requests.post(url, data=data, headers=headers)
 
     assert response.text == expected_error
@@ -90,6 +95,8 @@ def test_not_create_tenant_with_wrong_cert(wrong_cert, expected_error, minio_cli
         'quota': QUOTA,
     })
 
+    url = TENANTS_MANAGEMENT_API_URL
+
     response = requests.post(url, data=data, headers=DEFAULT_HEADERS)
     assert expected_error in response.text
     assert response.status_code == 400
@@ -97,7 +104,7 @@ def test_not_create_tenant_with_wrong_cert(wrong_cert, expected_error, minio_cli
     assert not is_namespace_available(api_instance, namespace=TENANT_NAME)
 
 
-def test_portable_secrets_propagation_succeeded(minio_client, api_instance):
+def test_portable_secrets_propagation_succeeded(function_context, minio_client, api_instance):
     data = json.dumps({
         'cert': CERT,
         'scope': SCOPE_NAME,
@@ -105,8 +112,10 @@ def test_portable_secrets_propagation_succeeded(minio_client, api_instance):
         'quota': QUOTA,
     })
 
+    url = TENANTS_MANAGEMENT_API_URL
 
     requests.post(url, data=data, headers=DEFAULT_HEADERS)
+    function_context.add_object(object_type='tenant', object_to_delete={'name': TENANT_NAME})
 
     assert is_bucket_available(minio_client, bucket=TENANT_NAME)
     assert is_namespace_available(api_instance, namespace=TENANT_NAME)
@@ -117,10 +126,12 @@ def test_portable_secrets_propagation_succeeded(minio_client, api_instance):
         assert is_copied_secret_data_matching_original(api_instance, secret_name,
                                                        secret_namespace,
                                                        copied_secret_namespace=TENANT_NAME)
-    delete_namespace_bucket(TENANT_NAME)
 
 
 def test_delete_tenant(minio_client, api_instance):
+
+    url = TENANTS_MANAGEMENT_API_URL
+
     data = json.dumps({
         'cert': CERT,
         'scope': SCOPE_NAME,

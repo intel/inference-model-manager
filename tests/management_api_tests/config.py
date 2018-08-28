@@ -1,4 +1,5 @@
 import os
+import urllib.parse
 
 MINIO_ACCESS_KEY_ID = os.environ.get('MINIO_ACCESS_KEY',
                                      'AKIAIOSFODNN7EXAMPLE')
@@ -14,14 +15,16 @@ DEFAULT_HEADERS = {
     'Content-Type': 'application/json',
 }
 
-# CRD DEFINITIONS:
-CRD_GROUP = 'intel.com'  # str | The custom resource's group name
-CRD_VERSION = 'v1'  # str | The custom resource's version
-CRD_PLURAL = 'servers'  # str | The custom resource's plural name. For TPRs this would be lowercase plural kind.
+CRD_GROUP = 'intel.com'
+CRD_VERSION = 'v1'
+CRD_PLURAL = 'servers'
 CRD_API_VERSION = 'intel.com/v1'
 CRD_KIND = 'Server'
 
-MANAGEMENT_API_URL = os.environ.get('MANAGEMENT_API_URL', 'http://localhost:5000')
+MANAGEMENT_API_URL = os.environ.get('MANAGEMENT_API_URL', 'http://127.0.0.1:5000')
+TENANTS_MANAGEMENT_API_URL = url = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants')
+ENDPOINT_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'endpoint')
+
 TENANT_NAME = os.environ.get('TENANT_NAME', 'test')
 
 WRONG_TENANT_NAMES = [

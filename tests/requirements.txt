@@ -6,3 +6,5 @@ requests
 kubernetes
 utils
 boto3
+botocore
+retrying
