@@ -10,8 +10,8 @@ logger = get_logger(__name__)
 
 
 def validate_quota(quota):
-    int_keys = ['maxEndpoints', 'requests.cpu', 'limits.cpu']
-    alpha_keys = ['requests.memory', 'limits.memory']
+    int_keys = ['maxEndpoints']
+    alpha_keys = ['requests.memory', 'limits.memory', 'requests.cpu', 'limits.cpu']
     regex_k8s = '^([+]?[0-9.]+)([eEinumkKMGTP]*[+]?[0-9]*)$'
 
     test_quota = dict(quota)
