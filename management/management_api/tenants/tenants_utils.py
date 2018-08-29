@@ -7,8 +7,8 @@ from kubernetes.client.rest import ApiException
 from retrying import retry
 
 from management_api.config import CERT_SECRET_NAME, PORTABLE_SECRETS_PATHS,\
-    api_instance, minio_client, minio_resource, RESOURCE_DOES_NOT_EXIST, \
-    NAMESPACE_BEING_DELETED, NO_SUCH_BUCKET_EXCEPTION
+    api_instance, rbac_api_instance, minio_client, minio_resource, \
+    RESOURCE_DOES_NOT_EXIST, NAMESPACE_BEING_DELETED, NO_SUCH_BUCKET_EXCEPTION
 from management_api.utils.logger import get_logger
 from management_api.utils.cert import validate_cert
 from management_api.utils.kubernetes_resources import validate_quota
@@ -35,6 +35,8 @@ def create_tenant(parameters):
         create_bucket(name)
         create_secret(name, cert)
         create_resource_quota(name, quota)
+        create_role(name)
+        create_rolebinding(name, scope)
     except falcon.HTTPError:
         delete_namespace(name)
         delete_bucket(name)
@@ -221,3 +223,54 @@ def portable_secrets_propagation(target_namespace):
         except Exception:
             raise falcon.HTTPBadRequest('Error occurred on secret propagation')
     logger.info('Portable secrets copied from default to {}'.format(target_namespace))
+
+
+def create_role(name):
+    api_version = 'rbac.authorization.k8s.io/v1'
+    meta = client.V1ObjectMeta(name=name, namespace=name)
+    service_rules = client.V1PolicyRule(api_groups=[""], resources=["services"], 
+                                        verbs=["create", "list", "get", "delete"])
+    ingress_rules = client.V1PolicyRule(api_groups=[""], resources=["ingresses"], 
+                                        verbs=["create", "list", "get", "delete"])
+    deployment_rules = client.V1PolicyRule(api_groups=[""], resources=["deployments"], 
+                                        verbs=["create", "list", "get", "delete"])
+    server_rules = client.V1PolicyRule(api_groups=["intel.com"], resources=["servers"], 
+                                        verbs=["create", "get", "delete", "patch"])
+    role = client.V1Role(api_version=api_version, metadata=meta, 
+                  rules=[service_rules, ingress_rules, deployment_rules, server_rules])
+
+    try:
+        response = rbac_api_instance.create_namespaced_role(name, role)
+    except ApiException as apiException:
+        logger.error('Did not create role: {}'.format(apiException))
+        raise falcon.HTTPBadRequest('Did not create role: {}'.format(apiException))
+    except Exception as e:
+        logger.error('An error occurred during role creation: {}'
+                     .format(e))
+        raise falcon.HTTPBadRequest('An error occurred during role '
+                                    'creation: {}'.format(e))
+    
+    logger.info("Role {} created".format(name))
+    return response
+
+
+def create_rolebinding(name, scope_name):
+    api_version = 'rbac.authorization.k8s.io' 
+    scope = 'oidc:/' + scope_name
+    subject = client.V1Subject(kind='Group', name=scope, namespace=name)
+    role_ref = client.V1RoleRef(api_group=api_version, kind='Role', name=name)
+    meta = client.V1ObjectMeta(name=name, namespace=name)
+    rolebinding = client.V1RoleBinding(metadata=meta, role_ref=role_ref, subjects=[subject])
+    
+    try:
+        response = rbac_api_instance.create_namespaced_role_binding(name, rolebinding)
+    except ApiException as apiException:
+        logger.error('Did not create rolebinding: {}'.format(apiException))
+        raise falcon.HTTPBadRequest('Did not create rolebinding: {}'.format(apiException))
+    except Exception as e:
+        logger.error('An error occured during rolebinding creation: {}'.format(e))
+        raise falcon.HTTPBadRequest('An error occured during rolebinding creation: {}'.format(e))
+    
+    logger.info("Rolebinding {} created".format(name))
+    return response 
+

@@ -22,6 +22,11 @@ def api_instance():
 
 
 @pytest.fixture(scope="session")
+def rbac_api_instance():
+    return client.RbacAuthorizationV1Api(client.ApiClient(configuration()))
+
+
+@pytest.fixture(scope="session")
 def get_k8s_custom_obj_client(configuration):
     custom_obj_api_instance = client.CustomObjectsApi(client.ApiClient(configuration))
     return custom_obj_api_instance

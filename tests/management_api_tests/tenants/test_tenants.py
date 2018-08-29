@@ -6,10 +6,11 @@ from management_api_tests.config import TENANT_NAME, DEFAULT_HEADERS, CERT, SCOP
     WRONG_BODIES, PORTABLE_SECRETS_PATHS, WRONG_TENANT_NAMES, \
     QUOTA_WRONG_VALUES, WRONG_CERTS, TENANTS_MANAGEMENT_API_URL
 from management_api_tests.tenants.tenant_utils import does_secret_exist_in_namespace, \
-    is_copied_secret_data_matching_original, is_bucket_available, is_namespace_available
+    is_copied_secret_data_matching_original, is_bucket_available, is_namespace_available, \
+    is_role_available, is_rolebinding_available
 
 
-def test_create_tenant(function_context, minio_client, api_instance):
+def test_create_tenant(function_context, minio_client, api_instance, rbac_api_instance):
     headers = DEFAULT_HEADERS
     data = json.dumps({
         'name': TENANT_NAME,
@@ -27,6 +28,8 @@ def test_create_tenant(function_context, minio_client, api_instance):
     assert response.status_code == 200
     assert is_namespace_available(api_instance, namespace=TENANT_NAME)
     assert is_bucket_available(minio_client, bucket=TENANT_NAME)
+    assert is_role_available(rbac_api_instance, namespace=TENANT_NAME, role=TENANT_NAME)
+    assert is_rolebinding_available(rbac_api_instance, namespace=TENANT_NAME, rolebinding=TENANT_NAME)
 
 
 @pytest.mark.parametrize("wrong_body, expected_error", WRONG_BODIES)

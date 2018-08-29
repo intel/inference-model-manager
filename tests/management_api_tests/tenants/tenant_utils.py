@@ -59,3 +59,30 @@ def is_copied_secret_data_matching_original(api_instance, secret_name,
         return True
     return False
 
+
+def is_role_available(rbac_api_instance, namespace, role):
+    response = None
+    try:
+        response = rbac_api_instance.read_namespaced_role(role, namespace)
+    except ApiException as apiException:
+        if apiException.status == RESOURCE_DOES_NOT_EXIST:
+            return False
+    except Exception as e:
+        logging.error(e)
+        return False
+    logging.info(response)
+    return True
+
+
+def is_rolebinding_available(rbac_api_instance, namespace, rolebinding):
+    response = None
+    try:
+        response = rbac_api_instance.read_namespaced_role_binding(rolebinding, namespace)
+    except ApiException as apiException:
+        if apiException.status == RESOURCE_DOES_NOT_EXIST:
+            return False
+    except Exception as e:
+        logging.error(e)
+        return False
+    logging.info(response)
+    return True  

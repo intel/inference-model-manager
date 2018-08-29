@@ -33,6 +33,7 @@ except Exception:
     configuration = config.load_incluster_config()
 
 api_instance = client.CoreV1Api(client.ApiClient(configuration))
+rbac_api_instance = client.RbacAuthorizationV1Api(client.ApiClient(configuration))
 custom_obj_api_instance = client.CustomObjectsApi(client.ApiClient(configuration))
 
 minio_client = boto3.client('s3',
