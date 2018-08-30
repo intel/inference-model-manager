@@ -36,7 +36,10 @@ spec:
               type: string
               pattern: '^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$'
             resources:
-              type: string
+              type: object
+              properties:
+                additionalProperties:
+                  type: string
             replicas:
               type: integer
               format: int32

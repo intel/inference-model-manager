@@ -45,6 +45,16 @@ def validate_quota(quota):
     return True
 
 
+def transform_quota(quota):
+    transformed = {}
+    for k, v in quota.items():
+        keys = k.split('.')
+        if len(keys) == 1:
+            continue
+        transformed.setdefault(keys[0], {})[keys[1]] = v
+    return transformed
+
+
 def get_ingress_external_ip():
     try:
         api_response = api_instance.read_namespaced_service(ING_NAME, ING_NAMESPACE)

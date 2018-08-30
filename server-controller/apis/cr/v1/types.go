@@ -90,7 +90,7 @@ type ServerSpec struct {
 	ModelVersion    int                      `json:"modelVersion"`
 	EndpointName    string                   `json:"endpointName,omitempty"`
 	SubjectName     string                   `json:"subjectName"`
-	Resources       map[string]string        `json:"resources,omitempty"`
+	Resources       ResourceSpec             `json:"resources,omitempty"`
 	Replicas        int                      `json:"replicas,omitempty"`
 }
 
@@ -104,6 +104,11 @@ type ServerList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata"`
 	Items           []Server `json:"items"`
+}
+
+type ResourceSpec struct {
+	Requests map[string]string `json:"requests"`
+	Limits map[string]string `json:"limits"`
 }
 
 // GetItems returns the list of items to be used in the List api call for crs
