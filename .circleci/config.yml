@@ -8,6 +8,9 @@ jobs:
       - setup_remote_docker
       - checkout
       - run:
+          name: Run unit tests
+          command: cd ~/inferno-platform/management/ && python setup.py test
+      - run:
           name: Create k8s cluster
           command: |
             echo "${GOOGLE_AUTH_IN}" | base64 -d > /tmp/gcp-key.json

@@ -6,12 +6,13 @@ from kubernetes import client
 from kubernetes.client.rest import ApiException
 from retrying import retry
 
-from management_api.config import CERT_SECRET_NAME, PORTABLE_SECRETS_PATHS,\
-    api_instance, rbac_api_instance, minio_client, minio_resource, \
-    RESOURCE_DOES_NOT_EXIST, NAMESPACE_BEING_DELETED, NO_SUCH_BUCKET_EXCEPTION
+from management_api.config import CERT_SECRET_NAME, PORTABLE_SECRETS_PATHS, \
+    minio_client, minio_resource, RESOURCE_DOES_NOT_EXIST, \
+    NAMESPACE_BEING_DELETED, NO_SUCH_BUCKET_EXCEPTION
 from management_api.utils.logger import get_logger
 from management_api.utils.cert import validate_cert
-from management_api.utils.kubernetes_resources import validate_quota
+from management_api.utils.kubernetes_resources import validate_quota, get_k8s_api_client, \
+    get_k8s_rbac_api_client
 
 
 logger = get_logger(__name__)
@@ -74,6 +75,7 @@ def create_namespace(name, quota):
     else:
         name_object = client.V1ObjectMeta(name=name)
     namespace = client.V1Namespace(metadata=name_object)
+    api_instance = get_k8s_api_client()
     try:
         response = api_instance.create_namespace(namespace)
     except ApiException as apiException:
@@ -108,6 +110,7 @@ def create_secret(name, cert):
     cert_secret = client.V1Secret(api_version="v1", data=cert_secret_data,
                                   kind="Secret", metadata=cert_secret_metadata,
                                   type="Opaque")
+    api_instance = get_k8s_api_client()
     try:
         response = api_instance.create_namespaced_secret(namespace=name,
                                                          body=cert_secret)
@@ -128,7 +131,7 @@ def create_resource_quota(name, quota):
     name_object = client.V1ObjectMeta(name=name)
     resource_quota_spec = client.V1ResourceQuotaSpec(hard=quota)
     body = client.V1ResourceQuota(spec=resource_quota_spec, metadata=name_object)
-
+    api_instance = get_k8s_api_client()
     try:
         response = api_instance.create_namespaced_resource_quota(name, body)
         logger.info("Resource quota {} created".format(quota))
@@ -168,6 +171,7 @@ def delete_bucket(name):
 def delete_namespace(name):
     body = client.V1DeleteOptions()
     response = 'Namespace {} does not exist'.format(name)
+    api_instance = get_k8s_api_client()
     try:
         response = api_instance.delete_namespace(name, body)
     except ApiException as apiException:
@@ -194,6 +198,7 @@ def delete_tenant(parameters):
 
 def propagate_secret(source_secret_path, target_namespace):
     source_secret_namespace, source_secret_name = source_secret_path.split('/')
+    api_instance = get_k8s_api_client()
     try:
         source_secret = api_instance.read_namespaced_secret(
             source_secret_name, source_secret_namespace)
@@ -236,9 +241,9 @@ def create_role(name):
                                         verbs=["create", "list", "get", "delete"])
     server_rules = client.V1PolicyRule(api_groups=["intel.com"], resources=["servers"], 
                                         verbs=["create", "get", "delete", "patch"])
-    role = client.V1Role(api_version=api_version, metadata=meta, 
-                  rules=[service_rules, ingress_rules, deployment_rules, server_rules])
-
+    role = client.V1Role(api_version=api_version, metadata=meta,
+                         rules=[service_rules, ingress_rules, deployment_rules, server_rules])
+    rbac_api_instance = get_k8s_rbac_api_client()
     try:
         response = rbac_api_instance.create_namespaced_role(name, role)
     except ApiException as apiException:
@@ -261,7 +266,7 @@ def create_rolebinding(name, scope_name):
     role_ref = client.V1RoleRef(api_group=api_version, kind='Role', name=name)
     meta = client.V1ObjectMeta(name=name, namespace=name)
     rolebinding = client.V1RoleBinding(metadata=meta, role_ref=role_ref, subjects=[subject])
-    
+    rbac_api_instance = get_k8s_rbac_api_client()
     try:
         response = rbac_api_instance.create_namespaced_role_binding(name, rolebinding)
     except ApiException as apiException:
@@ -272,5 +277,4 @@ def create_rolebinding(name, scope_name):
         raise falcon.HTTPBadRequest('An error occured during rolebinding creation: {}'.format(e))
     
     logger.info("Rolebinding {} created".format(name))
-    return response 
-
+    return response

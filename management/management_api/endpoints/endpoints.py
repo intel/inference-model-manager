@@ -18,10 +18,9 @@ class Endpoints(object):
         validate_params(params=body)
         validate_quota(body.setdefault('resources', {}))
         body['resources'] = transform_quota(body['resources'])
-        create_endpoint(parameters=body, namespace=namespace)
-        endpoint_url = create_url_to_service(body['endpointName'], namespace=namespace)
+        endpoint_url = create_endpoint(parameters=body, namespace=namespace)
         resp.status = falcon.HTTP_200
-        resp.body = 'Endpoint {} created\n'.format(endpoint_url)
+        resp.body = 'Endpoint created\n {}'.format(endpoint_url)
 
     def on_delete(self, req, resp):
         """Handles DELETE requests"""
@@ -40,8 +39,7 @@ class Endpoints(object):
         namespace = req.get_header('Authorization')
         body = get_body(req)
         get_params(body, required_keys=SCALE_ENDPOINT_REQUIRED_PARAMETERS)
-        scale_endpoint(parameters=body, namespace=namespace)
-        endpoint_url = create_url_to_service(body['endpointName'], namespace=namespace)
+        endpoint_url = scale_endpoint(parameters=body, namespace=namespace)
         resp.status = falcon.HTTP_200  # This is the default status
         resp.body = 'Endpoint {} scaled. Number of replicas changed to {}\n'.\
             format(endpoint_url, body['replicas'])

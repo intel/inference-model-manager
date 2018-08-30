@@ -1,10 +1,11 @@
 import re
 import falcon
 import ipaddress
-from kubernetes.client.rest import ApiException
+from functools import lru_cache
+from kubernetes import config, client
 
 from management_api.utils.logger import get_logger
-from management_api.config import api_instance, ING_NAME, ING_NAMESPACE
+from management_api.config import ING_NAME, ING_NAMESPACE
 
 logger = get_logger(__name__)
 
@@ -55,12 +56,12 @@ def transform_quota(quota):
     return transformed
 
 
-def get_ingress_external_ip():
+def get_ingress_external_ip(api_instance: client):
     try:
         api_response = api_instance.read_namespaced_service(ING_NAME, ING_NAMESPACE)
         ip = api_response.status.load_balancer.ingress[0].ip
         port = api_response.spec.ports[-1].port
-    except ApiException as e:
+    except Exception as e:
         logger.error('An error occurred during getting ingress ip: {}'
                      .format(e))
         raise falcon.HTTPInternalServerError("Internal Server Error")
@@ -72,3 +73,31 @@ def get_ingress_external_ip():
                      .format(e))
         raise falcon.HTTPInternalServerError('Internal Server Error')
     return ip, port
+
+
+@lru_cache(maxsize=None)
+def get_k8s_configuration():
+    try:
+        configuration = config.load_kube_config()
+    except Exception:
+        configuration = config.load_incluster_config()
+    return configuration
+
+
+@lru_cache(maxsize=None)
+def get_k8s_api_client():
+    api_instance = client.CoreV1Api(client.ApiClient(get_k8s_configuration()))
+    return api_instance
+
+
+@lru_cache(maxsize=None)
+def get_k8s_api_custom_client():
+    custom_obj_api_instance = client.CustomObjectsApi(client.ApiClient(get_k8s_configuration()))
+    return custom_obj_api_instance
+
+
+@lru_cache(maxsize=None)
+def get_k8s_rbac_api_client():
+    rbac_api_instance = client.RbacAuthorizationV1Api(client.ApiClient(get_k8s_configuration()))
+    return rbac_api_instance
+
