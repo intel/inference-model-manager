@@ -2,16 +2,11 @@ all: docker
 
 VERSION := $(shell git describe --tags --always --dirty)
 
-GOOGLE_PROJECT_ID=
-GOOGLE_AUTH=
-IMAGE_NAME=server-controller
+IMAGE ?= server-controller-prod
+TAG ?= latest
 
 docker:
-	(cd ../../ && make docker)
-	docker build \
-		-t $(IMAGE_NAME):$(VERSION) \
-		-t $(IMAGE_NAME):latest \
-		.
+	docker build --build-arg http_proxy=$(HTTP_PROXY) --build-arg https_proxy=$(HTTPS_PROXY) -f Dockerfile.prod -t $(IMAGE):$(TAG) .
 
 lint:
 	gometalinter --config=lint.json .
@@ -24,23 +19,12 @@ test: lint
 code-generation:
 	deepcopy-gen -v 3 --input-dirs=github.com/NervanaSystems/inferno-platform/server-controller/apis/cr/v1/...
 
-push-image-preflight:
-ifeq ($(GOOGLE_PROJECT_ID),)
-	$(error GOOGLE_PROJECT_ID must be set)
-endif
-ifeq ($(GOOGLE_AUTH),)
-	$(error GOOGLE_AUTH must be set)
-endif
-	# Setting auth and project config for gcloud SDK.
-	# Running this locally may override your CLI settings.
-	# TODO(CD): Stash the active auth and project and restore them
-	# after pushing.
-	echo "$(GOOGLE_AUTH)" | base64 --decode > /tmp/gcp-key.json
-	gcloud auth activate-service-account --key-file /tmp/gcp-key.json
-	gcloud config set project "$(GOOGLE_PROJECT_ID)"
+tag:
+	@ echo "tagging image"
+	docker tag $(IMAGE):$(TAG) gcr.io/constant-cubist-173123/$(IMAGE):$(TAG)
 
-push-image: push-image-preflight docker
-	@ echo "tagging container"
-	docker tag $(IMAGE_NAME):$(VERSION) gcr.io/$(GOOGLE_PROJECT_ID)/$(IMAGE_NAME):$(VERSION)
+push:
 	@ echo "pushing container to gcr.io"
-	gcloud docker -- push gcr.io/$(GOOGLE_PROJECT_ID)/$(IMAGE_NAME):$(VERSION)
+	gcloud docker -- push gcr.io/constant-cubist-173123/$(IMAGE):$(TAG)
+
+circleci: docker tag push

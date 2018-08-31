@@ -49,12 +49,29 @@ jobs:
                echo "image already in registry - not rebuilding"
             fi
       - run:
+          name: Check CRD controller image version
+          command: |
+            cd ~/inferno-platform
+            export TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
+            export TAG_EXISTS=$(gcloud container images list-tags gcr.io/constant-cubist-173123/server-controller-prod | grep $TAG)
+            echo $TAG
+            echo $TAG_EXISTS
+            cd ~/inferno-platform/server-controller/
+            if [ -z "$TAG_EXISTS" ]; then
+               printf "machine github.com\n        login jrozansk\n        password $NERVANA_FF\n" > .netrc
+               make circleci
+               git checkout -- .netrc
+            else
+               echo "image already in registry - not rebuilding"
+            fi
+      - run:
           name: Download dependencies and deploy platfrom
           command: |
             export MGMT_TAG=$(find management/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
+            export CTRL_TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
             cd ~/inferno-platform/helm-deployment/
             helm dep up .
-            helm install --set management-api-chart.tag=$MGMT_TAG .
+            helm install --set management-api-chart.tag=$MGMT_TAG --set crd-subchart.tag=$CTRL_TAG .
             sleep 150
       - run:
           name: Run tests
@@ -77,6 +94,16 @@ jobs:
                sleep 30m
             fi
             echo y | gcloud container clusters delete inferno-${CIRCLE_BRANCH}-${PR_NR} --zone us-west1-a
+      - run:
+          name: Set images tags to latest on master
+          command: |
+            export BRANCH=$(git symbolic-ref --short HEAD)
+            if [ "$BRANCH" == "master" ]; then
+               MGMT_TAG=$(find management/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
+               CTRL_TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
+               gcloud container images add-tag gcr.io/constant-cubist-173123/management-api:$MGMT_TAG gcr.io/constant-cubist-173123/management-api:latest
+               gcloud container images add-tag gcr.io/constant-cubist-173123/server-controller-prod:$CTRL_TAG gcr.io/constant-cubist-173123/server-controller-prod:latest
+            fi
 workflows:
   version: 2
   deploy-test:

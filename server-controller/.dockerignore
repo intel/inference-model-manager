@@ -1,0 +1,9 @@
+# File prepared in order to leverage docker cache after ADD instructions.
+# There were problems with long dep operation being repeated after slight Dockerfile changes.
+*.md
+.dockerignore
+Dockerfile.prod
+lint.json
+server-controller
+vendor
+.git

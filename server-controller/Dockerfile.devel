@@ -1,8 +1,0 @@
-FROM server-controller-dep
-
-ADD . /go/src/github.com/NervanaSystems/inferno-platform/server-controller
-WORKDIR /go/src/github.com/NervanaSystems/inferno-platform/server-controller
-RUN go get github.com/kubernetes/gengo/examples/deepcopy-gen
-RUN make code-generation
-RUN go install github.com/NervanaSystems/inferno-platform/server-controller
-CMD /go/bin/server-controller

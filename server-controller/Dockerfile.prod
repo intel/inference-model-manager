@@ -1,6 +1,16 @@
-FROM golang:1.8.3
+FROM golang:1.11 as first
 
-ADD server-controller /go/bin/
-ADD resources /go/bin/resources/
-WORKDIR /go/bin
-CMD server-controller
+RUN go get -u github.com/golang/dep/cmd/dep
+ADD .netrc /root/.netrc
+ADD . /go/src/github.com/NervanaSystems/inferno-platform/server-controller
+WORKDIR /go/src/github.com/NervanaSystems/inferno-platform/server-controller
+RUN dep ensure -v
+RUN CGO_ENABLED=0 GOOS=linux go install -a -v -ldflags '-extldflags "-static"' github.com/NervanaSystems/inferno-platform/server-controller
+
+FROM alpine:3.8
+
+USER 1000
+COPY --from=first /go/bin/server-controller /
+ADD resources /resources/
+WORKDIR /
+CMD ./server-controller

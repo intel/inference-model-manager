@@ -51,14 +51,14 @@ spec:
       serviceAccountName: server-controller
       containers:
       - name: server-controller
-        image: gcr.io/constant-cubist-173123/server-controller-prod
+        image: {{ .Values.image }}:{{ .Values.tag }}
         ports:
         - containerPort: 80
         command:
         - /bin/sh
         - -c
         args:
-        - /go/bin/server-controller
+        - /server-controller
         env:
           - name: PLATFORM_DOMAIN
             valueFrom:

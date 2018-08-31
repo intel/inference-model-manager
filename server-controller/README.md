@@ -19,33 +19,28 @@ dep ensure -v
 
 Note: dep tool will need to download dependencies from private repos.
 In order to support private repos introduce ~/.netrc file with your token.
-Details can be found [here](https://github.com/golang/dep/blob/master/docs/FAQ.md#how-do-i-get-dep-to-consume-private-git-repos-using-a-github-token).
+Instructions on how to do it correctly can be found [here](https://github.com/golang/dep/blob/master/docs/FAQ.md#how-do-i-get-dep-to-consume-private-git-repos-using-a-github-token).
 
 ### Building
 In order to build server-controller locally please use following command
-```go build -v .```
+```go build -v -i .```
 
-You can also use Dockerfiles in order to development images.
-There is Dockerfile for production images available, also. It is cover in next section.
-
-Development Dockerfile usage (requires filled .netrc file in server-controller directory!):
-```
-cd server-controller
-docker build -f Dockerfile.dep -t server-controller-dep .
-docker build -f Dockerfile.devel -t server-controller .
 ```
 ## Production build
-Production image does not hold all development related things like curl, netcat etc.
-To succesfully prepare such image build server-controller locally first. "server-controller" binary shall appear in directory. Then execute:
+For production usage Dockerfile.prod shall be built and deployed.
+To do so please use following make command:
 ```
 # assuming you are in ./inferno-platform/server-controller
-# and server-controller binary is built and located here
-docker build -f Dockerfile.prod -t server-controller .
+# and ~/.netrc file is prepared and located here
+make circleci
 ```
 
 ## Local execution
+Server controller requires $PLATFORM_DOMAIN environment variable to be set. It shall contain domain name for the system, controller will operate in.
+As a result endpoints created by it will be distunguishable from each other thanks to subdomains in one provided domain (e.g. endpointName-namespace.PLATFORM_DOMAIN).
 ```
-# assumes you have a working kubeconfig, not required if operating in-cluster
+# Assumes you have a working kubeconfig. Not required if operating in-cluster.
+export PLATFORM_DOMAIN=some-domain.com
 ./server-controller -kubeconfig=$HOME/.kube/config
 ```
 
