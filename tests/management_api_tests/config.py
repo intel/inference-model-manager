@@ -24,7 +24,7 @@ CRD_KIND = 'Server'
 
 MANAGEMENT_API_URL = os.environ.get('MANAGEMENT_API_URL', 'http://127.0.0.1:5000')
 TENANTS_MANAGEMENT_API_URL = url = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants')
-ENDPOINT_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'endpoint')
+ENDPOINT_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'endpoints')
 
 TENANT_NAME = os.environ.get('TENANT_NAME', 'test')
 

@@ -3,7 +3,7 @@ from management_api.endpoints.endpoints import Endpoints
 
 routes = [
     dict(resource=Tenants(), url='/tenants'),
-    dict(resource=Endpoints(), url='/endpoint')
+    dict(resource=Endpoints(), url='/endpoints')
 ]
 
 

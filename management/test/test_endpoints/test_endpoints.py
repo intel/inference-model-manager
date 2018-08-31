@@ -14,7 +14,7 @@ def test_endpoints_post(mocker, client, body, expected_status):
     header = {'Authorization': 'default'}
     expected_message = 'Endpoint created\n {}'.format("test")
 
-    result = client.simulate_request(method='POST', path='/endpoint', headers=header, json=body)
+    result = client.simulate_request(method='POST', path='/endpoints', headers=header, json=body)
     assert expected_status == result.status
     assert expected_message == result.text
     create_endpoint_mock.assert_called_once()
@@ -29,6 +29,6 @@ def test_endpoints_delete(mocker, client):
     expected_status = falcon.HTTP_OK
     body = {'endpointName': 'test'}
 
-    result = client.simulate_request(method='DELETE', path='/endpoint', headers=header, json=body)
+    result = client.simulate_request(method='DELETE', path='/endpoints', headers=header, json=body)
     assert expected_status == result.status
     delete_endpoint_mock.assert_called_once()
