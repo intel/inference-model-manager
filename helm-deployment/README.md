@@ -38,8 +38,33 @@ Command to revoke example client certificate
 Add revoked certificate to CRL
 `openssl ca -config ca.conf -gencrl -keyfile ca.key -cert ca.crt -out root.crl.pem`
 
+Above command will update existing root.crl.pem file.
+
 In order to add CRL support to ingress-nginx append content of root.crl.pem to ca-cert-secret.crt file
 
-`cat root.crl.pem ca-cert-secret.crt >> ca-cert-secret.crt`
+Remove old CRL appended to ca-cert-secret.crt if exists, and append new one with following command:
+
+`cat ca-cert-secret.crt root.crl.pem >> temporary`
+
+Encode with base64 `cat temporary | base64 -w0`
+and copy paste to kubernetes secret `kubectl edit secret ca-cert-secret` in place of ca.crt.
+Delete old controller pod:
+
+```
+kubectl get pods -n ingress-nginx
+kubectl delete pod nginx-ingress-controller-6b4ccdc495-wkfq4 -n ingress-nginx
+```
+
+Above commands should result with 400 response for client which is configured to use client.crt
+
+```  
+File "client.py", line 51, in <module>
+    result = stub.Predict(request, 10.0)  # 10 secs timeout
+  File "/usr/local/lib/python2.7/dist-packages/grpc/beta/_client_adaptations.py", line 309, in __call__
+    self._request_serializer, self._response_deserializer)
+  File "/usr/local/lib/python2.7/dist-packages/grpc/beta/_client_adaptations.py", line 195, in _blocking_unary_unary
+    raise _abortion_error(rpc_error_call)
+grpc.framework.interfaces.face.face.CancellationError: CancellationError(code=StatusCode.CANCELLED, details="Received http2 header with status: 400")
+```
 
 WARNING: /inferno-platform/helm-deployment/certs directory contains example ca.conf file required to create CRL list. Please adjust this configuration file to your environment before use in production.
