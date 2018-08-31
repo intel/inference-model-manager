@@ -6,8 +6,8 @@ from kubernetes import config, client
 from kubernetes.client.rest import ApiException
 
 from management_api_tests.config import MINIO_SECRET_ACCESS_KEY, MINIO_ACCESS_KEY_ID, \
-    MINIO_REGION, MINIO_ENDPOINT_ADDR, SIGNATURE_VERSION, CRD_GROUP, CRD_VERSION, CRD_PLURAL, \
-    CRD_API_VERSION, CRD_KIND
+    MINIO_REGION, MINIO_ENDPOINT_ADDR, SIGNATURE_VERSION, CRD_VERSION, CRD_PLURAL, CRD_KIND, \
+    CRD_GROUP, CRD_API_VERSION
 from management_api_tests.context import Context
 
 
@@ -33,9 +33,10 @@ def get_k8s_custom_obj_client(configuration):
 
 
 @pytest.fixture(scope="function")
-def function_context(request, get_k8s_custom_obj_client, api_instance, minio_resource):
+def function_context(request, get_k8s_custom_obj_client, api_instance, minio_resource,
+                     minio_client):
     context = Context(k8s_client=api_instance, k8s_client_custom=get_k8s_custom_obj_client,
-                      minio_resource_client=minio_resource)
+                      minio_resource_client=minio_resource, minio_client=minio_client)
     request.addfinalizer(context.delete_all_objects)
     return context
 

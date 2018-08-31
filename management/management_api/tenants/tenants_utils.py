@@ -8,12 +8,11 @@ from retrying import retry
 
 from management_api.config import CERT_SECRET_NAME, PORTABLE_SECRETS_PATHS, \
     minio_client, minio_resource, RESOURCE_DOES_NOT_EXIST, \
-    NAMESPACE_BEING_DELETED, NO_SUCH_BUCKET_EXCEPTION
+    NAMESPACE_BEING_DELETED, NO_SUCH_BUCKET_EXCEPTION, TERMINATION_IN_PROGRESS
 from management_api.utils.logger import get_logger
 from management_api.utils.cert import validate_cert
 from management_api.utils.kubernetes_resources import validate_quota, get_k8s_api_client, \
     get_k8s_rbac_api_client
-
 
 logger = get_logger(__name__)
 
@@ -30,6 +29,11 @@ def create_tenant(parameters):
     validate_cert(cert)
     validate_tenant_name(name)
     validate_quota(quota)
+
+    if tenant_exists(name):
+        logger.error('Tenant {} already exists'.format(name))
+        raise falcon.HTTPConflict('Tenant {} already exists'.format(name))
+
     try:
         create_namespace(name, quota)
         portable_secrets_propagation(target_namespace=name)
@@ -42,6 +46,7 @@ def create_tenant(parameters):
         delete_namespace(name)
         delete_bucket(name)
         raise
+
     logger.info('Tenant {} created'.format(name))
 
 
@@ -138,7 +143,7 @@ def create_resource_quota(name, quota):
     except ApiException as apiException:
         logger.error("Resource quota not created: {}".format(apiException))
         raise falcon.HTTPBadRequest('An error occurred during resource quota creation: {}'.format(
-                apiException))
+            apiException))
     except Exception as e:
         logger.error('Error occurred: {}'.format(e))
         raise falcon.HTTPBadRequest('Error occurred: {}'.format(e))
@@ -148,6 +153,7 @@ def create_resource_quota(name, quota):
 @retry(stop_max_attempt_number=5, wait_fixed=2000)
 def delete_bucket(name):
     response = 'Bucket {} does not exist'.format(name)
+    existed = True
     try:
         bucket = minio_resource.Bucket(name)
         bucket.objects.all().delete()
@@ -158,12 +164,17 @@ def delete_bucket(name):
         if clientError.response['Error']['Code'] != NO_SUCH_BUCKET_EXCEPTION:
             raise falcon.HTTPBadRequest('Error occurred during bucket '
                                         'deletion: {}'.format(clientError))
+        existed = False
     except Exception as e:
         logger.error('Unexpected error occurred during bucket deletion: {}'.format(e))
         raise falcon.HTTPBadRequest('Unexpected error occurred during bucket deletion: {}'
                                     .format(e))
 
-    logger.info('Bucket {} deleted'.format(name))
+    if existed:
+        logger.info('Bucket {} deleted'.format(name))
+    else:
+        logger.info('Bucket {} does not exist'.format(name))
+
     return response
 
 
@@ -172,28 +183,38 @@ def delete_namespace(name):
     body = client.V1DeleteOptions()
     response = 'Namespace {} does not exist'.format(name)
     api_instance = get_k8s_api_client()
+    existed = True
     try:
         response = api_instance.delete_namespace(name, body)
     except ApiException as apiException:
         if apiException.status != RESOURCE_DOES_NOT_EXIST and \
-                        apiException.status != NAMESPACE_BEING_DELETED:
-            logger.error('Error occurred during namespace deletion: {}'.format(apiException.status))
+                apiException.status != NAMESPACE_BEING_DELETED:
+            logger.error('Error occurred during namespace deletion: {}'.format(apiException))
             raise falcon.HTTPBadRequest('Error occurred during namespace deletion: {}'
                                         .format(apiException))
+        existed = False
     except Exception as e:
-        logger.error('Error occurred during namespace deletion: {}'.format(e.status))
-        raise falcon.HTTPBadRequest('Error occurred during namespace deletion: {}'
-                                    .format(e))
-    logger.info('Namespace {} deleted'.format(name))
+        logger.error('Error occurred during namespace deletion: {}'.format(e))
+        raise falcon.HTTPBadRequest('Error occurred during namespace deletion: {}'.format(e))
+
+    if existed:
+        logger.info('Namespace {} deleted'.format(name))
+    else:
+        logger.info('Namespace {} does not exist'.format(name))
+
     return response
 
 
 def delete_tenant(parameters):
     name = parameters['name']
     logger.info('Deleting tenant: {}'.format(name))
-    delete_bucket(name)
-    delete_namespace(name)
-    logger.info('Tenant {} deleted'.format(name))
+    if tenant_exists(name):
+        delete_bucket(name)
+        delete_namespace(name)
+        logger.info('Tenant {} deleted'.format(name))
+    else:
+        logger.info('Tenant {} does not exist'.format(name))
+        raise falcon.HTTPBadRequest('Tenant {} does not exist'.format(name))
 
 
 def propagate_secret(source_secret_path, target_namespace):
@@ -230,17 +251,53 @@ def portable_secrets_propagation(target_namespace):
     logger.info('Portable secrets copied from default to {}'.format(target_namespace))
 
 
+def does_bucket_exist(bucket_name):
+    try:
+        minio_client.list_objects_v2(Bucket=bucket_name)
+    except ClientError as clientError:
+        error_code = clientError.response['Error']['Code']
+        if error_code == NO_SUCH_BUCKET_EXCEPTION:
+            return False
+        raise
+    return True
+
+
+def is_namespace_available(namespace):
+    response = None
+    api_instance = get_k8s_api_client()
+    try:
+        response = api_instance.read_namespace_status(namespace)
+    except ApiException as apiException:
+        if apiException.status == RESOURCE_DOES_NOT_EXIST:
+            return False
+        raise
+    if response and response.status.phase == TERMINATION_IN_PROGRESS:
+        return False
+    return True
+
+
+def tenant_exists(tenant_name):
+    try:
+        result = does_bucket_exist(tenant_name) and is_namespace_available(tenant_name)
+    except Exception as e:
+        logger.error('Unexpected error occurred during tenant existence check: {}'.format(e))
+        raise falcon.HTTPInternalServerError('Unexpected error occurred during tenant existence '
+                                             'check: {}'.format(e))
+    logger.info("Tenant already exists: " + str(result))
+    return result
+
+
 def create_role(name):
     api_version = 'rbac.authorization.k8s.io/v1'
     meta = client.V1ObjectMeta(name=name, namespace=name)
-    service_rules = client.V1PolicyRule(api_groups=[""], resources=["services"], 
+    service_rules = client.V1PolicyRule(api_groups=[""], resources=["services"],
                                         verbs=["create", "list", "get", "delete"])
-    ingress_rules = client.V1PolicyRule(api_groups=[""], resources=["ingresses"], 
+    ingress_rules = client.V1PolicyRule(api_groups=[""], resources=["ingresses"],
                                         verbs=["create", "list", "get", "delete"])
-    deployment_rules = client.V1PolicyRule(api_groups=[""], resources=["deployments"], 
-                                        verbs=["create", "list", "get", "delete"])
-    server_rules = client.V1PolicyRule(api_groups=["intel.com"], resources=["servers"], 
-                                        verbs=["create", "get", "delete", "patch"])
+    deployment_rules = client.V1PolicyRule(api_groups=[""], resources=["deployments"],
+                                           verbs=["create", "list", "get", "delete"])
+    server_rules = client.V1PolicyRule(api_groups=["intel.com"], resources=["servers"],
+                                       verbs=["create", "get", "delete", "patch"])
     role = client.V1Role(api_version=api_version, metadata=meta,
                          rules=[service_rules, ingress_rules, deployment_rules, server_rules])
     rbac_api_instance = get_k8s_rbac_api_client()
@@ -254,19 +311,20 @@ def create_role(name):
                      .format(e))
         raise falcon.HTTPBadRequest('An error occurred during role '
                                     'creation: {}'.format(e))
-    
+
     logger.info("Role {} created".format(name))
     return response
 
 
 def create_rolebinding(name, scope_name):
-    api_version = 'rbac.authorization.k8s.io' 
+    api_version = 'rbac.authorization.k8s.io'
     scope = 'oidc:/' + scope_name
     subject = client.V1Subject(kind='Group', name=scope, namespace=name)
     role_ref = client.V1RoleRef(api_group=api_version, kind='Role', name=name)
     meta = client.V1ObjectMeta(name=name, namespace=name)
     rolebinding = client.V1RoleBinding(metadata=meta, role_ref=role_ref, subjects=[subject])
     rbac_api_instance = get_k8s_rbac_api_client()
+
     try:
         response = rbac_api_instance.create_namespaced_role_binding(name, rolebinding)
     except ApiException as apiException:
@@ -275,6 +333,6 @@ def create_rolebinding(name, scope_name):
     except Exception as e:
         logger.error('An error occured during rolebinding creation: {}'.format(e))
         raise falcon.HTTPBadRequest('An error occured during rolebinding creation: {}'.format(e))
-    
+
     logger.info("Rolebinding {} created".format(name))
     return response

@@ -2,8 +2,8 @@ import requests
 import json
 
 from conftest import get_all_pods_in_namespace
-from management_api_tests.config import DEFAULT_HEADERS, ENDPOINT_MANAGEMENT_API_URL
-from management_api_tests.endpoints.endpoint_utils import is_replicas_number_correct
+from management_api_tests.config import DEFAULT_HEADERS, ENDPOINT_MANAGEMENT_API_URL, CheckResult
+from management_api_tests.endpoints.endpoint_utils import check_replicas_number_matching_provided
 
 
 def test_create_endpoint(function_context):
@@ -97,5 +97,6 @@ def test_scale_endpoint(create_endpoint, get_k8s_custom_obj_client):
     response = requests.patch(url, data=data, headers=headers)
     assert response.status_code == 200
 
-    assert is_replicas_number_correct(get_k8s_custom_obj_client, namespace, crd_server_name,
-                                      expected_amount=10)
+    assert check_replicas_number_matching_provided(
+        get_k8s_custom_obj_client, namespace, crd_server_name, provided_number=10
+    ) == CheckResult.CONTENTS_MATCHING

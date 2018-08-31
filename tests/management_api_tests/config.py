@@ -1,5 +1,6 @@
 import os
 import urllib.parse
+from enum import Enum
 
 MINIO_ACCESS_KEY_ID = os.environ.get('MINIO_ACCESS_KEY',
                                      'AKIAIOSFODNN7EXAMPLE')
@@ -191,6 +192,23 @@ QUOTA_WRONG_VALUES = [
 
 PORTABLE_SECRETS_PATHS = ['default/minio-access-info', 'default/tls-secret']
 
-RESOURCE_DOES_NOT_EXIST = 404
+RESOURCE_NOT_FOUND = 404
 NAMESPACE_BEING_DELETED = 409
+TERMINATION_IN_PROGRESS = 'Terminating'
 NO_SUCH_BUCKET_EXCEPTION = 'NoSuchBucket'
+
+
+class CheckResult(Enum):
+    ERROR = 0
+    RESOURCE_AVAILABLE = 100
+    RESOURCE_UNAVAILABLE = 101
+    RESOURCE_DOES_NOT_EXIST = 102
+    RESOURCE_BEING_DELETED = 103
+    CONTENTS_MATCHING = 200
+    CONTENTS_MISMATCHING = 201
+
+
+class OperationStatus(Enum):
+    FAILURE = 0
+    SUCCESS = 1
+    TERMINATED = 2

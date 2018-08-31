@@ -5,16 +5,20 @@ from kubernetes.client.rest import ApiException
 from botocore.exceptions import ClientError
 from time import sleep
 
-from management_api_tests.config import CRD_GROUP, CRD_VERSION, CRD_PLURAL
+from management_api_tests.config import CRD_GROUP, CRD_VERSION, CRD_PLURAL, OperationStatus, \
+    CheckResult
+from management_api_tests.tenants.tenant_utils import check_bucket_existence, \
+    check_namespace_availability
 
 
 class Context(object):
 
-    def __init__(self, k8s_client, k8s_client_custom, minio_resource_client):
+    def __init__(self, k8s_client, k8s_client_custom, minio_resource_client, minio_client):
         self._objects = []
         self.k8s_client_api = k8s_client
         self.k82_client_custom = k8s_client_custom
         self.minio_resource_client = minio_resource_client
+        self.minio_client = minio_client
 
         self.DELETE_FUNCTIONS = {'tenant': self._delete_namespace_bucket,
                                  'CRD': self._delete_crd_server}
@@ -38,21 +42,37 @@ class Context(object):
             logging.info("We cannot match any delete function to this object: "
                          "{}".format(object_to_delete))
 
-    @retry(stop_max_attempt_number=3, wait_fixed=200)
     def _delete_namespace_bucket(self, object_to_delete):
+        name = object_to_delete['name']
         try:
-            bucket = self.minio_resource_client.Bucket(object_to_delete['name'])
+            bucket = self.minio_resource_client.Bucket(name)
             bucket.objects.all().delete()
             bucket.delete()
-        except ClientError as clientError:
-            logging.error(clientError)
+        except Exception as e:
+            logging.error(e)
+            return OperationStatus.FAILURE
+
         body = client.V1DeleteOptions()
         try:
-            self.k8s_client_api.delete_namespace(object_to_delete['name'], body)
-        except ApiException as apiException:
-            logging.error(apiException)
-        sleep(2)
-        logging.info('Tenant {} deleted.'.format(object_to_delete['name']))
+            self.k8s_client_api.delete_namespace(name, body)
+        except Exception as e:
+            logging.error(e)
+            return OperationStatus.FAILURE
+
+        completed = False
+        while not completed:
+            sleep(2)
+            bucket_status = check_bucket_existence(self.minio_client, name)
+            namespace_status = check_namespace_availability(self.k8s_client_api, name)
+            completed = (bucket_status == CheckResult.RESOURCE_DOES_NOT_EXIST and
+                         namespace_status == CheckResult.RESOURCE_DOES_NOT_EXIST)
+
+            if bucket_status == CheckResult.ERROR or namespace_status == CheckResult.ERROR:
+                logging.error("Error occurred during bucket or namespace status check")
+                return OperationStatus.TERMINATED
+
+        logging.info('{} deleted.'.format(name))
+        return OperationStatus.SUCCESS
 
     @retry(stop_max_attempt_number=3, wait_fixed=200)
     def _delete_crd_server(self, object_to_delete):

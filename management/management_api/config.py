@@ -1,7 +1,7 @@
 import boto3
 import os
 from botocore.client import Config
-from kubernetes import config, client
+from kubernetes import client
 
 HOSTNAME = os.getenv('HOSTNAME', 'localhost')
 PORT = int(os.getenv('PORT', 5000))
@@ -67,4 +67,5 @@ SUBJECT_NAME_RE = '^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Z
 # -------------------------------------------
 RESOURCE_DOES_NOT_EXIST = 404
 NAMESPACE_BEING_DELETED = 409
+TERMINATION_IN_PROGRESS = 'Terminating'
 NO_SUCH_BUCKET_EXCEPTION = 'NoSuchBucket'

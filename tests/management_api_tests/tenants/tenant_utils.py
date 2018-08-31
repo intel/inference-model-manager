@@ -1,88 +1,131 @@
 import botocore
 from kubernetes.client.rest import ApiException
 from botocore.exceptions import ClientError
-from management_api_tests.config import NO_SUCH_BUCKET_EXCEPTION, RESOURCE_DOES_NOT_EXIST
+from management_api_tests.config import NO_SUCH_BUCKET_EXCEPTION, RESOURCE_NOT_FOUND, \
+    CheckResult, TERMINATION_IN_PROGRESS
 import logging
 
 
-def is_bucket_available(minio_client, bucket):
+def check_bucket_existence(minio_client, bucket):
     try:
         minio_client.list_objects_v2(Bucket=bucket)
+
     except botocore.exceptions.ClientError as e:
         logging.error(e)
         error_code = e.response['Error']['Code']
         if error_code == NO_SUCH_BUCKET_EXCEPTION:
-            return False
+            return CheckResult.RESOURCE_DOES_NOT_EXIST
+        return CheckResult.ERROR
+
     except Exception as e:
         logging.error(e)
-    return True
+        return CheckResult.ERROR
+
+    return CheckResult.RESOURCE_AVAILABLE
 
 
-def is_namespace_available(api_instance, namespace):
+def check_namespace_availability(api_instance, namespace):
     response = None
     try:
         response = api_instance.read_namespace_status(namespace)
+
     except ApiException as apiException:
-        if apiException.status == RESOURCE_DOES_NOT_EXIST:
-            return False
+        if apiException.status == RESOURCE_NOT_FOUND:
+            return CheckResult.RESOURCE_DOES_NOT_EXIST
+        return CheckResult.ERROR
+
     except Exception as e:
         logging.error(e)
-    if response and response.status.phase == 'Terminating':
-        return False
-    return True
+        return CheckResult.ERROR
+
+    if response and response.status.phase == TERMINATION_IN_PROGRESS:
+        return CheckResult.RESOURCE_BEING_DELETED
+    return CheckResult.RESOURCE_AVAILABLE
 
 
-def does_secret_exist_in_namespace(api_instance, secret_name, secret_namespace):
+def check_namespaced_secret_existence(api_instance, secret_name, secret_namespace):
     response = None
     try:
         response = api_instance.read_namespaced_secret(secret_name, secret_namespace)
+
     except ApiException as apiException:
-        if apiException.status == RESOURCE_DOES_NOT_EXIST:
-            return False
+        if apiException.status == RESOURCE_NOT_FOUND:
+            return CheckResult.RESOURCE_DOES_NOT_EXIST
+        return CheckResult.ERROR
+
     except Exception as e:
         logging.error(e)
+        return CheckResult.ERROR
+
     logging.info(response)
-    return True
+    return CheckResult.RESOURCE_AVAILABLE
 
 
-def is_copied_secret_data_matching_original(api_instance, secret_name,
-                                            original_secret_namespace,
-                                            copied_secret_namespace):
+def check_copied_secret_data_matching_original(api_instance, secret_name,
+                                               original_secret_namespace,
+                                               copied_secret_namespace):
     try:
         original_secret = api_instance.read_namespaced_secret(secret_name,
                                                               original_secret_namespace)
         copied_secret = api_instance.read_namespaced_secret(secret_name, copied_secret_namespace)
+
     except ApiException as apiException:
-        if apiException.status == RESOURCE_DOES_NOT_EXIST:
-            return False
+        if apiException.status == RESOURCE_NOT_FOUND:
+            return CheckResult.RESOURCE_DOES_NOT_EXIST
+        return CheckResult.ERROR
+
+    except Exception as e:
+        logging.error(e)
+        return CheckResult.ERROR
+
     if original_secret.data == copied_secret.data:
-        return True
-    return False
+        return CheckResult.CONTENTS_MATCHING
+    return CheckResult.CONTENTS_MISMATCHING
 
 
-def is_role_available(rbac_api_instance, namespace, role):
+def check_resource_quota_matching_provided(api_instance, tenant_name, provided_quota):
+    try:
+        resource_quota = api_instance.read_namespaced_resource_quota(name=tenant_name,
+                                                                     namespace=tenant_name)
+    except ApiException as apiException:
+        if apiException.status == RESOURCE_NOT_FOUND:
+            return CheckResult.RESOURCE_DOES_NOT_EXIST
+        return CheckResult.ERROR
+
+    except Exception as e:
+        logging.error(e)
+        return CheckResult.ERROR
+
+    if resource_quota.spec.hard == provided_quota:
+        return CheckResult.CONTENTS_MATCHING
+    return CheckResult.CONTENTS_MISMATCHING
+
+
+def check_role_existence(rbac_api_instance, namespace, role):
     response = None
     try:
         response = rbac_api_instance.read_namespaced_role(role, namespace)
     except ApiException as apiException:
-        if apiException.status == RESOURCE_DOES_NOT_EXIST:
-            return False
+        if apiException.status == RESOURCE_NOT_FOUND:
+            return CheckResult.RESOURCE_DOES_NOT_EXIST
+        return CheckResult.ERROR
     except Exception as e:
         logging.error(e)
-        return False
+        return CheckResult.ERROR
     logging.info(response)
-    return True
+    return CheckResult.RESOURCE_AVAILABLE
 
 
-def is_rolebinding_available(rbac_api_instance, namespace, rolebinding):
+def check_rolebinding_existence(rbac_api_instance, namespace, rolebinding):
     response = None
     try:
         response = rbac_api_instance.read_namespaced_role_binding(rolebinding, namespace)
     except ApiException as apiException:
-        if apiException.status == RESOURCE_DOES_NOT_EXIST:
-            return False
+        if apiException.status == RESOURCE_NOT_FOUND:
+            return CheckResult.RESOURCE_DOES_NOT_EXIST
+        return CheckResult.ERROR
     except Exception as e:
         logging.error(e)
-        return False
+        return CheckResult.ERROR
     logging.info(response)
-    return True  
+    return CheckResult.RESOURCE_AVAILABLE
