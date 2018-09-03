@@ -3,10 +3,17 @@
 ```
 cd helm-deployment
 helm dep up .
-helm install .
+helm install --name inferno-platform .
 ```
 `helm dep up .` will download minio and dex as subcharts
-`helm install .` will deploy all components on exisitng kubernetes cluster
+`helm install --name inferno-platform .` will deploy all components on exisitng kubernetes cluster. Release will be named 'inferno-platform'.
+
+In case of problems with tiller make sure that service account tiller is created:
+```
+kubectl create sa tiller --namespace kube-system
+kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+helm init --debug --upgrade --service-account tiller
+```
 
 It is possible to override subchart's values.yaml variables by adding 
 ```
