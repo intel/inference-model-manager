@@ -50,7 +50,11 @@ func main() {
 	ingressTemplateFile := flag.String("ingressFile", "./resources/ingress.tmpl", "Path to an ingress file")
 	platformDomain, ok := os.LookupEnv("PLATFORM_DOMAIN")
 	if !ok {
-		panic(errors.New("PLATFORM_DOMAIN environment variable not set. Controller unable to start."))
+		panic(errors.New("PLATFORM_DOMAIN environment variable not set. Controller was unable to start."))
+	}
+	servingImage, ok := os.LookupEnv("SERVING_IMAGE")
+	if !ok {
+		panic(errors.New("SERVING_IMAGE environment variable not set. Controller was unable to start."))	
 	}
 	flag.Parse()
 
@@ -104,6 +108,7 @@ func main() {
 
 	globalTemplateValues := resource.GlobalTemplateValues{}
 	globalTemplateValues["platformDomain"] = platformDomain
+	globalTemplateValues["servingImage"] = servingImage
 	deploymentClient := resource.NewDeploymentClient(globalTemplateValues, k8sclientset, *deploymentTemplateFile)
 	serviceClient := resource.NewServiceClient(globalTemplateValues, k8sclientset, *serviceTemplateFile)
 	ingressClient := resource.NewIngressClient(globalTemplateValues, k8sclientset, *ingressTemplateFile)

@@ -1,2 +1,3 @@
 image: "gcr.io/constant-cubist-173123/server-controller-prod"
 tag: "latest"
+servingImage: "gcr.io/constant-cubist-173123/tfserving-optimized-no-logs"

@@ -65,6 +65,8 @@ spec:
               configMapKeyRef:
                 name: platform-domain
                 key: platform.domain
+          - name: SERVING_IMAGE
+            value: "{{ .Values.servingImage }}"
 ---
 apiVersion: v1
 kind: Service
