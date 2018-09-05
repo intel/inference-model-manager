@@ -7,7 +7,7 @@ from kubernetes.client.rest import ApiException
 
 from management_api_tests.config import MINIO_SECRET_ACCESS_KEY, MINIO_ACCESS_KEY_ID, \
     MINIO_REGION, MINIO_ENDPOINT_ADDR, SIGNATURE_VERSION, CRD_VERSION, CRD_PLURAL, CRD_KIND, \
-    CRD_GROUP, CRD_API_VERSION
+    CRD_GROUP, CRD_API_VERSION, TENANT_NAME, TENANT_RESOURCES, ENDPOINT_RESOURCES
 from management_api_tests.context import Context
 
 
@@ -62,25 +62,25 @@ def minio_resource():
                               signature_version=SIGNATURE_VERSION),
                           region_name=MINIO_REGION)
 
-
 @pytest.fixture(scope="function")
-def create_endpoint(function_context, get_k8s_custom_obj_client):
-    namespace = 'default'
+def endpoint(function_context, get_k8s_custom_obj_client):
+    namespace = TENANT_NAME
     metadata = {"name": "predict"}
     spec = {
         'modelName': 'resnet',
         'modelVersion': 1,
         'endpointName': 'predict',
         'subjectName': 'client',
-        'replicas': 1
+        'replicas': 1,
+        'resources': ENDPOINT_RESOURCES
     }
     body = {"spec": spec, 'kind': CRD_KIND, "replicas": 1,
             "apiVersion": CRD_API_VERSION,  "metadata": metadata}
-    api_response = get_k8s_custom_obj_client. \
+    get_k8s_custom_obj_client. \
         create_namespaced_custom_object(CRD_GROUP, CRD_VERSION, namespace, CRD_PLURAL, body)
     object_to_delete = {'name': "predict", 'namespace': namespace}
     function_context.add_object(object_type='CRD', object_to_delete=object_to_delete)
-    return api_response, namespace, body
+    return namespace, body
 
 
 @retry(stop_max_attempt_number=3, wait_fixed=200)
@@ -92,3 +92,23 @@ def get_all_pods_in_namespace(k8s_client, namespace, label_selector=''):
         print("Exception when calling CoreV1Api->list_pod_for_all_namespaces: %s\n" % e)
 
     return api_response
+
+
+def resource_quota(api_instance, quota={}, namespace=TENANT_NAME):
+    name_object = client.V1ObjectMeta(name=namespace)
+    resource_quota_spec = client.V1ResourceQuotaSpec(hard=quota)
+    body = client.V1ResourceQuota(spec=resource_quota_spec, metadata=name_object)
+    api_response = api_instance.create_namespaced_resource_quota(namespace=namespace, body=body)
+    return quota
+
+
+@pytest.fixture(scope="function")
+def tenant(api_instance, minio_client, function_context):
+    name = TENANT_NAME
+    name_object = client.V1ObjectMeta(name=name)
+    namespace = client.V1Namespace(metadata=name_object)
+    api_instance.create_namespace(namespace)
+    quota = resource_quota(api_instance, quota=TENANT_RESOURCES)
+    minio_client.create_bucket(Bucket=name)
+    function_context.add_object(object_type='tenant', object_to_delete={'name': name})
+    return name, quota

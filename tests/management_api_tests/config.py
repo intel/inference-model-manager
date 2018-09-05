@@ -190,6 +190,16 @@ QUOTA_WRONG_VALUES = [
      """{"title": "Invalid value 1-Gi of limits.memory field. Please provide value that matches Kubernetes convention. Some example values: '1Gi', '200Mi', '300m'"}"""),
 ]
 
+
+TENANT_RESOURCES = {'limits.cpu': '2', 'requests.cpu': '1'}
+ENDPOINT_RESOURCES = {'limits.cpu': '500m', 'requests.cpu': '200m'}
+
+QUOTA_INCOMPLIANT_VALUES = [
+    ({}, """{"title": "There's resource quota specified in test tenant: {'limits.cpu': '2', 'requests.cpu': '1'} Please fill resource field with given keys in your request"}"""),
+    ({'requests.cpu': '1'}, """{"title": "Not all needed values were provided. Values provided in tenant's resource quota: {'limits.cpu': '2'}"}""")
+]
+
+
 PORTABLE_SECRETS_PATHS = ['default/minio-access-info', 'default/tls-secret']
 
 RESOURCE_NOT_FOUND = 404

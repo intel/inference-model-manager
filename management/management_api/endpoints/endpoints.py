@@ -5,7 +5,7 @@ from management_api.config import CREATE_ENDPOINT_REQUIRED_PARAMETERS, \
 from management_api.utils.parse_request import get_body, get_params
 from management_api.endpoints.endpoint_utils import create_endpoint, delete_endpoint, \
     create_url_to_service, validate_params, scale_endpoint
-from management_api.utils.kubernetes_resources import validate_quota, transform_quota
+from management_api.utils.kubernetes_resources import validate_quota
 
 
 class Endpoints(object):
@@ -17,7 +17,6 @@ class Endpoints(object):
         get_params(body, required_keys=CREATE_ENDPOINT_REQUIRED_PARAMETERS)
         validate_params(params=body)
         validate_quota(body.setdefault('resources', {}))
-        body['resources'] = transform_quota(body['resources'])
         endpoint_url = create_endpoint(parameters=body, namespace=namespace)
         resp.status = falcon.HTTP_200
         resp.body = 'Endpoint created\n {}'.format(endpoint_url)

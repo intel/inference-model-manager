@@ -3,6 +3,7 @@ import falcon
 import ipaddress
 from functools import lru_cache
 from kubernetes import config, client
+from kubernetes.client.rest import ApiException
 
 from management_api.utils.logger import get_logger
 from management_api.config import ING_NAME, ING_NAMESPACE
@@ -54,6 +55,47 @@ def transform_quota(quota):
             continue
         transformed.setdefault(keys[0], {})[keys[1]] = v
     return transformed
+
+
+def read_resource_quota(api_instance: client, name, namespace):
+    try:
+        tenant_quota = api_instance.read_namespaced_resource_quota(
+                           name=name, namespace=namespace)
+    except ApiException as apiException:
+        logger.error('An error occured during resource quota reading: {}'.\
+                         format(apiException))
+        raise falcon.HTTPError('An error occured during resource quota reading: {}'.\
+                         format(apiException))
+    except Exception as e:
+        logger.error('An error occured during resource quota reading: {}'.\
+                         format(apiException))
+        raise falcon.HTTPError('An error occured during resource quota reading: {}'.\
+                         format(apiException))
+    return tenant_quota
+
+
+def validate_quota_compliance(api_instance: client, namespace, endpoint_quota):
+    tenant_quota = read_resource_quota(api_instance, name=namespace, namespace=namespace)
+    tenant_quota = tenant_quota.spec.hard
+    if tenant_quota is not None:
+        if endpoint_quota == {}:
+            logger.error('There\'s resource quota specified in {} tenant: {} '
+                         'Please fill resource field with given keys in your request'.\
+                         format(namespace, tenant_quota))
+            raise falcon.HTTPBadRequest('There\'s resource quota specified in {} tenant: {} '
+                         'Please fill resource field with given keys in your request'.\
+                         format(namespace, tenant_quota))  
+        if not tenant_quota.keys() == endpoint_quota.keys():
+             missing_pairs = {k: v for k, v in tenant_quota.items() 
+                            if k not in endpoint_quota.keys()}
+             if missing_pairs:
+                 logger.error('Not all needed values were provided. '
+                              'Values provided in tenant\'s resource quota: {}'.\
+                                    format(missing_pairs))
+                 raise falcon.HTTPBadRequest('Not all needed values were provided. '
+                              'Values provided in tenant\'s resource quota: {}'.\
+                                    format(missing_pairs))
+    return True
 
 
 def get_ingress_external_ip(api_instance: client):

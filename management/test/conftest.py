@@ -25,3 +25,12 @@ def custom_client_mock_endpoint_utils(mocker):
                                              'get_k8s_api_custom_client')
     create_custom_client_mock.return_value = custom_client
     return create_custom_client_mock, custom_client
+
+
+@pytest.fixture(scope='function')
+def api_client_mock_endpoint_utils(mocker):
+    api_client = Mock()
+    create_api_client_mock = mocker.patch('management_api.endpoints.endpoint_utils.'
+                                             'get_k8s_api_client')
+    create_api_client_mock.return_value = api_client
+    return create_api_client_mock, api_client

@@ -8,25 +8,27 @@ from unittest.mock import Mock
 
 
 @pytest.mark.parametrize("raise_error", [(False), (True)])
-def test_create_endpoint(get_url_to_service_endpoint_utils, custom_client_mock_endpoint_utils,
-                         raise_error):
+def test_create_endpoint(mocker, get_url_to_service_endpoint_utils, custom_client_mock_endpoint_utils,
+                         raise_error, api_client_mock_endpoint_utils):
     ing_ip_mock, ing_ip_mock_return_values = get_url_to_service_endpoint_utils
     create_custom_client_mock, custom_client = custom_client_mock_endpoint_utils
+    validate_quota_compliance_mock = mocker.patch('management_api.endpoints.endpoint_utils.validate_quota_compliance')
+    parameters_resources_mock = mocker.patch('management_api.endpoints.endpoint_utils.transform_quota')
     if raise_error:
         with pytest.raises(falcon.HTTPBadRequest):
             custom_client.create_namespaced_custom_object.side_effect = ApiException()
-            create_endpoint(parameters={'endpointName': "test"}, namespace="test")
+            create_endpoint(parameters={'endpointName': "test", 'resources': {}}, namespace="test")
 
     else:
-        create_endpoint(parameters={'endpointName': "test"}, namespace="test")
+        create_endpoint(parameters={'endpointName': "test", 'resources': {}}, namespace="test")
         ing_ip_mock.assert_called_once()
     custom_client.create_namespaced_custom_object.assert_called_once()
     create_custom_client_mock.assert_called_once()
 
 
 @pytest.mark.parametrize("raise_error", [(False), (True)])
-def test_delete_endpoint(custom_client_mock_endpoint_utils, get_url_to_service_endpoint_utils,
-                         raise_error):
+def test_delete_endpoint(custom_client_mock_endpoint_utils, api_client_mock_endpoint_utils,
+                         get_url_to_service_endpoint_utils, raise_error):
     ing_ip_mock, ing_ip_mock_return_values = get_url_to_service_endpoint_utils
     create_custom_client_mock, custom_client = custom_client_mock_endpoint_utils
 

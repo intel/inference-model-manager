@@ -5,7 +5,8 @@ from kubernetes.client.rest import ApiException
 
 from management_api.utils.logger import get_logger
 from management_api.utils.kubernetes_resources import get_ingress_external_ip, \
-    get_k8s_api_custom_client, get_k8s_api_client
+    get_k8s_api_custom_client, get_k8s_api_client, validate_quota_compliance, \
+    transform_quota
 from management_api.config import CRD_GROUP, CRD_VERSION, CRD_PLURAL, \
     CRD_API_VERSION, CRD_KIND, PLATFORM_DOMAIN, SUBJECT_NAME_RE, DELETE_BODY
 
@@ -17,7 +18,11 @@ def create_endpoint(parameters: dict, namespace: str):
     metadata = {"name": parameters['endpointName']}
     body = {"apiVersion": CRD_API_VERSION, "kind": CRD_KIND, "spec": spec, "metadata": metadata}
     custom_obj_api_instance = get_k8s_api_custom_client()
+    api_instance = get_k8s_api_client()
     try:
+        validate_quota_compliance(api_instance, namespace=namespace,
+                                  endpoint_quota=parameters.get('resources', None))
+        parameters['resources'] = transform_quota(parameters['resources'])
         custom_obj_api_instance.create_namespaced_custom_object(CRD_GROUP, CRD_VERSION, namespace,
                                                                 CRD_PLURAL, body)
     except ApiException as e:
