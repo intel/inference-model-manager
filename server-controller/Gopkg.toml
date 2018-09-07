@@ -26,7 +26,7 @@
 
 
 [[constraint]]
-  revision = "2137252515601331151aa2937eb0fb0c99688ce4"
+  revision = "2a63e246bb31474960187174ef77e4893b99ac49"
   name = "github.com/NervanaSystems/kube-controllers-go"
 
 [[constraint]]

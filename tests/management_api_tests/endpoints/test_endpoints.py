@@ -81,8 +81,8 @@ def test_create_endpoint_with_2_replicas(function_context, api_instance, tenant)
 
     function_context.add_object(object_type='CRD', object_to_delete={'name': crd_server_name,
                                                                      'namespace': namespace})
-    pod_id = '{}-{}'.format(model_name, model_version)
-    label_selector = 'endpoint={},id={}'.format(crd_server_name, pod_id)
+
+    label_selector = 'endpoint={}'.format(crd_server_name)
     pods = get_all_pods_in_namespace(k8s_client=api_instance, namespace=namespace,
                                      label_selector=label_selector)
 

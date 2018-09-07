@@ -1,7 +1,7 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: "{{.Spec.ModelName}}-{{.Spec.ModelVersion}}-{{.Spec.EndpointName}}"
+  name: "{{.Spec.EndpointName}}"
   namespace: "{{.ObjectMeta.Namespace}}"
   annotations:
     kubernetes.io/ingress.class: nginx
@@ -13,7 +13,7 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-body-size: 8m
     allowed-values: "CN={{.Spec.SubjectName}}"
   labels:
-    id: "{{.Spec.ModelName}}-{{.Spec.ModelVersion}}-{{.Spec.EndpointName}}"
+    id: "{{.Spec.EndpointName}}"
     endpoint: "{{.Spec.EndpointName}}"
   ownerReferences:
   - apiVersion: {{.APIVersion}}
@@ -28,7 +28,7 @@ spec:
     http:
       paths:
       - backend:
-          serviceName: "{{.Spec.ModelName}}-{{.Spec.ModelVersion}}-{{.Spec.EndpointName}}"
+          serviceName: "{{.Spec.EndpointName}}"
           servicePort: 9000
   tls:
   - hosts:

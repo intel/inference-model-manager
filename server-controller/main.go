@@ -19,18 +19,17 @@ package main
 
 import (
 	"context"
-	"flag"
-	"time"
-	"os"
 	"errors"
-
+	"flag"
 	apiv1 "k8s.io/api/core/v1"
 	extv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	extclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/client-go/rest"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+	"os"
+	"time"
 	// Uncomment the following line to load the gcp plugin (only required to
 	// authenticate against GKE clusters).
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -38,9 +37,9 @@ import (
 	crv1 "github.com/NervanaSystems/inferno-platform/server-controller/apis/cr/v1"
 	"github.com/NervanaSystems/kube-controllers-go/pkg/controller"
 	"github.com/NervanaSystems/kube-controllers-go/pkg/crd"
+	"github.com/NervanaSystems/kube-controllers-go/pkg/resource"
 	"github.com/NervanaSystems/kube-controllers-go/pkg/states"
 	"github.com/NervanaSystems/kube-controllers-go/pkg/util"
-	"github.com/NervanaSystems/kube-controllers-go/pkg/resource"
 )
 
 func main() {
@@ -48,16 +47,18 @@ func main() {
 	deploymentTemplateFile := flag.String("deploymentFile", "./resources/deployment.tmpl", "Path to a deployment file")
 	serviceTemplateFile := flag.String("serviceFile", "./resources/service.tmpl", "Path to a service file")
 	ingressTemplateFile := flag.String("ingressFile", "./resources/ingress.tmpl", "Path to an ingress file")
+	replicaPatch := flag.String("replicaPatchFile", "./resources/replicas_patch.tmpl", "Path to replica patch file")
+	argPatch := flag.String("argPatchFile", "./resources/arg_patch.tmpl", "Path to arg patch file")
+	resourcePatch := flag.String("resourcePatchFile", "./resources/resource_patch.tmpl", "Path to resource patch file")
 	platformDomain, ok := os.LookupEnv("PLATFORM_DOMAIN")
 	if !ok {
 		panic(errors.New("PLATFORM_DOMAIN environment variable not set. Controller was unable to start."))
 	}
 	servingImage, ok := os.LookupEnv("SERVING_IMAGE")
 	if !ok {
-		panic(errors.New("SERVING_IMAGE environment variable not set. Controller was unable to start."))	
+		panic(errors.New("SERVING_IMAGE environment variable not set. Controller was unable to start."))
 	}
 	flag.Parse()
-
 	// Create the client config. Use kubeconfig if given, otherwise assume
 	// in-cluster.
 	config, err := util.BuildConfig(*kubeconfig)
@@ -114,7 +115,7 @@ func main() {
 	ingressClient := resource.NewIngressClient(globalTemplateValues, k8sclientset, *ingressTemplateFile)
 
 	// Start a controller for instances of our custom resource.
-	hooks := serverHooks{crdClient, deploymentClient, serviceClient, ingressClient}
+	hooks := serverHooks{crdClient, deploymentClient, serviceClient, ingressClient, *replicaPatch, *argPatch, *resourcePatch}
 	controller := controller.New(crdHandle, &hooks, crdClient.RESTClient())
 
 	ctx, cancelFunc := context.WithCancel(context.Background())

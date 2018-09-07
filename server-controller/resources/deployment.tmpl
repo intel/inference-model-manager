@@ -1,10 +1,10 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: "{{.Spec.ModelName}}-{{.Spec.ModelVersion}}-{{.Spec.EndpointName}}"
+  name: "{{.Spec.EndpointName}}"
   namespace: "{{.ObjectMeta.Namespace}}"
   labels:
-    id: "{{.Spec.ModelName}}-{{.Spec.ModelVersion}}-{{.Spec.EndpointName}}"
+    id: "{{.Spec.EndpointName}}"
     endpoint: "{{.Spec.EndpointName}}"
   ownerReferences:
   - apiVersion: {{.APIVersion}}
@@ -19,7 +19,6 @@ spec:
   template:
     metadata:
       labels:
-        id: "{{.Spec.ModelName}}-{{.Spec.ModelVersion}}"
         endpoint: "{{.Spec.EndpointName}}"
     spec:
       containers:
@@ -71,4 +70,3 @@ spec:
 {{ range $resource, $request := .Spec.Resources.Requests }}
             {{ $resource }}: "{{ $request }}"
 {{ end }}
-
