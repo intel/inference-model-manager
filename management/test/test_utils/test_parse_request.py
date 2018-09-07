@@ -1,3 +1,4 @@
+from management_api.utils.errors_handling import MissingParamException
 from management_api.utils.parse_request import get_params
 import pytest
 import falcon
@@ -10,7 +11,7 @@ import falcon
 def test_get_params(raise_error, body):
     required_keys = ['test', 'default']
     if raise_error:
-        with pytest.raises(falcon.HTTPBadRequest):
+        with pytest.raises(MissingParamException):
             get_params(body=body, required_keys=required_keys)
     else:
         get_params(body=body, required_keys=required_keys)

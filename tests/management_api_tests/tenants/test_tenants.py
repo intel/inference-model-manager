@@ -75,7 +75,7 @@ def test_not_create_tenant_improper_body(wrong_body, expected_error, minio_clien
 
     response = requests.post(url, data=data, headers=headers)
 
-    assert response.text == expected_error
+    assert expected_error in response.text
     assert response.status_code == 400
     if 'name' in wrong_body and wrong_body['name']:
         assert check_bucket_existence(minio_client, bucket=wrong_body['name']) == \
@@ -98,7 +98,7 @@ def test_not_create_tenant_wrong_name(wrong_name, expected_error, minio_client, 
 
     response = requests.post(url, data=data, headers=headers)
 
-    assert response.text == expected_error
+    assert expected_error in response.text
     assert response.status_code == 400
     assert check_bucket_existence(minio_client,
                                   bucket=wrong_name) == CheckResult.RESOURCE_DOES_NOT_EXIST
@@ -122,7 +122,7 @@ def test_not_create_tenant_wrong_quota(quota_wrong_values,
 
     response = requests.post(url, data=data, headers=headers)
 
-    assert response.text == expected_error
+    assert expected_error in response.text
     assert response.status_code == 400
     assert check_bucket_existence(minio_client,
                                   bucket=TENANT_NAME) == CheckResult.RESOURCE_DOES_NOT_EXIST

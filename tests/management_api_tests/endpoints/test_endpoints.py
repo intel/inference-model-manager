@@ -134,4 +134,4 @@ def test_not_create_endpoint_with_incompliant_resource_quota(tenant,
     response = requests.post(url, data=data, headers=headers)
     
     assert response.status_code == 400
-    assert response.text == expected_error
+    assert expected_error in response.text

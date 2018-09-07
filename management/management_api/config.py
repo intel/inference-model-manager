@@ -27,7 +27,6 @@ CRD_KIND = 'Server'
 ING_NAME = 'ingress-nginx'
 ING_NAMESPACE = 'ingress-nginx'
 
-
 minio_client = boto3.client('s3',
                             endpoint_url=MINIO_ENDPOINT_ADDR,
                             aws_access_key_id=MINIO_ACCESS_KEY_ID,
@@ -69,3 +68,25 @@ RESOURCE_DOES_NOT_EXIST = 404
 NAMESPACE_BEING_DELETED = 409
 TERMINATION_IN_PROGRESS = 'Terminating'
 NO_SUCH_BUCKET_EXCEPTION = 'NoSuchBucket'
+
+
+class ValidityMessage:
+    SUBJECT_NAME = "Subject name must contain alphanumeric characters, " \
+                   "'-' and '.'(provided it's not last character). " \
+                   "It shall follow regex: " + SUBJECT_NAME_RE + \
+                   "Examples: example.com, another-example.com, " \
+                   "one-more-example.org.com"
+    ENDPOINT_INT_VALUES = "For modelVersion and replicas fields, please provide " \
+                          "integers greater than 0"
+    TENANT_NAME = "Tenant name must consist of at least 3 and maximum 63 " \
+                  "lower case alphanumeric characters or '-', and must " \
+                  "start and end with an alphanumeric character " \
+                  "(e.g. 'my-name', or '123-abc')"
+
+    QUOTA_ALPHA_VALUES = "Please provide value that matches Kubernetes convention. " \
+                         "Some example values: '1Gi', '200Mi', '300m'"
+    QUOTA_INT_VALUES = "Please provide integer greater than or equal to 0"
+
+    CERTIFICATE = "Provided certificate does not look like valid certificate. " \
+                  "Please check if it's correctly Base64 encoded and not corrupted " \
+                  "in any way."

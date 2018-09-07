@@ -6,6 +6,9 @@ import falcon
 import pytest
 from unittest.mock import Mock
 
+from management_api.utils.errors_handling import KubernetesCreateException, \
+    KubernetesDeleteException, InvalidParamException
+
 
 @pytest.mark.parametrize("raise_error", [(False), (True)])
 def test_create_endpoint(mocker, get_url_to_service_endpoint_utils, custom_client_mock_endpoint_utils,
@@ -15,7 +18,7 @@ def test_create_endpoint(mocker, get_url_to_service_endpoint_utils, custom_clien
     validate_quota_compliance_mock = mocker.patch('management_api.endpoints.endpoint_utils.validate_quota_compliance')
     parameters_resources_mock = mocker.patch('management_api.endpoints.endpoint_utils.transform_quota')
     if raise_error:
-        with pytest.raises(falcon.HTTPBadRequest):
+        with pytest.raises(KubernetesCreateException):
             custom_client.create_namespaced_custom_object.side_effect = ApiException()
             create_endpoint(parameters={'endpointName': "test", 'resources': {}}, namespace="test")
 
@@ -33,7 +36,7 @@ def test_delete_endpoint(custom_client_mock_endpoint_utils, api_client_mock_endp
     create_custom_client_mock, custom_client = custom_client_mock_endpoint_utils
 
     if raise_error:
-        with pytest.raises(falcon.HTTPBadRequest):
+        with pytest.raises(KubernetesDeleteException):
             custom_client.delete_namespaced_custom_object.side_effect = ApiException()
             delete_endpoint(parameters={'endpointName': 'test'}, namespace="test")
     else:
@@ -68,7 +71,7 @@ def test_create_url_to_service(mocker):
                           (True, {'modelVersion': 3, 'replicas': 'tet', 'subjectName': 'test_w'})])
 def test_validate_params(raise_error, params):
     if raise_error:
-        with pytest.raises(falcon.HTTPBadRequest):
+        with pytest.raises(InvalidParamException):
             validate_params(params=params)
     else:
         validate_params(params=params)

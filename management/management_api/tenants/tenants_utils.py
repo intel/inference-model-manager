@@ -1,6 +1,6 @@
-import falcon
 import re
 
+import falcon
 from botocore.exceptions import ClientError
 from kubernetes import client
 from kubernetes.client.rest import ApiException
@@ -8,11 +8,14 @@ from retrying import retry
 
 from management_api.config import CERT_SECRET_NAME, PORTABLE_SECRETS_PATHS, \
     minio_client, minio_resource, RESOURCE_DOES_NOT_EXIST, \
-    NAMESPACE_BEING_DELETED, NO_SUCH_BUCKET_EXCEPTION, TERMINATION_IN_PROGRESS
-from management_api.utils.logger import get_logger
+    NAMESPACE_BEING_DELETED, NO_SUCH_BUCKET_EXCEPTION, TERMINATION_IN_PROGRESS, ValidityMessage
 from management_api.utils.cert import validate_cert
+from management_api.utils.errors_handling import TenantAlreadyExistsException, MinioCallException, \
+    TenantDoesNotExistException, InvalidParamException, KubernetesCreateException, \
+    KubernetesDeleteException, KubernetesGetException
 from management_api.utils.kubernetes_resources import validate_quota, get_k8s_api_client, \
     get_k8s_rbac_api_client
+from management_api.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -31,8 +34,7 @@ def create_tenant(parameters):
     validate_quota(quota)
 
     if tenant_exists(name):
-        logger.error('Tenant {} already exists'.format(name))
-        raise falcon.HTTPConflict('Tenant {} already exists'.format(name))
+        raise TenantAlreadyExistsException(name)
 
     try:
         create_namespace(name, quota)
@@ -53,24 +55,14 @@ def create_tenant(parameters):
 def validate_tenant_name(name):
     regex_k8s = '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
     if not re.match(regex_k8s, name):
-        logger.error('Tenant name {} is not valid: must consist of '
-                     'lower case alphanumeric characters or \'-\', '
-                     'and must start and end with an alphanumeric character '
-                     '(e.g. \'my-name\', or \'123-abc\')'.format(name))
-        raise falcon.HTTPBadRequest('Tenant name {} is not valid: must consist of '
-                                    'lower case alphanumeric characters or \'-\', '
-                                    'and must start and end with an alphanumeric character '
-                                    '(e.g. \'my-name\', or \'123-abc\')'.format(name))
+        raise InvalidParamException('name', "Tenant name '{}' has wrong format"
+                                    .format(name), ValidityMessage.TENANT_NAME)
     if len(name) < 3:
-        logger.error('Tenant name {} is not valid: too short'.format(name))
-        raise falcon.HTTPBadRequest('Tenant name {} is not valid: '
-                                    'too short. Provide a tenant name '
-                                    'which is at least 3 character long'.format(name))
+        raise InvalidParamException('name', "Tenant name '{}' is too short"
+                                    .format(name), ValidityMessage.TENANT_NAME)
     if len(name) > 63:
-        logger.error('Tenant name {} is not valid: too long'.format(name))
-        raise falcon.HTTPBadRequest('Tenant name {} is not valid: '
-                                    'too long. Provide a tenant name '
-                                    'which is max 63 character long'.format(name))
+        raise InvalidParamException('name', "Tenant name '{}'is too long"
+                                    .format(name), ValidityMessage.TENANT_NAME)
 
 
 def create_namespace(name, quota):
@@ -84,13 +76,8 @@ def create_namespace(name, quota):
     try:
         response = api_instance.create_namespace(namespace)
     except ApiException as apiException:
-        logger.error('Did not create namespace: {}'.format(apiException))
-        raise falcon.HTTPBadRequest('Did not create namespace: {}'.format(apiException))
-    except Exception as e:
-        logger.error('An error occurred during namespace creation: {}'
-                     .format(e))
-        raise falcon.HTTPBadRequest('An error occurred during namespace '
-                                    'creation: {}'.format(e))
+        raise KubernetesCreateException('namespace', apiException)
+
     logger.info("Namespace {} created".format(name))
     return response
 
@@ -99,12 +86,8 @@ def create_bucket(name):
     try:
         response = minio_client.create_bucket(Bucket=name)
     except ClientError as clientError:
-        logger.error('ClientError occurred: {}'.format(clientError))
-        raise falcon.HTTPBadRequest('ClientError occurred: {}'.format(clientError))
-    except Exception as e:
-        logger.error('An error occurred during bucket creation: {}'.format(e))
-        raise falcon.HTTPBadRequest('An error occurred during bucket '
-                                    'creation: {}'.format(e))
+        raise MinioCallException('An error occurred during bucket creation: {}'.format(clientError))
+
     logger.info('Bucket created: {}'.format(response))
     return response
 
@@ -120,14 +103,8 @@ def create_secret(name, cert):
         response = api_instance.create_namespaced_secret(namespace=name,
                                                          body=cert_secret)
     except ApiException as apiException:
-        logger.error('Did not create secret: {}'.format(apiException))
-        raise falcon.HTTPBadRequest('Did not create secret: {}'
-                                    .format(apiException))
-    except Exception as e:
-        logger.error('An error occurred during secret creation:'
-                     ' {}'.format(e))
-        raise falcon.HTTPBadRequest('An error occurred during secret '
-                                    'creation: {}'.format(e))
+        raise KubernetesCreateException('secret', apiException)
+
     logger.info('Secret {} created'.format(CERT_SECRET_NAME))
     return response
 
@@ -139,14 +116,10 @@ def create_resource_quota(name, quota):
     api_instance = get_k8s_api_client()
     try:
         response = api_instance.create_namespaced_resource_quota(name, body)
-        logger.info("Resource quota {} created".format(quota))
     except ApiException as apiException:
-        logger.error("Resource quota not created: {}".format(apiException))
-        raise falcon.HTTPBadRequest('An error occurred during resource quota creation: {}'.format(
-            apiException))
-    except Exception as e:
-        logger.error('Error occurred: {}'.format(e))
-        raise falcon.HTTPBadRequest('Error occurred: {}'.format(e))
+        raise KubernetesCreateException('resource_quota', apiException)
+
+    logger.info("Resource quota {} created".format(quota))
     return response
 
 
@@ -159,22 +132,14 @@ def delete_bucket(name):
         bucket.objects.all().delete()
         response = bucket.delete()
     except ClientError as clientError:
-        logger.error('Error occurred during bucket deletion: {}'.
-                     format(clientError))
         if clientError.response['Error']['Code'] != NO_SUCH_BUCKET_EXCEPTION:
-            raise falcon.HTTPBadRequest('Error occurred during bucket '
-                                        'deletion: {}'.format(clientError))
+            raise MinioCallException("A error occurred during bucket deletion: {}"
+                                     .format(clientError))
         existed = False
-    except Exception as e:
-        logger.error('Unexpected error occurred during bucket deletion: {}'.format(e))
-        raise falcon.HTTPBadRequest('Unexpected error occurred during bucket deletion: {}'
-                                    .format(e))
-
     if existed:
         logger.info('Bucket {} deleted'.format(name))
     else:
         logger.info('Bucket {} does not exist'.format(name))
-
     return response
 
 
@@ -189,14 +154,8 @@ def delete_namespace(name):
     except ApiException as apiException:
         if apiException.status != RESOURCE_DOES_NOT_EXIST and \
                 apiException.status != NAMESPACE_BEING_DELETED:
-            logger.error('Error occurred during namespace deletion: {}'.format(apiException))
-            raise falcon.HTTPBadRequest('Error occurred during namespace deletion: {}'
-                                        .format(apiException))
+            raise KubernetesDeleteException('namespace', apiException)
         existed = False
-    except Exception as e:
-        logger.error('Error occurred during namespace deletion: {}'.format(e))
-        raise falcon.HTTPBadRequest('Error occurred during namespace deletion: {}'.format(e))
-
     if existed:
         logger.info('Namespace {} deleted'.format(name))
     else:
@@ -213,8 +172,7 @@ def delete_tenant(parameters):
         delete_namespace(name)
         logger.info('Tenant {} deleted'.format(name))
     else:
-        logger.info('Tenant {} does not exist'.format(name))
-        raise falcon.HTTPBadRequest('Tenant {} does not exist'.format(name))
+        raise TenantDoesNotExistException(name)
 
 
 def propagate_secret(source_secret_path, target_namespace):
@@ -224,10 +182,7 @@ def propagate_secret(source_secret_path, target_namespace):
         source_secret = api_instance.read_namespaced_secret(
             source_secret_name, source_secret_namespace)
     except ApiException as apiException:
-        logger.error('Error reading secret to propagate: {}'.format(
-            apiException))
-        raise falcon.HTTPBadRequest(
-            'Error reading secret to propagate:'.format(apiException))
+        raise KubernetesGetException('secret', apiException)
 
     source_secret.metadata.namespace = target_namespace
     source_secret.metadata.resource_version = None
@@ -236,18 +191,12 @@ def propagate_secret(source_secret_path, target_namespace):
         api_instance.create_namespaced_secret(namespace=target_namespace,
                                               body=source_secret)
     except ApiException as apiException:
-        logger.error('Error creating propagated secret in new ''namespace: {}'
-                     .format(apiException))
-        raise falcon.HTTPBadRequest(
-            'Error creating propagated secret in new namespace: {}'.format(apiException))
+        raise KubernetesCreateException('secret', apiException)
 
 
 def portable_secrets_propagation(target_namespace):
     for portable_secret_path in PORTABLE_SECRETS_PATHS:
-        try:
             propagate_secret(portable_secret_path, target_namespace)
-        except Exception:
-            raise falcon.HTTPBadRequest('Error occurred on secret propagation')
     logger.info('Portable secrets copied from default to {}'.format(target_namespace))
 
 
@@ -258,7 +207,7 @@ def does_bucket_exist(bucket_name):
         error_code = clientError.response['Error']['Code']
         if error_code == NO_SUCH_BUCKET_EXCEPTION:
             return False
-        raise
+        raise MinioCallException("Error accessing bucket: {}".format(clientError))
     return True
 
 
@@ -270,19 +219,14 @@ def is_namespace_available(namespace):
     except ApiException as apiException:
         if apiException.status == RESOURCE_DOES_NOT_EXIST:
             return False
-        raise
+        raise KubernetesGetException('namespace status', apiException)
     if response and response.status.phase == TERMINATION_IN_PROGRESS:
         return False
     return True
 
 
 def tenant_exists(tenant_name):
-    try:
-        result = does_bucket_exist(tenant_name) and is_namespace_available(tenant_name)
-    except Exception as e:
-        logger.error('Unexpected error occurred during tenant existence check: {}'.format(e))
-        raise falcon.HTTPInternalServerError('Unexpected error occurred during tenant existence '
-                                             'check: {}'.format(e))
+    result = does_bucket_exist(tenant_name) and is_namespace_available(tenant_name)
     logger.info("Tenant already exists: " + str(result))
     return result
 
@@ -304,13 +248,7 @@ def create_role(name):
     try:
         response = rbac_api_instance.create_namespaced_role(name, role)
     except ApiException as apiException:
-        logger.error('Did not create role: {}'.format(apiException))
-        raise falcon.HTTPBadRequest('Did not create role: {}'.format(apiException))
-    except Exception as e:
-        logger.error('An error occurred during role creation: {}'
-                     .format(e))
-        raise falcon.HTTPBadRequest('An error occurred during role '
-                                    'creation: {}'.format(e))
+        raise KubernetesCreateException('role', apiException)
 
     logger.info("Role {} created".format(name))
     return response
@@ -328,11 +266,7 @@ def create_rolebinding(name, scope_name):
     try:
         response = rbac_api_instance.create_namespaced_role_binding(name, rolebinding)
     except ApiException as apiException:
-        logger.error('Did not create rolebinding: {}'.format(apiException))
-        raise falcon.HTTPBadRequest('Did not create rolebinding: {}'.format(apiException))
-    except Exception as e:
-        logger.error('An error occured during rolebinding creation: {}'.format(e))
-        raise falcon.HTTPBadRequest('An error occured during rolebinding creation: {}'.format(e))
+        KubernetesCreateException('rolebinding', apiException)
 
     logger.info("Rolebinding {} created".format(name))
     return response

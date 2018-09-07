@@ -1,12 +1,12 @@
 import re
-import falcon
 import ipaddress
 from functools import lru_cache
 from kubernetes import config, client
 from kubernetes.client.rest import ApiException
 
+from management_api.utils.errors_handling import InvalidParamException, KubernetesGetException
 from management_api.utils.logger import get_logger
-from management_api.config import ING_NAME, ING_NAMESPACE
+from management_api.config import ING_NAME, ING_NAMESPACE, ValidityMessage
 
 logger = get_logger(__name__)
 
@@ -20,26 +20,17 @@ def validate_quota(quota):
     for key, value in quota.items():
         if key in int_keys:
             if not value.isdigit() > 0:
-                logger.error('Invalid value {} of {} field: '
-                             'must be integer greater than or equal to 0'.format(value, key))
-                raise falcon.HTTPBadRequest('Invalid value {} of {} field: '
-                                            'must be integer greater than or equal to 0'.
-                                            format(value, key))
+                raise InvalidParamException('<int param>', 'Invalid value {} of {} field'.
+                                            format(value, key), ValidityMessage.QUOTA_INT_VALUES)
             test_quota.pop(key)
         if key in alpha_keys:
             if not re.match(regex_k8s, value):
-                logger.error('Invalid value {} of {} field. '
-                             'Please provide value that matches Kubernetes convention. '
-                             'Some example values: '
-                             '\'1Gi\', \'200Mi\', \'300m\''.format(value, key))
-                raise falcon.HTTPBadRequest('Invalid value {} of {} field. '
-                                            'Please provide value that matches '
-                                            'Kubernetes convention. Some example values: '
-                                            '\'1Gi\', \'200Mi\', \'300m\''.format(value, key))
+                raise InvalidParamException('<alpha_param>', 'Invalid value {} of {} field'.
+                                            format(value, key), ValidityMessage.QUOTA_ALPHA_VALUES)
             test_quota.pop(key)
 
     if test_quota:
-        logger.info("There's some redundant values provided that won't be used:")
+        logger.info("There are some redundant values provided that won't be used:")
         for key, value in test_quota.items():
             logger.info(key + ": " + value)
             quota.pop(key)
@@ -60,17 +51,9 @@ def transform_quota(quota):
 def read_resource_quota(api_instance: client, name, namespace):
     try:
         tenant_quota = api_instance.read_namespaced_resource_quota(
-                           name=name, namespace=namespace)
+            name=name, namespace=namespace)
     except ApiException as apiException:
-        logger.error('An error occured during resource quota reading: {}'.\
-                         format(apiException))
-        raise falcon.HTTPError('An error occured during resource quota reading: {}'.\
-                         format(apiException))
-    except Exception as e:
-        logger.error('An error occured during resource quota reading: {}'.\
-                         format(apiException))
-        raise falcon.HTTPError('An error occured during resource quota reading: {}'.\
-                         format(apiException))
+        raise KubernetesGetException('resource quota', apiException)
     return tenant_quota
 
 
@@ -79,41 +62,28 @@ def validate_quota_compliance(api_instance: client, namespace, endpoint_quota):
     tenant_quota = tenant_quota.spec.hard
     if tenant_quota is not None:
         if endpoint_quota == {}:
-            logger.error('There\'s resource quota specified in {} tenant: {} '
-                         'Please fill resource field with given keys in your request'.\
-                         format(namespace, tenant_quota))
-            raise falcon.HTTPBadRequest('There\'s resource quota specified in {} tenant: {} '
-                         'Please fill resource field with given keys in your request'.\
-                         format(namespace, tenant_quota))  
+            raise InvalidParamException("endpoint_quota",
+                                        "No endpoint quota provided.",
+                                        'There\'s resource quota specified in {} tenant: {} '
+                                        'Please fill resource field with given keys in your request'
+                                        .format(namespace, tenant_quota))
         if not tenant_quota.keys() == endpoint_quota.keys():
-             missing_pairs = {k: v for k, v in tenant_quota.items() 
-                            if k not in endpoint_quota.keys()}
-             if missing_pairs:
-                 logger.error('Not all needed values were provided. '
-                              'Values provided in tenant\'s resource quota: {}'.\
-                                    format(missing_pairs))
-                 raise falcon.HTTPBadRequest('Not all needed values were provided. '
-                              'Values provided in tenant\'s resource quota: {}'.\
-                                    format(missing_pairs))
+            missing_pairs = {k: v for k, v in tenant_quota.items()
+                             if k not in endpoint_quota.keys()}
+            if missing_pairs:
+                raise InvalidParamException("endpoint_quota",
+                                            "Missing endpoint quota values.",
+                                            'You need to provide: {}'
+                                            .format(missing_pairs))
     return True
 
 
 def get_ingress_external_ip(api_instance: client):
-    try:
-        api_response = api_instance.read_namespaced_service(ING_NAME, ING_NAMESPACE)
-        ip = api_response.status.load_balancer.ingress[0].ip
-        port = api_response.spec.ports[-1].port
-    except Exception as e:
-        logger.error('An error occurred during getting ingress ip: {}'
-                     .format(e))
-        raise falcon.HTTPInternalServerError("Internal Server Error")
-    try:
-            ipaddress.ip_address(ip)
-            port = int(port)
-    except ValueError as e:
-        logger.error('An error occurred during ip validation: {}'
-                     .format(e))
-        raise falcon.HTTPInternalServerError('Internal Server Error')
+    api_response = api_instance.read_namespaced_service(ING_NAME, ING_NAMESPACE)
+    ip = api_response.status.load_balancer.ingress[0].ip
+    port = api_response.spec.ports[-1].port
+    ipaddress.ip_address(ip)
+    port = int(port)
     return ip, port
 
 
