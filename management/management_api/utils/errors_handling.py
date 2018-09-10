@@ -29,32 +29,32 @@ class KubernetesCreateException(KubernetesCallException):
     @staticmethod
     def handler(ex, req, resp, params):
         message = "An error occurred during {} creation: {}"
-        logger.error(message.format(ex.object_name, str(ex)))
-        ex.form_response(message.format(ex.object_name, ex.reason))
+        logger.error(message.format(ex.object_name, str(ex.k8s_api_exception)))
+        ex.form_response(message.format(ex.object_name, ex.k8s_api_exception.reason))
 
 
 class KubernetesDeleteException(KubernetesCallException):
     @staticmethod
     def handler(ex, req, resp, params):
         message = "An error occurred during {} deletion: {}"
-        logger.error(message.format(ex.object_name, str(ex)))
-        ex.form_response(message.format(ex.object_name, ex.reason))
+        logger.error(message.format(ex.object_name, str(ex.k8s_api_exception)))
+        ex.form_response(message.format(ex.object_name, ex.k8s_api_exception.reason))
 
 
 class KubernetesGetException(KubernetesCallException):
     @staticmethod
     def handler(ex, req, resp, params):
         message = "An error occurred during reading {} object: {}"
-        logger.error(message.format(ex.object_name, str(ex)))
-        ex.form_response(message.format(ex.object_name, ex.reason))
+        logger.error(message.format(ex.object_name, str(ex.k8s_api_exception)))
+        ex.form_response(message.format(ex.object_name, ex.k8s_api_exception.reason))
 
 
 class KubernetesUpdateException(KubernetesCallException):
     @staticmethod
     def handler(ex, req, resp, params):
         message = "An error occurred during {} update: {}"
-        logger.error(message.format(ex.object_name, str(ex)))
-        ex.form_response(message.format(ex.object_name, ex.reason))
+        logger.error(message.format(ex.object_name, str(ex.k8s_api_exception)))
+        ex.form_response(message.format(ex.object_name, ex.k8s_api_exception.reason))
 
 
 class MinioCallException(ManagementApiException):
