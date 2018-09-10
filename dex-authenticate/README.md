@@ -19,11 +19,16 @@ In case of permission problems with slapd.sh script please ensure apparmor confi
     /local/path/to/dex/** rw,
 ```
  6. Edit ./examples/config-ldap.yaml in order to enable https on 0.0.0.0:5554 address (similar section is [here)](https://github.com/coreos/dex/blob/master/examples/config-dev.yaml#L18)
- 7. Start dex with LDAP configuration.
+ 7. Edit ./examples/config-ldap.yaml in order to skip approval flow. Add following section to the file in any place at root level of hierarchy:
+```
+    oauth2:
+      skipApprovalScreen: true
+```
+ 8. Start dex with LDAP configuration.
 ```
     ./bin/dex serve examples/config-ldap.yaml
 ```
- 8. Run actual script with authentication:
+ 9. Run actual script with authentication:
 ```
     python authenticate.py
 ```
