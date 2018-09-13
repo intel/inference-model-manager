@@ -4,11 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"path/filepath"
 	"reflect"
-	"strings"
+	"text/template"
 
 	crv1 "github.com/NervanaSystems/inferno-platform/server-controller/apis/cr/v1"
 	"github.com/NervanaSystems/kube-controllers-go/pkg/crd"
@@ -22,19 +20,13 @@ type serverHooks struct {
 	deploymentClient resource.Client
 	serviceClient    resource.Client
 	ingressClient    resource.Client
-	replicaPath      string
-	argPath          string
-	resourcePath     string
 }
 
 type patchData struct {
-	Replicas      int
-	ModelName     string
-	ModelVersion  int
-	Namespace     string
-	ResourcePath  string
-	ResourceValue string
-	MethodType    string
+	ModelName    string
+	ModelVersion int
+	Namespace    string
+	ResourcePath string
 }
 
 type patchStructInt struct {
@@ -48,6 +40,17 @@ type patchStructString struct {
 	Path  string `json:"path"`
 	Value string `json:"value"`
 }
+
+type patchStructMap struct {
+	Op    string            `json:"op"`
+	Path  string            `json:"path"`
+	Value map[string]string `json:"value"`
+}
+
+var replicaPath = "/spec/replicas"
+var argPath = "/spec/template/spec/containers/0/args/0"
+var resourcePath = "/spec/template/spec/containers/0/resources/{{.ResourcePath}}"
+var argValue = "./tensorflow_model_server --port=9000 --model_name={{.ModelName}} --model_base_path=s3://{{.Namespace}}/{{.ModelName}}-{{.ModelVersion}}"
 
 func (c *serverHooks) Add(obj interface{}) {
 	server := obj.(*crv1.Server)
@@ -112,17 +115,16 @@ func (c *serverHooks) Update(oldObj, newObj interface{}) {
 	fmt.Printf("[CONTROLLER] OnUpdate\n")
 	fmt.Printf("New Server %s\n", newServer)
 	fmt.Printf("Old Server %s\n", oldServer)
-	var stringPatch []patchStructString
-	var intPatch []patchStructInt
-	p := patchData{Replicas: newServer.Spec.Replicas, ModelName: newServer.Spec.ModelName, ModelVersion: newServer.Spec.ModelVersion, Namespace: oldServer.Namespace()}
+	var err error
+	patchLines := make([]interface{}, 0)
+	p := patchData{ModelName: newServer.Spec.ModelName, ModelVersion: newServer.Spec.ModelVersion, Namespace: oldServer.Namespace()}
 	fmt.Printf("Check resource field.\n")
-	stringPatch, err := prepareJsonPatchStrings(c.resourcePath, "limits", stringPatch, oldServer.Spec.Resources.Limits, newServer.Spec.Resources.Limits, p)
+	patchLines, err = prepareJsonPatchFromMap("limits", patchLines, oldServer.Spec.Resources.Limits, newServer.Spec.Resources.Limits, p)
 	if err != nil {
 		fmt.Printf("ERROR during resource/limits changes preparation: %v\n", err)
 		return
 	}
-	stringPatch, err = prepareJsonPatchStrings(c.resourcePath, "requests", stringPatch, oldServer.Spec.Resources.Requests, newServer.Spec.Resources.Requests, p)
-	fmt.Printf("%s\n", stringPatch)
+	patchLines, err = prepareJsonPatchFromMap("requests", patchLines, oldServer.Spec.Resources.Requests, newServer.Spec.Resources.Requests, p)
 	if err != nil {
 		fmt.Printf("ERROR during resource/requests changes preparation: %v\n", err)
 		return
@@ -130,56 +132,36 @@ func (c *serverHooks) Update(oldObj, newObj interface{}) {
 
 	fmt.Printf("Check replica field\n")
 	if oldServer.Spec.Replicas != newServer.Spec.Replicas && newServer.Spec.Replicas >= 0 {
-		var replicaPatch patchStructInt
-		err := getPatchStructInt(c.replicaPath, p, &replicaPatch)
-		if err != nil {
-			fmt.Printf("ERROR during replica patch preparation: %v\n", err)
-			return
-		}
-		intPatch = append(intPatch, replicaPatch)
+		replicaPatch := patchStructInt{Op: "replace", Path: replicaPath, Value: newServer.Spec.Replicas}
+		patchLines = append(patchLines, replicaPatch)
 
 	}
 	fmt.Printf("Check ModelName and ModelVersion fields.\n")
 	if oldServer.Spec.ModelName != newServer.Spec.ModelName || oldServer.Spec.ModelVersion != newServer.Spec.ModelVersion {
-		var argPatch patchStructString
-		err := getPatchStructString(c.argPath, p, &argPatch)
+		argValue, err := fillTemplate(argValue, p)
 		if err != nil {
 			fmt.Printf("ERROR during modelName and modelVersion patch preparation: %v\n", err)
 			return
 		}
-		stringPatch = append(stringPatch, argPatch)
+		argPatch := patchStructString{Op: "replace", Path: argPath, Value: argValue}
+		patchLines = append(patchLines, argPatch)
 	}
-	if len(stringPatch) > 0 {
+
+	if len(patchLines) > 0 {
 		fmt.Printf("Will try to update server.\n")
-		patchBytes, err := json.Marshal(stringPatch)
-		fmt.Printf("JsonPatch %s\n", string(patchBytes))
+		patchBytes, err := json.Marshal(patchLines)
 		if err != nil {
-			fmt.Printf("ERROR during preparing JsonPatch %v\n", err.Error())
+			fmt.Printf("ERROR during preparing bytes to send %v\n", err.Error())
 			return
 		}
-
+		fmt.Printf("JsonPatch which will be applied: %s\n", string(patchBytes))
 		err = c.deploymentClient.Update(oldServer.Namespace(), oldServer.Spec.EndpointName, patchBytes)
 		if err != nil {
-			fmt.Printf("ERROR during making server patching%v\n", err)
+			fmt.Printf("ERROR during update operation %v\n", err.Error())
 			return
 		}
-		fmt.Printf("Updating succeeded for the server %v\n", oldServer.ObjectMeta.SelfLink)
-	}
 
-	if len(intPatch) > 0 {
-		fmt.Printf("Will try to scale server.\n")
-		patchIntBytes, err := json.Marshal(intPatch)
-		fmt.Printf("Scale JsonPatch %s\n", string(patchIntBytes))
-		if err != nil {
-			fmt.Printf("ERROR during preparing scale JsonPatch %v\n", err.Error())
-			return
-		}
-		err = c.deploymentClient.Update(oldServer.Namespace(), oldServer.Spec.EndpointName, patchIntBytes)
-		if err != nil {
-			fmt.Printf("ERROR during making server replica patching %v\n", err)
-			return
-		}
-		fmt.Printf("Scaling succeeded for the server %v\n", oldServer.ObjectMeta.SelfLink)
+		fmt.Printf("Updating succeeded for the server %v\n", oldServer.ObjectMeta.SelfLink)
 	}
 
 }
@@ -189,97 +171,51 @@ func (c *serverHooks) Delete(obj interface{}) {
 	fmt.Printf("[CONTROLLER] OnDelete %s\n", server.ObjectMeta.SelfLink)
 }
 
-func prepareJsonPatchStrings(resourceTmplPath string, resourceType string, stringPatch []patchStructString, oldData map[string]string, newData map[string]string, p patchData) ([]patchStructString, error) {
+func prepareJsonPatchFromMap(resourceType string, mapPatch []interface{}, oldData map[string]string, newData map[string]string, p patchData) ([]interface{}, error) {
 	eq := reflect.DeepEqual(newData, oldData)
 	if !eq {
 		fmt.Printf("%s are unequal.\n", resourceType)
-		oldMemoryVal, oldMemoryOK := oldData["memory"]
-		oldCpuVal, oldCpuOK := oldData["cpu"]
+		p.ResourcePath = resourceType
+		resourcePath, err := fillTemplate(resourcePath, p)
+		if err != nil {
+			return nil, err
+		}
+		_, oldMemoryOK := oldData["memory"]
+		_, oldCpuOK := oldData["cpu"]
 
 		memoryValue, memoryOK := newData["memory"]
 		cpuValue, cpuOK := newData["cpu"]
-		cpuPathList := []string{resourceType, "cpu"}
-		memoryPathList := []string{resourceType, "memory"}
-
-		cpuPath := strings.Join(cpuPathList, "/")
-		memoryPath := strings.Join(memoryPathList, "/")
-
-		cpuPatchLine, err := createResourcePatch(resourceTmplPath, cpuPath, oldCpuVal, cpuValue, oldCpuOK, cpuOK, p)
-		if err == nil && !(!oldCpuOK && !cpuOK) {
-			stringPatch = append(stringPatch, cpuPatchLine)
-		} else if err != nil {
-			return nil, err
+		updateMap := make(map[string]string)
+		var jsonPatchAction string
+		if !memoryOK && !cpuOK && (oldCpuOK || oldMemoryOK) {
+			jsonPatchAction = "remove"
+		} else {
+			if cpuOK {
+				updateMap["cpu"] = cpuValue
+			}
+			if memoryOK {
+				updateMap["memory"] = memoryValue
+			}
+			jsonPatchAction = "add"
 		}
+		newMapStruct := patchStructMap{Op: jsonPatchAction, Path: resourcePath, Value: updateMap}
+		mapPatch = append(mapPatch, newMapStruct)
 
-		memoryPatchLine, err := createResourcePatch(resourceTmplPath, memoryPath, oldMemoryVal, memoryValue, oldMemoryOK, memoryOK, p)
-		if err == nil && !(!oldMemoryOK && !memoryOK) {
-			stringPatch = append(stringPatch, memoryPatchLine)
-		} else if err != nil {
-			return nil, err
-		}
 	}
-	fmt.Printf("Changesmap %s\n", stringPatch)
-	return stringPatch, nil
+	return mapPatch, nil
 
 }
 
-func createResourcePatch(resourceTmplPath string, resourcePath string, oldValue string, newValue string, oldKeyOK bool, newKeyOK bool, p patchData) (patchStructString, error) {
-	var newPatchLine patchStructString
-	p.ResourcePath = resourcePath
-	if !oldKeyOK && !newKeyOK {
-		return newPatchLine, nil
-	}
-
-	if oldKeyOK && !newKeyOK {
-		p.MethodType = "remove"
-	} else if !oldKeyOK && newKeyOK {
-		p.ResourceValue = newValue
-		p.MethodType = "add"
-	} else if (oldKeyOK && newKeyOK) && (oldValue != newValue) {
-		p.ResourceValue = newValue
-		p.MethodType = "replace"
-	}
-	err := getPatchStructString(resourceTmplPath, p, &newPatchLine)
-	return newPatchLine, err
-}
-
-func fillPatchTemplate(templateFileName string, data patchData) ([]byte, error) {
-	baseFileName := filepath.Base(templateFileName)
-	tmpl := template.New(baseFileName)
-	tmpl, err := tmpl.ParseFiles(templateFileName)
+func fillTemplate(templateToFill string, data patchData) (string, error) {
+	tmpl := template.New("New")
+	tmpl, err := tmpl.Parse(templateToFill)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	var buf bytes.Buffer
 	err = tmpl.Execute(&buf, data)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return buf.Bytes(), err
-}
-
-func getPatchStructString(templateFileName string, pdata patchData, dataPatch *patchStructString) error {
-	data, err := fillPatchTemplate(templateFileName, pdata)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("Struct with string %s\n", data)
-	err = json.Unmarshal(data, &dataPatch)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func getPatchStructInt(templateFileName string, pdata patchData, dataPatch *patchStructInt) error {
-	data, err := fillPatchTemplate(templateFileName, pdata)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("Struct with int %s\n", data)
-	err = json.Unmarshal(data, &dataPatch)
-	if err != nil {
-		return err
-	}
-	return nil
+	return buf.String(), err
 }

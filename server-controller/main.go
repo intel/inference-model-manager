@@ -47,9 +47,6 @@ func main() {
 	deploymentTemplateFile := flag.String("deploymentFile", "./resources/deployment.tmpl", "Path to a deployment file")
 	serviceTemplateFile := flag.String("serviceFile", "./resources/service.tmpl", "Path to a service file")
 	ingressTemplateFile := flag.String("ingressFile", "./resources/ingress.tmpl", "Path to an ingress file")
-	replicaPatch := flag.String("replicaPatchFile", "./resources/replicas_patch.tmpl", "Path to replica patch file")
-	argPatch := flag.String("argPatchFile", "./resources/arg_patch.tmpl", "Path to arg patch file")
-	resourcePatch := flag.String("resourcePatchFile", "./resources/resource_patch.tmpl", "Path to resource patch file")
 	platformDomain, ok := os.LookupEnv("PLATFORM_DOMAIN")
 	if !ok {
 		panic(errors.New("PLATFORM_DOMAIN environment variable not set. Controller was unable to start."))
@@ -115,7 +112,7 @@ func main() {
 	ingressClient := resource.NewIngressClient(globalTemplateValues, k8sclientset, *ingressTemplateFile)
 
 	// Start a controller for instances of our custom resource.
-	hooks := serverHooks{crdClient, deploymentClient, serviceClient, ingressClient, *replicaPatch, *argPatch, *resourcePatch}
+	hooks := serverHooks{crdClient, deploymentClient, serviceClient, ingressClient}
 	controller := controller.New(crdHandle, &hooks, crdClient.RESTClient())
 
 	ctx, cancelFunc := context.WithCancel(context.Background())
