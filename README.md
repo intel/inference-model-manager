@@ -65,5 +65,14 @@ curl -X POST "http://<management_api_address>:5000/endpoints" -H "accept: applic
 example scale endpoint
 
 ```
-curl -X PATCH "http://<management_api_address>:500/endpoints" -H "accept: application/json" -H "Authorization: default" -H "Content-Type: application/json" -d "{ \"endpointName\": \"name\", \"replicas\":<number_of_replicas>}"
+curl -X PATCH "http://<management_api_address>:5000/endpoints/<endpoint-name>/scaling" -H "accept: 
+application/json" -H "Authorization: default" -H "Content-Type: application/json" -d "{\"replicas\":<number_of_replicas>}"
+```
+
+example update endpoint
+
+```
+curl -X PATCH "http://<management_api_address>:5000/endpoints/<endpoint-name>/updating" -H "accept: 
+application/json" -H "Authorization: default" -H "Content-Type: application/json" -d 
+"{\"modelName\":<string>, \"modelVersion\":<int>}"
 ```

@@ -22,10 +22,10 @@ def create_endpoint(parameters: dict, namespace: str):
     body = {"apiVersion": CRD_API_VERSION, "kind": CRD_KIND, "spec": spec, "metadata": metadata}
     custom_obj_api_instance = get_k8s_api_custom_client()
     api_instance = get_k8s_api_client()
+    validate_quota_compliance(api_instance, namespace=namespace,
+                              endpoint_quota=parameters.get('resources', None))
+    parameters['resources'] = transform_quota(parameters['resources'])
     try:
-        validate_quota_compliance(api_instance, namespace=namespace,
-                                  endpoint_quota=parameters.get('resources', None))
-        parameters['resources'] = transform_quota(parameters['resources'])
         custom_obj_api_instance.create_namespaced_custom_object(CRD_GROUP, CRD_VERSION, namespace,
                                                                 CRD_PLURAL, body)
     except ApiException as apiException:
@@ -95,7 +95,29 @@ def scale_endpoint(parameters: dict, namespace: str):
         raise KubernetesUpdateException('endpoint', apiException)
 
     endpoint_url = create_url_to_service(parameters['endpointName'], namespace)
-    logger.info('Endpoint {} scaled. Number of replicas changed to {}\n'.format(
-        endpoint_url, parameters['replicas']))
 
+    return endpoint_url
+
+
+def update_endpoint(parameters: dict, namespace: str):
+    custom_obj_api_instance = get_k8s_api_custom_client()
+    try:
+        endpoint_object = custom_obj_api_instance. \
+            get_namespaced_custom_object(CRD_GROUP, CRD_VERSION, namespace, CRD_PLURAL,
+                                         parameters['endpointName'])
+    except ApiException as apiException:
+        raise KubernetesGetException('endpoint', apiException)
+
+    endpoint_object['spec']['modelName'] = parameters['modelName']
+    endpoint_object['spec']['modelVersion'] = parameters['modelVersion']
+    if 'resources' in parameters:
+        endpoint_object['spec']['resources'] = transform_quota(parameters['resources'])
+    try:
+        custom_obj_api_instance.patch_namespaced_custom_object(
+            CRD_GROUP, CRD_VERSION, namespace, CRD_PLURAL, parameters['endpointName'],
+            endpoint_object)
+    except ApiException as apiException:
+        raise KubernetesUpdateException('endpoint', apiException)
+
+    endpoint_url = create_url_to_service(parameters['endpointName'], namespace)
     return endpoint_url

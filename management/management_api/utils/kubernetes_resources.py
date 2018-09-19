@@ -62,8 +62,8 @@ def validate_quota_compliance(api_instance: client, namespace, endpoint_quota):
     tenant_quota = tenant_quota.spec.hard
     if tenant_quota is not None:
         if endpoint_quota == {}:
-            raise InvalidParamException("endpoint_quota",
-                                        "No endpoint quota provided.",
+            raise InvalidParamException("resources",
+                                        "No resources provided.",
                                         'There\'s resource quota specified in {} tenant: {} '
                                         'Please fill resource field with given keys in your request'
                                         .format(namespace, tenant_quota))
@@ -71,8 +71,8 @@ def validate_quota_compliance(api_instance: client, namespace, endpoint_quota):
             missing_pairs = {k: v for k, v in tenant_quota.items()
                              if k not in endpoint_quota.keys()}
             if missing_pairs:
-                raise InvalidParamException("endpoint_quota",
-                                            "Missing endpoint quota values.",
+                raise InvalidParamException("resources",
+                                            "Missing resources values.",
                                             'You need to provide: {}'
                                             .format(missing_pairs))
     return True

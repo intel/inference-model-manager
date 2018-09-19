@@ -11,10 +11,10 @@ def check_bucket_existence(minio_client, bucket):
         minio_client.list_objects_v2(Bucket=bucket)
 
     except botocore.exceptions.ClientError as e:
-        logging.error(e)
         error_code = e.response['Error']['Code']
         if error_code == NO_SUCH_BUCKET_EXCEPTION:
             return CheckResult.RESOURCE_DOES_NOT_EXIST
+        logging.error(e)
         return CheckResult.ERROR
 
     except Exception as e:

@@ -25,6 +25,8 @@ CRD_KIND = 'Server'
 MANAGEMENT_API_URL = os.environ.get('MANAGEMENT_API_URL', 'http://127.0.0.1:5000')
 TENANTS_MANAGEMENT_API_URL = url = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants')
 ENDPOINT_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'endpoints')
+ENDPOINT_MANAGEMENT_API_URL_SCALE = ENDPOINT_MANAGEMENT_API_URL + "/{endpoint_name}/scaling"
+ENDPOINT_MANAGEMENT_API_URL_UPDATE = ENDPOINT_MANAGEMENT_API_URL + "/{endpoint_name}/updating"
 
 TENANT_NAME = os.environ.get('TENANT_NAME', 'test')
 
@@ -195,10 +197,25 @@ TENANT_RESOURCES = {'limits.cpu': '2', 'requests.cpu': '1'}
 ENDPOINT_RESOURCES = {'limits.cpu': '500m', 'requests.cpu': '200m'}
 
 QUOTA_INCOMPLIANT_VALUES = [
-    ({}, "No endpoint quota provided"),
-    ({'requests.cpu': '1'}, "Missing endpoint quota values")
+    ({}, "No resources provided"),
+    ({'requests.cpu': '1'}, "Missing resources values"),
+]
+FAILING_UPDATE_PARAMS = [
+    ("wrong_auth", "predict", {'modelName': 'super-model', 'modelVersion': 3}, "Not Found"),
+    (TENANT_NAME, "wrong_name", {'modelName': 'super-model', 'modelVersion': 3}, "Not Found"),
+    (TENANT_NAME, "predict", {'modelName': 0, 'modelVersion': 3}, "Unprocessable Entity"),
+    (TENANT_NAME, "predict", {'modelName': 'super-model', 'modelVersion': "str"}, "Unprocessable Entity"),
+    (TENANT_NAME, "predict", {'modelVersion': 3}, "modelName parameter required"),
+    (TENANT_NAME, "predict", {'modelName': 'super-model'}, "modelVersion parameter required"),
 ]
 
+FAILING_SCALE_PARAMS = [
+    ("wrong_auth", "predict", {'replicas': 3}, "Not Found"),
+    (TENANT_NAME, "wrong_name", {'replicas': 3}, "Not Found"),
+    (TENANT_NAME, "predict", {'replicas': -1}, "Unprocessable Entity"),
+    (TENANT_NAME, "predict", {'replicas': "many"}, "Unprocessable Entity"),
+    (TENANT_NAME, "predict", {}, "replicas parameter required"),
+]
 
 PORTABLE_SECRETS_PATHS = ['default/minio-access-info', 'default/tls-secret']
 

@@ -43,19 +43,18 @@ minio_resource = boto3.resource('s3',
                                     signature_version=SIGNATURE_VERSION),
                                 region_name=MINIO_REGION)
 
-# TENANT RELATED CONSTANTS
+class RequiredParameters:
 
-CREATE_TENANT_REQUIRED_PARAMETERS = ['name', 'cert', 'scope', 'quota']
-DELETE_TENANT_REQUIRED_PARAMETERS = ['name']
+    CREATE_ENDPOINT = ['modelName', 'modelVersion', 'endpointName', 'subjectName']
+    UPDATE_ENDPOINT = ['modelName', 'modelVersion']
+    SCALE_ENDPOINT = ['replicas']
+    DELETE_ENDPOINT = ['endpointName']
+    CREATE_TENANT = ['name', 'cert', 'scope', 'quota']
+    DELETE_TENANT = ['name']
 
-# -----------------------------------------
 
 # ENDPOINT RELATED CONSTANTS
 
-CREATE_ENDPOINT_REQUIRED_PARAMETERS = ['modelName', 'modelVersion', 'endpointName', 'subjectName',
-                                       'subjectName']
-SCALE_ENDPOINT_REQUIRED_PARAMETERS = ['endpointName', 'replicas']
-DELETE_ENDPOINT_REQUIRED_PARAMETERS = ['endpointName']
 
 # To edit this object please first use deep copy
 DELETE_BODY = client.V1DeleteOptions()
