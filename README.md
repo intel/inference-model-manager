@@ -76,3 +76,19 @@ curl -X PATCH "http://<management_api_address>:5000/endpoints/<endpoint-name>/up
 application/json" -H "Authorization: default" -H "Content-Type: application/json" -d 
 "{\"modelName\":<string>, \"modelVersion\":<int>}"
 ```
+
+#### Inference endpoints
+E2E test using resnet model, scripts: https://github.com/NervanaSystems/inferno-platform/tree/demo-helpers/helpers/demo
+- create new tenant
+- copy existing resnet model into newly created bucket (if you're using scripts from 
+demo-helpers, please remember about mc configuration i.e. `mc config host add local http://127.0
+.0.1:9000 [access_key] [secret_key]`)
+- create new endpoint - in response you'll find IP address and opts
+- use endpoint_test.py to test whether your inference endpoint works or not
+  - check if paths to certs in endpoint_test.py are correct (you can use certs from 
+  helm-deployment catalog)
+  - install all needed dependencies (you can use requirements.txt from tests catalog)
+  - `export OPTS = <endpoint_domain> `i.e. resnet.serving-service.com
+  - `export HOST = <ingress_ip>:<port>` i.e. 127.0.0.1:443
+  - `export MODEL = <model_name> `(use modelName provided in create_endpoint request)
+  - run endpoint_test.py
