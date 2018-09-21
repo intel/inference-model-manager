@@ -23,10 +23,12 @@ CRD_API_VERSION = 'intel.com/v1'
 CRD_KIND = 'Server'
 
 MANAGEMENT_API_URL = os.environ.get('MANAGEMENT_API_URL', 'http://127.0.0.1:5000')
-TENANTS_MANAGEMENT_API_URL = url = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants')
+TENANTS_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants')
 ENDPOINT_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'endpoints')
 ENDPOINT_MANAGEMENT_API_URL_SCALE = ENDPOINT_MANAGEMENT_API_URL + "/{endpoint_name}/scaling"
 ENDPOINT_MANAGEMENT_API_URL_UPDATE = ENDPOINT_MANAGEMENT_API_URL + "/{endpoint_name}/updating"
+START_MULTIPART_UPLOAD_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'upload/start')
+
 
 TENANT_NAME = os.environ.get('TENANT_NAME', 'test')
 

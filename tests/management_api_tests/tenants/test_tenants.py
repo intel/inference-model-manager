@@ -185,25 +185,25 @@ def test_portable_secrets_propagation_succeeded(function_context, minio_client, 
 def test_delete_tenant(minio_client, api_instance):
 
     url = TENANTS_MANAGEMENT_API_URL
-
+    new_tenant_name = TENANT_NAME + '-delete'
     data = json.dumps({
         'cert': CERT,
         'scope': SCOPE_NAME,
-        'name': TENANT_NAME,
+        'name': new_tenant_name,
         'quota': QUOTA,
     })
 
     requests.post(url, data=data, headers=DEFAULT_HEADERS)
     data = json.dumps({
-        'name': TENANT_NAME,
+        'name': new_tenant_name,
     })
     response = requests.delete(url, data=data, headers=DEFAULT_HEADERS)
-    assert response.text == 'Tenant {} deleted\n'.format(TENANT_NAME)
+    assert response.text == 'Tenant {} deleted\n'.format(new_tenant_name)
     assert response.status_code == 200
 
-    assert check_bucket_existence(minio_client, bucket=TENANT_NAME) == \
+    assert check_bucket_existence(minio_client, bucket=new_tenant_name) == \
         CheckResult.RESOURCE_DOES_NOT_EXIST
 
-    namespace_status = check_namespace_availability(api_instance, namespace=TENANT_NAME)
+    namespace_status = check_namespace_availability(api_instance, namespace=new_tenant_name)
     assert namespace_status == CheckResult.RESOURCE_DOES_NOT_EXIST or \
         namespace_status == CheckResult.RESOURCE_BEING_DELETED

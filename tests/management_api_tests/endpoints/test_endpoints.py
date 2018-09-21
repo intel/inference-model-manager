@@ -97,8 +97,7 @@ def test_create_endpoint_with_2_replicas(function_context, api_instance, tenant)
     assert replicas == len(pods.items)
 
 
-def test_scale_endpoint(get_k8s_custom_obj_client, api_instance,
-                        tenant, endpoint):
+def test_scale_endpoint(get_k8s_custom_obj_client, tenant, endpoint):
     headers = DEFAULT_HEADERS
     namespace, body = endpoint
     headers['Authorization'] = namespace
@@ -181,8 +180,8 @@ def test_not_update_endpoint_bad_request(get_k8s_custom_obj_client, tenant,
 
 
 @pytest.mark.parametrize("incompliant_quota, expected_error", QUOTA_INCOMPLIANT_VALUES)
-def test_not_create_endpoint_with_incompliant_resource_quota(tenant,
-                                                             incompliant_quota, expected_error):
+def test_not_create_endpoint_with_incompliant_resource_quota(tenant, incompliant_quota,
+                                                             expected_error):
     headers = DEFAULT_HEADERS
     crd_server_name = 'predict'
     namespace, _ = tenant

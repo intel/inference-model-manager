@@ -62,6 +62,7 @@ def minio_resource():
                               signature_version=SIGNATURE_VERSION),
                           region_name=MINIO_REGION)
 
+
 @pytest.fixture(scope="function")
 def endpoint(function_context, get_k8s_custom_obj_client):
     namespace = TENANT_NAME
@@ -111,4 +112,11 @@ def tenant(api_instance, minio_client, function_context):
     quota = resource_quota(api_instance, quota=TENANT_RESOURCES)
     minio_client.create_bucket(Bucket=name)
     function_context.add_object(object_type='tenant', object_to_delete={'name': name})
+    return name, quota
+
+
+@pytest.fixture(scope="session")
+def fake_tenant():
+    name = TENANT_NAME + '-fake'
+    quota = {}
     return name, quota

@@ -42,6 +42,9 @@ minio_resource = boto3.resource('s3',
                                 config=Config(
                                     signature_version=SIGNATURE_VERSION),
                                 region_name=MINIO_REGION)
+# -----------------------------------------
+# ENDPOINT RELATED CONSTANTS
+
 
 class RequiredParameters:
 
@@ -51,9 +54,7 @@ class RequiredParameters:
     DELETE_ENDPOINT = ['endpointName']
     CREATE_TENANT = ['name', 'cert', 'scope', 'quota']
     DELETE_TENANT = ['name']
-
-
-# ENDPOINT RELATED CONSTANTS
+    MULTIPART_START = ['modelName', 'modelVersion']
 
 
 # To edit this object please first use deep copy
