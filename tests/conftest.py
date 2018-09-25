@@ -13,6 +13,7 @@ from management_api_tests.config import MINIO_SECRET_ACCESS_KEY, MINIO_ACCESS_KE
     CRD_GROUP, CRD_API_VERSION, TENANT_NAME, TENANT_RESOURCES, ENDPOINT_RESOURCES, \
     AUTH_MANAGEMENT_API_URL, JANE
 from management_api_tests.context import Context
+from management_api_tests.reused import propagate_portable_secrets, transform_quota
 
 
 @pytest.fixture(scope="session")
@@ -28,6 +29,11 @@ def api_instance():
 @pytest.fixture(scope="session")
 def rbac_api_instance():
     return client.RbacAuthorizationV1Api(client.ApiClient(configuration()))
+
+
+@pytest.fixture(scope="session")
+def apps_api_instance():
+    return client.AppsV1Api(client.ApiClient(configuration()))
 
 
 @pytest.fixture(scope="session")
@@ -93,16 +99,17 @@ def minio_resource():
 def endpoint(function_context, get_k8s_custom_obj_client):
     namespace = TENANT_NAME
     metadata = {"name": "predict"}
+    resources = transform_quota(ENDPOINT_RESOURCES)
     spec = {
         'modelName': 'resnet',
         'modelVersion': 1,
         'endpointName': 'predict',
         'subjectName': 'client',
         'replicas': 1,
-        'resources': ENDPOINT_RESOURCES
+        'resources': resources
     }
     body = {"spec": spec, 'kind': CRD_KIND, "replicas": 1,
-            "apiVersion": CRD_API_VERSION,  "metadata": metadata}
+            "apiVersion": CRD_API_VERSION, "metadata": metadata}
     get_k8s_custom_obj_client. \
         create_namespaced_custom_object(CRD_GROUP, CRD_VERSION, namespace, CRD_PLURAL, body)
     object_to_delete = {'name': "predict", 'namespace': namespace}
@@ -135,6 +142,7 @@ def tenant(api_instance, minio_client, function_context):
     name_object = client.V1ObjectMeta(name=name)
     namespace = client.V1Namespace(metadata=name_object)
     api_instance.create_namespace(namespace)
+    propagate_portable_secrets(api_instance, name)
     quota = resource_quota(api_instance, quota=TENANT_RESOURCES)
     minio_client.create_bucket(Bucket=name)
     function_context.add_object(object_type='tenant', object_to_delete={'name': name})

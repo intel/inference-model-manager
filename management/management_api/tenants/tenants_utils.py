@@ -38,7 +38,7 @@ def create_tenant(parameters):
 
     try:
         create_namespace(name, quota)
-        portable_secrets_propagation(target_namespace=name)
+        propagate_portable_secrets(target_namespace=name)
         create_bucket(name)
         create_secret(name, cert)
         create_resource_quota(name, quota)
@@ -194,7 +194,7 @@ def propagate_secret(source_secret_path, target_namespace):
         raise KubernetesCreateException('secret', apiException)
 
 
-def portable_secrets_propagation(target_namespace):
+def propagate_portable_secrets(target_namespace):
     for portable_secret_path in PORTABLE_SECRETS_PATHS:
             propagate_secret(portable_secret_path, target_namespace)
     logger.info('Portable secrets copied from default to {}'.format(target_namespace))

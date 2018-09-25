@@ -7,6 +7,8 @@ from time import sleep
 
 from management_api_tests.config import CRD_GROUP, CRD_VERSION, CRD_PLURAL, OperationStatus, \
     CheckResult
+from management_api_tests.endpoints.endpoint_utils import check_server_existence, \
+    check_server_pods_existence
 from management_api_tests.tenants.tenant_utils import check_bucket_existence, \
     check_namespace_availability
 
@@ -16,7 +18,7 @@ class Context(object):
     def __init__(self, k8s_client, k8s_client_custom, minio_resource_client, minio_client):
         self._objects = []
         self.k8s_client_api = k8s_client
-        self.k82_client_custom = k8s_client_custom
+        self.k8s_client_custom = k8s_client_custom
         self.minio_resource_client = minio_resource_client
         self.minio_client = minio_client
 
@@ -59,26 +61,63 @@ class Context(object):
             logging.error(e)
             return OperationStatus.FAILURE
 
-        completed = False
-        while not completed:
-            sleep(2)
-            bucket_status = check_bucket_existence(self.minio_client, name)
-            namespace_status = check_namespace_availability(self.k8s_client_api, name)
-            completed = (bucket_status == CheckResult.RESOURCE_DOES_NOT_EXIST and
-                         namespace_status == CheckResult.RESOURCE_DOES_NOT_EXIST)
-
-            if bucket_status == CheckResult.ERROR or namespace_status == CheckResult.ERROR:
-                logging.error("Error occurred during bucket or namespace status check")
-                return OperationStatus.TERMINATED
-
-        logging.info('{} deleted.'.format(name))
+        deletion_status = self._wait_tenant_deletion(object_to_delete['name'])
+        if deletion_status == OperationStatus.SUCCESS:
+            logging.info('Tenant {} deleted successfully.'.format(object_to_delete['name']))
+        elif deletion_status == OperationStatus.TERMINATED:
+            logging.info('Tenant {} status unknown.'.format(object_to_delete['name']))
+        else:
+            logging.info('Tenant {} deletion timeout.'.format(object_to_delete['name']))
         return OperationStatus.SUCCESS
 
-    @retry(stop_max_attempt_number=3, wait_fixed=200)
+    @retry(stop_max_attempt_number=3, wait_fixed=2000)
     def _delete_crd_server(self, object_to_delete):
         delete_body = client.V1DeleteOptions()
-        response = self.k82_client_custom.delete_namespaced_custom_object(
-            CRD_GROUP, CRD_VERSION, object_to_delete['namespace'], CRD_PLURAL,
-            object_to_delete['name'], delete_body, grace_period_seconds=0)
-        logging.info('CRD {} deleted.'.format(object_to_delete['name']))
+        try:
+            response = self.k8s_client_custom.delete_namespaced_custom_object(
+                CRD_GROUP, CRD_VERSION, object_to_delete['namespace'], CRD_PLURAL,
+                object_to_delete['name'], delete_body, grace_period_seconds=0)
+        except Exception as e:
+            logging.error(e)
+            raise
+
+        deletion_status = self._wait_server_deletion(object_to_delete)
+        if deletion_status == OperationStatus.SUCCESS:
+            logging.info('CRD {} deleted successfully.'.format(object_to_delete['name']))
+        elif deletion_status == OperationStatus.TERMINATED:
+            logging.info('CRD {} status unknown.'.format(object_to_delete['name']))
+        else:
+            logging.info('CRD {} deletion timeout.'.format(object_to_delete['name']))
         return response
+
+    @retry(stop_max_attempt_number=100, wait_fixed=2000)
+    def _wait_server_deletion(self, object_to_delete):
+        server_status = check_server_existence(
+            self.k8s_client_custom, object_to_delete['namespace'], object_to_delete['name'])
+        server_pods_status = check_server_pods_existence(
+            self.k8s_client_api, object_to_delete['namespace'], object_to_delete['name'], 1)
+        completed = (server_status == CheckResult.RESOURCE_DOES_NOT_EXIST and
+                     server_pods_status == CheckResult.RESOURCE_DOES_NOT_EXIST)
+
+        if server_status == CheckResult.ERROR or server_pods_status == CheckResult.ERROR:
+            logging.error("Error occurred during server status check")
+            return OperationStatus.TERMINATED
+
+        if completed:
+            return OperationStatus.SUCCESS
+        raise Exception
+
+    @retry(stop_max_attempt_number=100, wait_fixed=2000)
+    def _wait_tenant_deletion(self, name):
+        bucket_status = check_bucket_existence(self.minio_client, name)
+        namespace_status = check_namespace_availability(self.k8s_client_api, name)
+        completed = (bucket_status == CheckResult.RESOURCE_DOES_NOT_EXIST and
+                     namespace_status == CheckResult.RESOURCE_DOES_NOT_EXIST)
+
+        if bucket_status == CheckResult.ERROR or namespace_status == CheckResult.ERROR:
+            logging.error("Error occurred during bucket or namespace status check")
+            return OperationStatus.TERMINATED
+
+        if completed:
+            return OperationStatus.SUCCESS
+        raise Exception

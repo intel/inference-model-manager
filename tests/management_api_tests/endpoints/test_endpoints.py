@@ -2,25 +2,25 @@ import pytest
 import requests
 import json
 
-from conftest import get_all_pods_in_namespace
 from management_api_tests.config import DEFAULT_HEADERS, ENDPOINT_MANAGEMENT_API_URL, CheckResult, \
     QUOTA_INCOMPLIANT_VALUES, ENDPOINT_RESOURCES, FAILING_UPDATE_PARAMS, FAILING_SCALE_PARAMS, \
-    ENDPOINT_MANAGEMENT_API_URL_SCALE, ENDPOINT_MANAGEMENT_API_URL_UPDATE
+    ENDPOINT_MANAGEMENT_API_URL_SCALE, ENDPOINT_MANAGEMENT_API_URL_UPDATE, OperationStatus
 from management_api_tests.endpoints.endpoint_utils import check_replicas_number_matching_provided, \
-    check_model_params_matching_provided
+    check_model_params_matching_provided, wait_server_setup, check_server_existence
 
 
-def test_create_endpoint(function_context, tenant):
+def test_create_endpoint(function_context, apps_api_instance, get_k8s_custom_obj_client, tenant):
     headers = DEFAULT_HEADERS
     crd_server_name = 'predict'
     namespace, _ = tenant
     headers['Authorization'] = namespace
+    replicas = 1
     data = json.dumps({
         'modelName': 'resnet',
         'modelVersion': 1,
         'endpointName': crd_server_name,
         'subjectName': 'client',
-        'replicas': 1,
+        'replicas': replicas,
         'resources': ENDPOINT_RESOURCES
     })
     url = ENDPOINT_MANAGEMENT_API_URL
@@ -32,9 +32,13 @@ def test_create_endpoint(function_context, tenant):
 
     function_context.add_object(object_type='CRD', object_to_delete={'name': crd_server_name,
                                                                      'namespace': namespace})
+    assert check_server_existence(get_k8s_custom_obj_client, namespace, crd_server_name
+                                  ) == CheckResult.RESOURCE_AVAILABLE
+    assert wait_server_setup(apps_api_instance, namespace, crd_server_name, replicas
+                             ) == OperationStatus.SUCCESS
 
 
-def test_delete_endpoint(tenant, endpoint):
+def test_delete_endpoint(tenant, apps_api_instance, get_k8s_custom_obj_client, endpoint):
     namespace, body = endpoint
     headers = DEFAULT_HEADERS
     headers['Authorization'] = namespace
@@ -46,11 +50,16 @@ def test_delete_endpoint(tenant, endpoint):
     response = requests.delete(url, data=data, headers=headers)
     assert response.status_code == 200
     assert "deleted" in response.text
+    assert check_server_existence(get_k8s_custom_obj_client, namespace, body['spec']['endpointName']
+                                  ) == CheckResult.RESOURCE_DOES_NOT_EXIST
+    assert wait_server_setup(apps_api_instance, namespace, body['spec']['endpointName'], 1
+                             ) == OperationStatus.TERMINATED
 
 
 def test_try_create_the_same_endpoint(tenant, endpoint):
     namespace, body = endpoint
     headers = DEFAULT_HEADERS
+    body['spec']['resources'] = ENDPOINT_RESOURCES
     data = json.dumps(body['spec'])
     headers['Authorization'] = namespace
 
@@ -61,7 +70,8 @@ def test_try_create_the_same_endpoint(tenant, endpoint):
     assert "Conflict" in response.text
 
 
-def test_create_endpoint_with_2_replicas(function_context, api_instance, tenant):
+def test_create_endpoint_with_2_replicas(get_k8s_custom_obj_client, apps_api_instance,
+                                         function_context, api_instance, tenant):
     headers = DEFAULT_HEADERS
     crd_server_name = 'predict'
     namespace, _ = tenant
@@ -88,31 +98,48 @@ def test_create_endpoint_with_2_replicas(function_context, api_instance, tenant)
     function_context.add_object(object_type='CRD', object_to_delete={'name': crd_server_name,
                                                                      'namespace': namespace})
 
-    label_selector = 'endpoint={}'.format(crd_server_name)
-    pods = get_all_pods_in_namespace(k8s_client=api_instance, namespace=namespace,
-                                     label_selector=label_selector)
+    assert check_server_existence(get_k8s_custom_obj_client, namespace, crd_server_name
+                                  ) == CheckResult.RESOURCE_AVAILABLE
+    assert wait_server_setup(apps_api_instance, namespace, crd_server_name, replicas
+                             ) == OperationStatus.SUCCESS
 
-    assert replicas == len(pods.items)
 
-
-def test_scale_endpoint(get_k8s_custom_obj_client, tenant, endpoint):
+def test_scale_endpoint(get_k8s_custom_obj_client, api_instance, apps_api_instance,
+                        tenant, endpoint):
     headers = DEFAULT_HEADERS
     namespace, body = endpoint
     headers['Authorization'] = namespace
     crd_server_name = body['spec']['endpointName']
-    replicas = 10
+
+    # -- scaling up 1 -> 5
+    replicas = 5
+    simulate_scaling(get_k8s_custom_obj_client, apps_api_instance, headers, namespace,
+                     crd_server_name, replicas)
+
+    # -- scaling down 5 -> 3
+    replicas = 3
+    simulate_scaling(get_k8s_custom_obj_client, apps_api_instance, headers, namespace,
+                     crd_server_name, replicas)
+
+
+def simulate_scaling(custom_obj_api, apps_api_instance, headers, namespace, name, replicas):
+
+    url = ENDPOINT_MANAGEMENT_API_URL_SCALE.format(endpoint_name=name)
+    headers['Authorization'] = namespace
     data = json.dumps({
         'replicas': replicas
     })
 
-    url = ENDPOINT_MANAGEMENT_API_URL_SCALE.format(endpoint_name=crd_server_name)
-
     response = requests.patch(url, data=data, headers=headers)
+
     assert response.status_code == 200
     assert "patched" in response.text
     assert check_replicas_number_matching_provided(
-        get_k8s_custom_obj_client, namespace, crd_server_name, provided_number=replicas
+        custom_obj_api, namespace, name, provided_number=replicas
     ) == CheckResult.CONTENTS_MATCHING
+
+    assert wait_server_setup(apps_api_instance, namespace, name, replicas
+                             ) == OperationStatus.SUCCESS
 
 
 @pytest.mark.parametrize("auth, endpoint_name, scale_params, expected_error",
