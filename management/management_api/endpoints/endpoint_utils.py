@@ -1,5 +1,3 @@
-from __future__ import print_function
-import falcon
 import re
 from kubernetes.client.rest import ApiException
 
@@ -52,7 +50,7 @@ def delete_endpoint(parameters: dict, namespace: str):
 
 def create_url_to_service(endpoint_name, namespace):
     api_instance = get_k8s_api_client()
-    ip, port = get_ingress_external_ip(api_instance=api_instance)
+    ip, port = get_ingress_external_ip(api_instance)
     address = "{ip}:{port}".format(ip=ip, port=port)
     path = "{endpoint_name}-{namespace}.{platform_domain}".format(endpoint_name=endpoint_name,
                                                                   namespace=namespace,

@@ -8,3 +8,4 @@ utils
 boto3
 botocore
 retrying
+beautifulsoup4==4.6.3

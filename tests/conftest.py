@@ -1,13 +1,17 @@
 import boto3
-from botocore.client import Config
 import pytest
+import requests
 from retrying import retry
+from bs4 import BeautifulSoup
+from botocore.client import Config
 from kubernetes import config, client
 from kubernetes.client.rest import ApiException
+from urllib.parse import urljoin, urlparse, parse_qs
 
 from management_api_tests.config import MINIO_SECRET_ACCESS_KEY, MINIO_ACCESS_KEY_ID, \
     MINIO_REGION, MINIO_ENDPOINT_ADDR, SIGNATURE_VERSION, CRD_VERSION, CRD_PLURAL, CRD_KIND, \
-    CRD_GROUP, CRD_API_VERSION, TENANT_NAME, TENANT_RESOURCES, ENDPOINT_RESOURCES
+    CRD_GROUP, CRD_API_VERSION, TENANT_NAME, TENANT_RESOURCES, ENDPOINT_RESOURCES, \
+    AUTH_MANAGEMENT_API_URL, JANE
 from management_api_tests.context import Context
 
 
@@ -30,6 +34,28 @@ def rbac_api_instance():
 def get_k8s_custom_obj_client(configuration):
     custom_obj_api_instance = client.CustomObjectsApi(client.ApiClient(configuration))
     return custom_obj_api_instance
+
+
+@pytest.fixture(scope="function")
+def auth_code_for_jane():
+    response = requests.get(AUTH_MANAGEMENT_API_URL, allow_redirects=False)
+    auth_dex_url = response.headers['location']
+    parsed_url = urlparse(auth_dex_url)
+    dex_base_url = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_url)
+
+    resp = requests.get(auth_dex_url, verify=False)
+    soup = BeautifulSoup(resp.text, 'html.parser')
+    login_form_action = urljoin(dex_base_url, soup.form['action'])
+
+    data = JANE
+    resp = requests.post(login_form_action, data=data, allow_redirects=False, verify=False)
+
+    resp = requests.get(urljoin(dex_base_url, resp.headers['Location']), allow_redirects=False,
+                        verify=False)
+    query = urlparse(resp.headers['Location']).query
+    auth_code = parse_qs(query)['code'][0]
+
+    return auth_code
 
 
 @pytest.fixture(scope="function")

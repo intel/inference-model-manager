@@ -17,6 +17,18 @@ PORTABLE_SECRETS_PATHS = ['default/minio-access-info', 'default/tls-secret']
 
 PLATFORM_DOMAIN = os.getenv('PLATFORM_DOMAIN', 'default')
 
+
+# AUTH CONTROLLER DEFINITIONS:
+class AuthParameters:
+    REDIRECT_URL = os.getenv('AUTH_REDIRECT_URL', 'http://127.0.0.1:5555/callback')
+    CLIENT_ID = os.getenv('AUTH_CLIENT_ID', 'example-app')
+    RESPONSE_TYPE = 'code'
+    SCOPE = 'groups openid email'
+    CLIENT_SECRET = os.getenv('AUTH_CLIENT_SECRET', 'ZXhhbXBsZS1hcHAtc2VjcmV0')
+    TOKEN_PATH = os.getenv('AUTH_TOKEN_PATH', '/dex/token')
+    AUTH_PATH = os.getenv('AUTH_TOKEN_PATH', '/dex/auth')
+
+
 # CRD DEFINITIONS:
 CRD_GROUP = 'intel.com'
 CRD_VERSION = 'v1'
@@ -44,6 +56,7 @@ minio_resource = boto3.resource('s3',
                                 region_name=MINIO_REGION)
 # -----------------------------------------
 # ENDPOINT RELATED CONSTANTS
+
 
 
 class RequiredParameters:

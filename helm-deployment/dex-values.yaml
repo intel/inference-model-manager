@@ -1,0 +1,66 @@
+--- 
+dex: 
+  certs: 
+    image: gcr.io/google_containers/kubernetes-dashboard-init-amd64
+    imagePullPolicy: IfNotPresent
+    imageTag: v1.0.0
+    web: 
+      activeDeadlineSeconds: 300
+      altIPs: {}
+      altNames: 
+        - dex.io
+      caDays: 10000
+      certDays: 10000
+      create: false
+      secret: 
+        caName: dex-web-server-ca
+        tlsName: tls-secret
+  config: 
+    connectors: 
+      - 
+        config: 
+          bindDN: "cn=admin,dc=example,dc=org"
+          bindPW: admin
+          groupSearch: 
+            baseDN: "ou=Groups,dc=example,dc=org"
+            filter: (objectClass=groupOfNames)
+            groupAttr: member
+            nameAttr: cn
+            userAttr: DN
+          host: "10.138.0.26:389"
+          insecureNoSSL: true
+          userSearch: 
+            baseDN: "ou=People,dc=example,dc=org"
+            emailAttr: mail
+            filter: (objectClass=person)
+            idAttr: DN
+            nameAttr: cn
+            username: mail
+          usernamePrompt: "Email Address"
+        id: ldap
+        name: OpenLDAP
+        type: ldap
+    issuer: "http://127.0.0.1:5554/dex"
+    staticClients: 
+      - 
+        id: example-app
+        name: "Example App"
+        redirectURIs: 
+          - "http://127.0.0.1:5555/callback"
+        secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+    web: 
+      https: "0.0.0.0:5554"
+      tlsCert: /etc/dex/tls/https/server/tls.crt
+      tlsKey: /etc/dex/tls/https/server/tls.key
+  ports: 
+    - 
+      containerPort: 5554
+      name: https
+      protocol: TCP
+    - 
+      containerPort: 8080
+      name: http
+      protocol: TCP
+  service: 
+    type: LoadBalancer
+

@@ -6,7 +6,7 @@ from kubernetes.client.rest import ApiException
 
 from management_api.utils.errors_handling import InvalidParamException, KubernetesGetException
 from management_api.utils.logger import get_logger
-from management_api.config import ING_NAME, ING_NAMESPACE, ValidityMessage
+from management_api.config import ValidityMessage, ING_NAME, ING_NAMESPACE
 
 logger = get_logger(__name__)
 
@@ -78,13 +78,31 @@ def validate_quota_compliance(api_instance: client, namespace, endpoint_quota):
     return True
 
 
-def get_ingress_external_ip(api_instance: client):
-    api_response = api_instance.read_namespaced_service(ING_NAME, ING_NAMESPACE)
-    ip = api_response.status.load_balancer.ingress[0].ip
-    port = api_response.spec.ports[-1].port
+def get_svc_external_ip_port(api_instance: client, label_selector: str, namespace: str):
+    try:
+        api_response = api_instance.list_namespaced_service(namespace,
+                                                            label_selector=label_selector)
+    except ApiException as e:
+        raise KubernetesGetException('List services', e)
+    ports = api_response.items[0].spec.ports
+    https = next(item for item in ports if item.name == "https")
+    ip = api_response.items[0].status.load_balancer.ingress[0].ip
     ipaddress.ip_address(ip)
-    port = int(port)
+    port = int(https.port)
     return ip, port
+
+
+def get_ingress_external_ip(api_instance: client):
+    label_selector = 'app={}'.format(ING_NAME)
+    return get_svc_external_ip_port(api_instance=api_instance, namespace=ING_NAMESPACE,
+                                    label_selector=label_selector)
+
+
+def get_dex_external_ip(api_instance: client):
+    label_selector = 'app={}'.format('dex')
+    namespace = 'default'
+    return get_svc_external_ip_port(api_instance=api_instance, namespace=namespace,
+                                    label_selector=label_selector)
 
 
 @lru_cache(maxsize=None)

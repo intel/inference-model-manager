@@ -22,13 +22,21 @@ CRD_PLURAL = 'servers'
 CRD_API_VERSION = 'intel.com/v1'
 CRD_KIND = 'Server'
 
+
+# Credentials for Jane which belongs to default and test group
+JANE = {'login': "janedoe@example.com", 'password': "foo"}
+
+# Credentials for Joe which belongs in default group
+JOE = {'login': "johndoe@example.com", 'password': "bar"}
+
 MANAGEMENT_API_URL = os.environ.get('MANAGEMENT_API_URL', 'http://127.0.0.1:5000')
 TENANTS_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants')
 ENDPOINT_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'endpoints')
 ENDPOINT_MANAGEMENT_API_URL_SCALE = ENDPOINT_MANAGEMENT_API_URL + "/{endpoint_name}/scaling"
 ENDPOINT_MANAGEMENT_API_URL_UPDATE = ENDPOINT_MANAGEMENT_API_URL + "/{endpoint_name}/updating"
 START_MULTIPART_UPLOAD_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'upload/start')
-
+AUTH_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'authenticate')
+TOKEN_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'authenticate/token')
 
 TENANT_NAME = os.environ.get('TENANT_NAME', 'test')
 

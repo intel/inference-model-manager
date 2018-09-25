@@ -109,16 +109,16 @@ class MissingParamException(ManagementApiException):
         super().__init__(param + " parameter required")
         self.param = param
 
-    @staticmethod
-    def handler(ex, req, resp, params):
-        logger.error(str(ex))
-        raise falcon.HTTPMissingParam(ex.param)
+
+class MissingTokenException(ManagementApiException):
+    def __init__(self, err):
+        super().__init__("Token error: " + str(err))
 
 
 custom_errors = [ManagementApiException, KubernetesCallException, KubernetesDeleteException,
                  KubernetesCreateException, KubernetesGetException, KubernetesUpdateException,
                  MinioCallException, TenantAlreadyExistsException, TenantDoesNotExistException,
-                 InvalidParamException]
+                 InvalidParamException, MissingParamException, MissingTokenException]
 
 
 def default_exception_handler(ex, req, resp, params):

@@ -3,7 +3,7 @@
 ```
 cd helm-deployment
 helm dep up .
-helm install --name inferno-platform .
+helm install --name inferno-platform . -f dex-values.yaml
 ```
 `helm dep up .` will download minio and dex as subcharts
 `helm install --name inferno-platform .` will deploy all components on exisitng kubernetes cluster. Release will be named 'inferno-platform'.
@@ -21,7 +21,7 @@ subchart:
   variable: Something
 ```
 in parent chart.
-
+WARNING: Values for dex have to be passed to helm config. They are passed using separate yaml file, but if you prefer you can put your values using method given above.
 WARNING: There are test keys and certificates included in this helm deployment (/inferno-platform/helm-deployment/certs), please replace them with secure certificates in case of production deployment.
 
 In order to overwrite minio credentials edit values.yaml file. 

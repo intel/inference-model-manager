@@ -8,14 +8,14 @@ from unittest.mock import Mock
 
 from management_api.utils.errors_handling import KubernetesCreateException, \
     KubernetesDeleteException, InvalidParamException, KubernetesUpdateException, \
-    KubernetesCallException, KubernetesGetException
+    KubernetesGetException
 
 
 @pytest.mark.parametrize("raise_error", [(False), (True)])
-def test_create_endpoint(mocker, get_url_to_service_endpoint_utils,
+def test_create_endpoint(mocker, url_to_service_endpoint_utils,
                          custom_client_mock_endpoint_utils,
                          raise_error, api_client_mock_endpoint_utils):
-    ing_ip_mock, ing_ip_mock_return_values = get_url_to_service_endpoint_utils
+    ing_ip_mock, ing_ip_mock_return_values = url_to_service_endpoint_utils
     create_custom_client_mock, custom_client = custom_client_mock_endpoint_utils
     validate_quota_compliance_mock = mocker.patch(
         'management_api.endpoints.endpoint_utils.validate_quota_compliance')
@@ -35,8 +35,8 @@ def test_create_endpoint(mocker, get_url_to_service_endpoint_utils,
 
 @pytest.mark.parametrize("raise_error", [(False), (True)])
 def test_delete_endpoint(custom_client_mock_endpoint_utils, api_client_mock_endpoint_utils,
-                         get_url_to_service_endpoint_utils, raise_error):
-    ing_ip_mock, ing_ip_mock_return_values = get_url_to_service_endpoint_utils
+                         url_to_service_endpoint_utils, raise_error):
+    ing_ip_mock, ing_ip_mock_return_values = url_to_service_endpoint_utils
     create_custom_client_mock, custom_client = custom_client_mock_endpoint_utils
 
     if raise_error:
@@ -56,8 +56,8 @@ call_data = [(scale_endpoint, {'endpointName': 'test', 'replicas': 2}),
 
 @pytest.mark.parametrize("method, arguments", call_data)
 def test_read_endpoint_fail(custom_client_mock_endpoint_utils, api_client_mock_endpoint_utils,
-                            get_url_to_service_endpoint_utils, method, arguments):
-    ing_ip_mock, ing_ip_mock_return_values = get_url_to_service_endpoint_utils
+                            url_to_service_endpoint_utils, method, arguments):
+    ing_ip_mock, ing_ip_mock_return_values = url_to_service_endpoint_utils
     create_custom_client_mock, custom_client = custom_client_mock_endpoint_utils
     with pytest.raises(KubernetesGetException):
         custom_client.get_namespaced_custom_object.side_effect = ApiException()
@@ -68,8 +68,8 @@ def test_read_endpoint_fail(custom_client_mock_endpoint_utils, api_client_mock_e
 
 @pytest.mark.parametrize("method, arguments", call_data)
 def test_patch_endpoint_fail(custom_client_mock_endpoint_utils, api_client_mock_endpoint_utils,
-                             get_url_to_service_endpoint_utils, method, arguments):
-    ing_ip_mock, ing_ip_mock_return_values = get_url_to_service_endpoint_utils
+                             url_to_service_endpoint_utils, method, arguments):
+    ing_ip_mock, ing_ip_mock_return_values = url_to_service_endpoint_utils
     create_custom_client_mock, custom_client = custom_client_mock_endpoint_utils
     with pytest.raises(KubernetesUpdateException):
         custom_client.get_namespaced_custom_object.return_value = {'spec': {}}
@@ -82,8 +82,8 @@ def test_patch_endpoint_fail(custom_client_mock_endpoint_utils, api_client_mock_
 
 @pytest.mark.parametrize("method, arguments", call_data)
 def test_patch_endpoint_success(custom_client_mock_endpoint_utils, api_client_mock_endpoint_utils,
-                                get_url_to_service_endpoint_utils, method, arguments):
-    ing_ip_mock, ing_ip_mock_return_values = get_url_to_service_endpoint_utils
+                                url_to_service_endpoint_utils, method, arguments):
+    ing_ip_mock, ing_ip_mock_return_values = url_to_service_endpoint_utils
     create_custom_client_mock, custom_client = custom_client_mock_endpoint_utils
     custom_client.get_namespaced_custom_object.return_value = {'spec': {}}
     method(parameters=arguments, namespace="test")
