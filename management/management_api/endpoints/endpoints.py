@@ -9,6 +9,7 @@ from management_api.utils.kubernetes_resources import validate_quota
 
 logger = get_logger(__name__)
 
+
 class Endpoints(object):
     def on_post(self, req, resp):
         """Handles POST requests"""
@@ -66,4 +67,3 @@ class EndpointUpdate(EndpointPatch):
 
     def patch(self, parameters, namespace):
         return update_endpoint(parameters, namespace)
-

@@ -17,8 +17,6 @@ class Token():
     def on_post(self, req, resp):
         body = get_body(req)
         get_params(body, required_keys=['code'])
-        auth_code = body['code']
         token = get_token(auth_code=body['code'])
         resp.status = falcon.HTTP_200
         resp.body = json.dumps({'status': 'OK', 'data': {'token': token}})
-

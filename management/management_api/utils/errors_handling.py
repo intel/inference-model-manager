@@ -131,4 +131,3 @@ def add_error_handlers(falcon_api):
     falcon_api.add_error_handler(Exception, default_exception_handler)
     for error in custom_errors:
         falcon_api.add_error_handler(error, error.handler)
-

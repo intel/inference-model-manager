@@ -1,9 +1,6 @@
 from retrying import retry
 import logging
 from kubernetes import client
-from kubernetes.client.rest import ApiException
-from botocore.exceptions import ClientError
-from time import sleep
 
 from management_api_tests.config import CRD_GROUP, CRD_VERSION, CRD_PLURAL, OperationStatus, \
     CheckResult

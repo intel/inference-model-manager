@@ -21,5 +21,3 @@ class StartMultiModel(object):
         upload_id = create_upload(bucket=namespace, key=key)
         resp.status = falcon.HTTP_200
         resp.body = 'Multipart ID: {}'.format(upload_id)
-
-

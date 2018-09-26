@@ -1,4 +1,3 @@
-import botocore
 from kubernetes.client.rest import ApiException
 from botocore.exceptions import ClientError
 from management_api_tests.config import NO_SUCH_BUCKET_EXCEPTION, RESOURCE_NOT_FOUND, \
@@ -10,7 +9,7 @@ def check_bucket_existence(minio_client, bucket):
     try:
         minio_client.list_objects_v2(Bucket=bucket)
 
-    except botocore.exceptions.ClientError as e:
+    except ClientError as e:
         error_code = e.response['Error']['Code']
         if error_code == NO_SUCH_BUCKET_EXCEPTION:
             return CheckResult.RESOURCE_DOES_NOT_EXIST

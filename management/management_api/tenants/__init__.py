@@ -1,1 +1,1 @@
-from .tenants import Tenants
+from .tenants import Tenants  # noqa

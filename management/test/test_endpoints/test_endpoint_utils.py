@@ -2,7 +2,6 @@ from management_api.endpoints.endpoint_utils import create_endpoint, delete_endp
     create_url_to_service, validate_params, update_endpoint, scale_endpoint
 from management_api.config import PLATFORM_DOMAIN
 from kubernetes.client.rest import ApiException
-import falcon
 import pytest
 from unittest.mock import Mock
 
@@ -29,6 +28,8 @@ def test_create_endpoint(mocker, url_to_service_endpoint_utils,
     else:
         create_endpoint(parameters={'endpointName': "test", 'resources': {}}, namespace="test")
         ing_ip_mock.assert_called_once()
+    validate_quota_compliance_mock.assert_called_once()
+    parameters_resources_mock.parameters_resources_mock()
     custom_client.create_namespaced_custom_object.assert_called_once()
     create_custom_client_mock.assert_called_once()
 

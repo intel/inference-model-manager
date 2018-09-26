@@ -54,9 +54,6 @@ minio_resource = boto3.resource('s3',
                                 config=Config(
                                     signature_version=SIGNATURE_VERSION),
                                 region_name=MINIO_REGION)
-# -----------------------------------------
-# ENDPOINT RELATED CONSTANTS
-
 
 
 class RequiredParameters:

@@ -1,7 +1,6 @@
 from management_api.utils.errors_handling import MissingParamException
 from management_api.utils.parse_request import get_params
 import pytest
-import falcon
 
 
 @pytest.mark.parametrize("raise_error, body", [(False, {'test': '', 'default': ''}),

@@ -1,1 +1,1 @@
-from .authenticate import Authenticate, Token
+from .authenticate import Authenticate, Token  # noqa

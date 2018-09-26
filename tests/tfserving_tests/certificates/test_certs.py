@@ -41,17 +41,19 @@ def prepare_stub_and_request(creds):
 
 def test_prediction_with_certificates():
     trusted_cert, trusted_key, trusted_ca = prepare_certs(
-                                            'tfserving_tests/utils/certs/server.crt', 
-                                            'tfserving_tests/utils/certs/client.key', 
+                                            'tfserving_tests/utils/certs/server.crt',
+                                            'tfserving_tests/utils/certs/client.key',
                                             'tfserving_tests/utils/certs/client.crt')
-    creds = implementations.ssl_channel_credentials(root_certificates=trusted_cert, private_key=trusted_key, certificate_chain=trusted_ca)
+    creds = implementations.ssl_channel_credentials(root_certificates=trusted_cert,
+                                                    private_key=trusted_key,
+                                                    certificate_chain=trusted_ca)
     stub, request = prepare_stub_and_request(creds)
 
     request.inputs['import/input_tensor'].CopyFrom(
-        tf.contrib.util.make_tensor_proto(image, shape=image.shape)) 
+        tf.contrib.util.make_tensor_proto(image, shape=image.shape))
     prediction_response = stub.Predict(request, 10.0)
 
-    assert prediction_response is not None   
+    assert prediction_response is not None
 
     response = numpy.array(prediction_response.outputs['import/softmax_tensor'].float_val)
 
@@ -64,10 +66,12 @@ def test_prediction_with_certificates():
 
 def test_prediction_batch_with_certificates():
     trusted_cert, trusted_key, trusted_ca = prepare_certs(
-                                            'tfserving_tests/utils/certs/server.crt', 
-                                            'tfserving_tests/utils/certs/client.key', 
+                                            'tfserving_tests/utils/certs/server.crt',
+                                            'tfserving_tests/utils/certs/client.key',
                                             'tfserving_tests/utils/certs/client.crt')
-    creds = implementations.ssl_channel_credentials(root_certificates=trusted_cert, private_key=trusted_key, certificate_chain=trusted_ca)
+    creds = implementations.ssl_channel_credentials(root_certificates=trusted_cert,
+                                                    private_key=trusted_key,
+                                                    certificate_chain=trusted_ca)
     stub, request = prepare_stub_and_request(creds)
 
     request.inputs['import/input_tensor'].CopyFrom(
@@ -83,7 +87,7 @@ def test_prediction_batch_with_certificates():
         one_output = response[i:i + OFFSET]
         max_output = numpy.argmax(one_output) - 1
         max_outputs.append(max_output)
-    
+
     for i in range(len(max_outputs)):
         label = classes.imagenet_classes[max_outputs[i]]
         test_label = classes.imagenet_classes[labels[i]]
@@ -93,10 +97,12 @@ def test_prediction_batch_with_certificates():
 
 def test_wrong_certificates():
     trusted_cert, wrong_key, wrong_ca = prepare_certs(
-                                        'tfserving_tests/utils/certs/server.crt', 
-                                        'tfserving_tests/utils/certs/bad-client.key', 
+                                        'tfserving_tests/utils/certs/server.crt',
+                                        'tfserving_tests/utils/certs/bad-client.key',
                                         'tfserving_tests/utils/certs/bad-client.crt')
-    creds = implementations.ssl_channel_credentials(root_certificates=trusted_cert, private_key=wrong_key, certificate_chain=wrong_ca)
+    creds = implementations.ssl_channel_credentials(root_certificates=trusted_cert,
+                                                    private_key=wrong_key,
+                                                    certificate_chain=wrong_ca)
     stub, request = prepare_stub_and_request(creds)
 
     input = numpy.zeros((1, 224, 224, 3), numpy.dtype('<f'))
@@ -104,8 +110,8 @@ def test_wrong_certificates():
     request.inputs['import/input_tensor'].CopyFrom(
         tf.contrib.util.make_tensor_proto(input, shape=[1, 224, 224, 3]))
 
-    with pytest.raises(face.CancellationError) as context:   
-        prediction_response = stub.Predict(request, 10.0)
+    with pytest.raises(face.CancellationError) as context:
+        stub.Predict(request, 10.0)
 
     print(context.value.code)
     assert context.value.details == 'Received http2 header with status: 403'
@@ -122,8 +128,7 @@ def test_no_certificates():
         tf.contrib.util.make_tensor_proto(input, shape=[1, 224, 224, 3]))
 
     with pytest.raises(face.CancellationError) as context:
-        prediction_response = stub.Predict(request, 10.0)
+        stub.Predict(request, 10.0)
 
     print(context.value.code)
     assert context.value.details == 'Received http2 header with status: 400'
-

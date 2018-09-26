@@ -1,6 +1,5 @@
 import pytest
 import falcon
-from management_api.utils.errors_handling import TenantDoesNotExistException
 
 
 @pytest.mark.parametrize("tenant_exists, expected_status",

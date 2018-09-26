@@ -36,7 +36,7 @@ def test_endpoints_delete(mocker, client):
 
 @pytest.mark.parametrize("functionality, method_name, body, expected_status",
                          [("scaling", "scale_endpoint", {'replicas': 3}, falcon.HTTP_OK),
-                         ("updating", "update_endpoint", {'modelName': 'test', 'modelVersion': 3},
+                          ("updating", "update_endpoint", {'modelName': 'test', 'modelVersion': 3},
                            falcon.HTTP_OK)])
 def test_endpoints_patch(mocker, client, functionality, method_name, body, expected_status):
     method_mock = mocker.patch('management_api.endpoints.endpoints.' + method_name)
@@ -51,4 +51,3 @@ def test_endpoints_patch(mocker, client, functionality, method_name, body, expec
     assert expected_status == result.status
     assert expected_message in result.text
     method_mock.assert_called_once()
-

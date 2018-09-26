@@ -8,8 +8,22 @@ jobs:
       - setup_remote_docker
       - checkout
       - run:
+          name: Create venv
+          command: |
+            cd ~/inferno-platform/
+            python3 -m venv .venv
+      - run:
+          name: Style checker
+          command: |
+            . ~/inferno-platform/.venv/bin/activate
+            pip install -q flake8
+            echo "management folder" && cd ~/inferno-platform/management/ && make style
+            echo "tests folder && " && cd ~/inferno-platform/tests/ && make style
+      - run:
           name: Run unit tests
-          command: cd ~/inferno-platform/management/ && python setup.py test
+          command: |
+            . ~/inferno-platform/.venv/bin/activate
+            cd ~/inferno-platform/management/ && python setup.py test
       - run:
           name: Create k8s cluster
           command: |
@@ -83,12 +97,11 @@ jobs:
       - run:
           name: Run tests
           command: |
+            . ~/inferno-platform/.venv/bin/activate
             while [ -z $ING_IP ]; do sleep 10; ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}'); done
             export ING_DOMAIN=`kubectl get ing -o=jsonpath='{.items..spec.tls..hosts}' | sed 's/[][]//g'`
             echo "${ING_IP} ${ING_DOMAIN}" | sudo tee -a /etc/hosts
             cd ~/inferno-platform/tests
-            python3 -m venv .venv
-            . .venv/bin/activate
             pip install -q -r requirements.txt
             . run_test.sh
       - run:

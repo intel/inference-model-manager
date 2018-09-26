@@ -132,7 +132,7 @@ def resource_quota(api_instance, quota={}, namespace=TENANT_NAME):
     name_object = client.V1ObjectMeta(name=namespace)
     resource_quota_spec = client.V1ResourceQuotaSpec(hard=quota)
     body = client.V1ResourceQuota(spec=resource_quota_spec, metadata=name_object)
-    api_response = api_instance.create_namespaced_resource_quota(namespace=namespace, body=body)
+    api_instance.create_namespaced_resource_quota(namespace=namespace, body=body)
     return quota
 
 

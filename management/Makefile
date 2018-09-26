@@ -27,6 +27,7 @@ push:
 	gcloud docker -- push gcr.io/constant-cubist-173123/$(IMAGE):$(TAG)
 
 style:
-	flake8 --max-line-length 100
+	flake8 --max-line-length 100 management_api/ test/
 
 circleci: build tag push
+

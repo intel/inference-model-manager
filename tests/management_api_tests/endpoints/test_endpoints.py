@@ -148,9 +148,7 @@ def test_not_scale_endpoint_bad_request(get_k8s_custom_obj_client, tenant,
                                         auth, endpoint_name, scale_params,
                                         expected_error, endpoint):
     headers = DEFAULT_HEADERS
-    namespace, body = endpoint
     headers['Authorization'] = auth
-    crd_server_name = body['spec']['endpointName']
     data = json.dumps(scale_params)
 
     url = ENDPOINT_MANAGEMENT_API_URL_SCALE.format(endpoint_name=endpoint_name)
@@ -190,9 +188,7 @@ def test_not_update_endpoint_bad_request(get_k8s_custom_obj_client, tenant,
                                          auth, endpoint_name, update_params, expected_error,
                                          endpoint):
     headers = DEFAULT_HEADERS
-    namespace, body = endpoint
     headers['Authorization'] = auth
-    crd_server_name = body['spec']['endpointName']
 
     data = json.dumps(update_params)
 

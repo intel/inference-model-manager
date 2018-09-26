@@ -1,4 +1,3 @@
-import falcon
 import base64
 import binascii
 from cryptography import x509

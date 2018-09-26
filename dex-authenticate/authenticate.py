@@ -47,4 +47,3 @@ token = oauth.fetch_token(urljoin(dex_baseurl, '/dex/token'),
                           code=auth_code, verify=False,
                           client_secret=client_secret)
 print(token['id_token'])
-
