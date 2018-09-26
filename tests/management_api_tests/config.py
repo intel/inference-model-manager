@@ -23,7 +23,6 @@ CRD_PLURAL = 'servers'
 CRD_API_VERSION = 'intel.com/v1'
 CRD_KIND = 'Server'
 
-
 # Credentials for Jane which belongs to default and test group
 JANE = {'login': "janedoe@example.com", 'password': "foo"}
 
@@ -220,6 +219,13 @@ FAILING_UPDATE_PARAMS = [
      "Unprocessable Entity"),
     (TENANT_NAME, "predict", {'modelVersion': 3}, "modelName parameter required"),
     (TENANT_NAME, "predict", {'modelName': 'super-model'}, "modelVersion parameter required"),
+]
+
+CORRECT_UPDATE_QUOTAS = [
+    {'modelName': 'new-name', 'modelVersion': 2},
+    {'modelName': 'new-name', 'modelVersion': 2, 'resources':
+        {'limits.cpu': '500m', 'limits.memory': '500Mi', 'requests.cpu': '200m',
+         'requests.memory': '200Mi'}}
 ]
 
 FAILING_SCALE_PARAMS = [

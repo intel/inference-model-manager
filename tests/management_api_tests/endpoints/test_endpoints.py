@@ -4,9 +4,11 @@ import json
 
 from management_api_tests.config import DEFAULT_HEADERS, ENDPOINT_MANAGEMENT_API_URL, CheckResult, \
     QUOTA_INCOMPLIANT_VALUES, ENDPOINT_RESOURCES, FAILING_UPDATE_PARAMS, FAILING_SCALE_PARAMS, \
-    ENDPOINT_MANAGEMENT_API_URL_SCALE, ENDPOINT_MANAGEMENT_API_URL_UPDATE, OperationStatus
+    ENDPOINT_MANAGEMENT_API_URL_SCALE, ENDPOINT_MANAGEMENT_API_URL_UPDATE, OperationStatus, \
+    CORRECT_UPDATE_QUOTAS
 from management_api_tests.endpoints.endpoint_utils import check_replicas_number_matching_provided, \
-    check_model_params_matching_provided, wait_server_setup, check_server_existence
+    check_model_params_matching_provided, wait_server_setup, check_server_existence, \
+    check_server_update_result
 
 
 def test_create_endpoint(function_context, apps_api_instance, get_k8s_custom_obj_client, tenant):
@@ -123,7 +125,6 @@ def test_scale_endpoint(get_k8s_custom_obj_client, api_instance, apps_api_instan
 
 
 def simulate_scaling(custom_obj_api, apps_api_instance, headers, namespace, name, replicas):
-
     url = ENDPOINT_MANAGEMENT_API_URL_SCALE.format(endpoint_name=name)
     headers['Authorization'] = namespace
     data = json.dumps({
@@ -159,16 +160,13 @@ def test_not_scale_endpoint_bad_request(get_k8s_custom_obj_client, tenant,
     assert expected_error in response.text
 
 
-def test_update_endpoint(get_k8s_custom_obj_client,
-                         tenant, endpoint):
+@pytest.mark.parametrize("new_values", CORRECT_UPDATE_QUOTAS)
+def test_update_endpoint(get_k8s_custom_obj_client, apps_api_instance,
+                         tenant, endpoint, new_values):
     headers = DEFAULT_HEADERS
     namespace, body = endpoint
     headers['Authorization'] = namespace
     crd_server_name = body['spec']['endpointName']
-    new_values = {
-        'modelName': 'super-model',
-        'modelVersion': 3
-    }
     data = json.dumps(new_values)
 
     url = ENDPOINT_MANAGEMENT_API_URL_UPDATE.format(endpoint_name=crd_server_name)
@@ -180,15 +178,19 @@ def test_update_endpoint(get_k8s_custom_obj_client,
     assert check_model_params_matching_provided(
         get_k8s_custom_obj_client, namespace, crd_server_name, provided_params=new_values
     ) == CheckResult.CONTENTS_MATCHING
+    assert check_server_update_result(apps_api_instance, namespace, crd_server_name, new_values
+                                      ) == CheckResult.CONTENTS_MATCHING
 
 
 @pytest.mark.parametrize("auth, endpoint_name, update_params, expected_error",
                          FAILING_UPDATE_PARAMS)
-def test_not_update_endpoint_bad_request(get_k8s_custom_obj_client, tenant,
+def test_not_update_endpoint_bad_request(get_k8s_custom_obj_client, tenant, apps_api_instance,
                                          auth, endpoint_name, update_params, expected_error,
                                          endpoint):
     headers = DEFAULT_HEADERS
     headers['Authorization'] = auth
+    namespace, body = endpoint
+    crd_server_name = body['spec']['endpointName']
 
     data = json.dumps(update_params)
 
@@ -198,6 +200,9 @@ def test_not_update_endpoint_bad_request(get_k8s_custom_obj_client, tenant,
 
     assert response.status_code == 400
     assert expected_error in response.text
+    assert check_model_params_matching_provided(
+        get_k8s_custom_obj_client, namespace, crd_server_name, provided_params=update_params
+    ) == CheckResult.CONTENTS_MISMATCHING
 
 
 @pytest.mark.parametrize("incompliant_quota, expected_error", QUOTA_INCOMPLIANT_VALUES)
