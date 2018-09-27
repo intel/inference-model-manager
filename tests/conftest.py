@@ -20,26 +20,24 @@ from management_api_tests.reused import propagate_portable_secrets, transform_qu
 def configuration():
     return config.load_kube_config()
 
-
 @pytest.fixture(scope="session")
-def api_instance():
-    return client.CoreV1Api(client.ApiClient(configuration()))
-
-
-@pytest.fixture(scope="session")
-def rbac_api_instance():
-    return client.RbacAuthorizationV1Api(client.ApiClient(configuration()))
+def api_instance(configuration):
+    return client.CoreV1Api(client.ApiClient(configuration))
 
 
 @pytest.fixture(scope="session")
-def apps_api_instance():
-    return client.AppsV1Api(client.ApiClient(configuration()))
+def rbac_api_instance(configuration):
+    return client.RbacAuthorizationV1Api(client.ApiClient(configuration))
+
+
+@pytest.fixture(scope="session")
+def apps_api_instance(configuration):
+    return client.AppsV1Api(client.ApiClient(configuration))
 
 
 @pytest.fixture(scope="session")
 def get_k8s_custom_obj_client(configuration):
-    custom_obj_api_instance = client.CustomObjectsApi(client.ApiClient(configuration))
-    return custom_obj_api_instance
+    return client.CustomObjectsApi(client.ApiClient(configuration))
 
 
 @pytest.fixture(scope="function")
@@ -96,7 +94,7 @@ def minio_resource():
 
 
 @pytest.fixture(scope="function")
-def endpoint(function_context, get_k8s_custom_obj_client):
+def endpoint(function_context, tenant, get_k8s_custom_obj_client):
     namespace = TENANT_NAME
     metadata = {"name": "predict"}
     resources = transform_quota(ENDPOINT_RESOURCES)

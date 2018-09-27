@@ -1,0 +1,65 @@
+{
+  "type": "object",
+  "title": "Endpoint POST Schema",
+  "required": [
+    "modelName",
+    "modelVersion",
+    "endpointName",
+    "subjectName"
+  ],
+  "properties": {
+    "modelName": {
+      "type": "string",
+      "title": "Model name"
+    },
+    "modelVersion": {
+      "type": "integer",
+      "title": "Model version"
+    },
+    "endpointName": {
+      "type": "string",
+      "title": "Endpoint name"
+    },
+    "subjectName": {
+      "type": "string",
+      "title": "Subject name",
+      "pattern": "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$"
+    },
+    "resources": {
+      "type": "object",
+      "title": "Resource quota",
+      "properties": {
+        "requests.cpu": {
+          "type": "string",
+          "optional": true,
+          "title": "requests.cpu",
+          "pattern": "^([+]?[0-9.]+)([eEinumkKMGTP]*[+]?[0-9]*)$"
+        },
+        "limits.cpu": {
+          "type": "string",
+          "optional": true,
+          "title": "limits.cpu",
+          "pattern": "^([+]?[0-9.]+)([eEinumkKMGTP]*[+]?[0-9]*)$"
+        },
+        "requests.memory": {
+          "type": "string",
+          "optional": true,
+          "title": "requests.memory",
+          "pattern": "^([+]?[0-9.]+)([eEinumkKMGTP]*[+]?[0-9]*)$"
+        },
+        "limits.memory": {
+          "type": "string",
+          "optional": true,
+          "title": "limits.memory",
+          "pattern": "^([+]?[0-9.]+)([eEinumkKMGTP]*[+]?[0-9]*)$"
+        }
+      }
+    },
+    "replicas": {
+      "type": "integer",
+      "optional": true,
+      "title": "Replicas",
+      "minimum": 0
+    }
+  }
+}

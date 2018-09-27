@@ -1,16 +1,14 @@
-import re
 from kubernetes.client.rest import ApiException
 
-from management_api.utils.errors_handling import InvalidParamException, \
-    KubernetesCreateException, KubernetesDeleteException, KubernetesUpdateException, \
+from management_api.utils.errors_handling import KubernetesCreateException, \
+    KubernetesDeleteException, KubernetesUpdateException, \
     KubernetesGetException
 from management_api.utils.logger import get_logger
 from management_api.utils.kubernetes_resources import get_ingress_external_ip, \
     get_k8s_api_custom_client, get_k8s_api_client, validate_quota_compliance, \
     transform_quota
 from management_api.config import CRD_GROUP, CRD_VERSION, CRD_PLURAL, \
-    CRD_API_VERSION, CRD_KIND, PLATFORM_DOMAIN, SUBJECT_NAME_RE, DELETE_BODY, ValidityMessage
-
+    CRD_API_VERSION, CRD_KIND, PLATFORM_DOMAIN, DELETE_BODY
 logger = get_logger(__name__)
 
 
@@ -21,7 +19,7 @@ def create_endpoint(parameters: dict, namespace: str):
     custom_obj_api_instance = get_k8s_api_custom_client()
     api_instance = get_k8s_api_client()
     validate_quota_compliance(api_instance, namespace=namespace,
-                              endpoint_quota=parameters.get('resources', None))
+                              endpoint_quota=parameters.get('resources', {}))
     parameters['resources'] = transform_quota(parameters['resources'])
     try:
         custom_obj_api_instance.create_namespaced_custom_object(CRD_GROUP, CRD_VERSION, namespace,
@@ -58,20 +56,6 @@ def create_url_to_service(endpoint_name, namespace):
     data_for_request = {'address': address, 'opts': path}
 
     return data_for_request
-
-
-def validate_params(params):
-    logger.info("Validating endpoint params...")
-    if not re.match(SUBJECT_NAME_RE, params['subjectName']):
-        raise InvalidParamException('subjectName', 'Subject name {} is not valid.'.
-                                    format(params['subjectName']), ValidityMessage.SUBJECT_NAME)
-    try:
-        params['modelVersion'] = int(params['modelVersion'])
-        if 'replicas' in params:
-            params['replicas'] = int(params['replicas'])
-    except ValueError as e:
-        raise InvalidParamException('modelVersion/replicas', 'Invalid modelVersion or replicas',
-                                    ValidityMessage.ENDPOINT_INT_VALUES)
 
 
 def scale_endpoint(parameters: dict, namespace: str):

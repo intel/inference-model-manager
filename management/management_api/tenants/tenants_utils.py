@@ -1,5 +1,3 @@
-import re
-
 import falcon
 from botocore.exceptions import ClientError
 from kubernetes import client
@@ -8,13 +6,12 @@ from retrying import retry
 
 from management_api.config import CERT_SECRET_NAME, PORTABLE_SECRETS_PATHS, \
     minio_client, minio_resource, RESOURCE_DOES_NOT_EXIST, \
-    NAMESPACE_BEING_DELETED, NO_SUCH_BUCKET_EXCEPTION, TERMINATION_IN_PROGRESS, ValidityMessage
+    NAMESPACE_BEING_DELETED, NO_SUCH_BUCKET_EXCEPTION, TERMINATION_IN_PROGRESS
 from management_api.utils.cert import validate_cert
 from management_api.utils.errors_handling import TenantAlreadyExistsException, MinioCallException, \
-    TenantDoesNotExistException, InvalidParamException, KubernetesCreateException, \
-    KubernetesDeleteException, KubernetesGetException
-from management_api.utils.kubernetes_resources import validate_quota, get_k8s_api_client, \
-    get_k8s_rbac_api_client
+    TenantDoesNotExistException, KubernetesCreateException, KubernetesDeleteException, \
+    KubernetesGetException
+from management_api.utils.kubernetes_resources import get_k8s_api_client, get_k8s_rbac_api_client
 from management_api.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -30,8 +27,6 @@ def create_tenant(parameters):
                 .format(name, cert, scope, quota))
 
     validate_cert(cert)
-    validate_tenant_name(name)
-    validate_quota(quota)
 
     if tenant_exists(name):
         raise TenantAlreadyExistsException(name)
@@ -50,25 +45,13 @@ def create_tenant(parameters):
         raise
 
     logger.info('Tenant {} created'.format(name))
-
-
-def validate_tenant_name(name):
-    regex_k8s = '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
-    if not re.match(regex_k8s, name):
-        raise InvalidParamException('name', "Tenant name '{}' has wrong format"
-                                    .format(name), ValidityMessage.TENANT_NAME)
-    if len(name) < 3:
-        raise InvalidParamException('name', "Tenant name '{}' is too short"
-                                    .format(name), ValidityMessage.TENANT_NAME)
-    if len(name) > 63:
-        raise InvalidParamException('name', "Tenant name '{}'is too long"
-                                    .format(name), ValidityMessage.TENANT_NAME)
+    return name
 
 
 def create_namespace(name, quota):
     if 'maxEndpoints' in quota:
-        name_object = client.V1ObjectMeta(name=name,
-                                          annotations={'maxEndpoints': quota.pop('maxEndpoints')})
+        name_object = client.\
+            V1ObjectMeta(name=name, annotations={'maxEndpoints': str(quota.pop('maxEndpoints'))})
     else:
         name_object = client.V1ObjectMeta(name=name)
     namespace = client.V1Namespace(metadata=name_object)
@@ -173,6 +156,7 @@ def delete_tenant(parameters):
         logger.info('Tenant {} deleted'.format(name))
     else:
         raise TenantDoesNotExistException(name)
+    return name
 
 
 def propagate_secret(source_secret_path, target_namespace):

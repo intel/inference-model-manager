@@ -1,4 +1,3 @@
-import re
 import ipaddress
 from functools import lru_cache
 from kubernetes import config, client
@@ -6,36 +5,9 @@ from kubernetes.client.rest import ApiException
 
 from management_api.utils.errors_handling import InvalidParamException, KubernetesGetException
 from management_api.utils.logger import get_logger
-from management_api.config import ValidityMessage, ING_NAME, ING_NAMESPACE
+from management_api.config import ING_NAME, ING_NAMESPACE
 
 logger = get_logger(__name__)
-
-
-def validate_quota(quota):
-    int_keys = ['maxEndpoints']
-    alpha_keys = ['requests.memory', 'limits.memory', 'requests.cpu', 'limits.cpu']
-    regex_k8s = '^([+]?[0-9.]+)([eEinumkKMGTP]*[+]?[0-9]*)$'
-
-    test_quota = dict(quota)
-    for key, value in quota.items():
-        if key in int_keys:
-            if not value.isdigit() > 0:
-                raise InvalidParamException('<int param>', 'Invalid value {} of {} field'.
-                                            format(value, key), ValidityMessage.QUOTA_INT_VALUES)
-            test_quota.pop(key)
-        if key in alpha_keys:
-            if not re.match(regex_k8s, value):
-                raise InvalidParamException('<alpha_param>', 'Invalid value {} of {} field'.
-                                            format(value, key), ValidityMessage.QUOTA_ALPHA_VALUES)
-            test_quota.pop(key)
-
-    if test_quota:
-        logger.info("There are some redundant values provided that won't be used:")
-        for key, value in test_quota.items():
-            logger.info(key + ": " + value)
-            quota.pop(key)
-    logger.info('Resource quota {} is valid'.format(quota))
-    return True
 
 
 def transform_quota(quota):

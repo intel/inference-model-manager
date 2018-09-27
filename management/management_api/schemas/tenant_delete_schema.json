@@ -1,0 +1,16 @@
+{
+  "type": "object",
+  "title": "Tenant DELETE Schema",
+  "required": [
+    "name"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Tenant name",
+      "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
+      "minLength": 3,
+      "maxLength": 63
+    }
+  }
+}

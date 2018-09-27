@@ -115,15 +115,22 @@ class MissingTokenException(ManagementApiException):
         super().__init__("Token error: " + str(err))
 
 
+class JsonSchemaException(ManagementApiException):
+    def __init__(self, ex):
+        raise
+
+
 custom_errors = [ManagementApiException, KubernetesCallException, KubernetesDeleteException,
                  KubernetesCreateException, KubernetesGetException, KubernetesUpdateException,
                  MinioCallException, TenantAlreadyExistsException, TenantDoesNotExistException,
-                 InvalidParamException, MissingParamException, MissingTokenException]
+                 InvalidParamException, MissingTokenException, JsonSchemaException]
 
 
 def default_exception_handler(ex, req, resp, params):
-    message = "Unexpected error occurred: {} ".format(ex)
-    logger.error(message + "Request: {}  Params: {}".format(req, params))
+    if hasattr(ex, 'title') and "Failed data validation" in ex.title:
+        JsonSchemaException(ex)
+    message = "Unexpected error occurred: {}: {}".format(ex, ex.description)
+    logger.error(message + "\nRequest: {}  Params: {}".format(req, params))
     raise falcon.HTTPInternalServerError(message)
 
 

@@ -1,13 +1,12 @@
 from management_api.endpoints.endpoint_utils import create_endpoint, delete_endpoint, \
-    create_url_to_service, validate_params, update_endpoint, scale_endpoint
+    create_url_to_service, update_endpoint, scale_endpoint
 from management_api.config import PLATFORM_DOMAIN
 from kubernetes.client.rest import ApiException
 import pytest
 from unittest.mock import Mock
 
 from management_api.utils.errors_handling import KubernetesCreateException, \
-    KubernetesDeleteException, InvalidParamException, KubernetesUpdateException, \
-    KubernetesGetException
+    KubernetesDeleteException, KubernetesUpdateException, KubernetesGetException
 
 
 @pytest.mark.parametrize("raise_error", [(False), (True)])
@@ -107,18 +106,3 @@ def test_create_url_to_service(mocker):
     expected_output = {'address': external_address, 'opts': "t_end-t_ns.{}".format(PLATFORM_DOMAIN)}
     output = create_url_to_service(endpoint_name='t_end', namespace="t_ns")
     assert expected_output == output
-
-
-@pytest.mark.parametrize("raise_error, params",
-                         [(True, {'modelVersion': 3, 'replicas': 3, 'subjectName': 'test_w'}),
-                          (False, {'modelVersion': 3, 'replicas': 3, 'subjectName': 'test-g'}),
-                          (True, {'modelVersion': 'str', 'replicas': 3, 'subjectName': 'test_w'}),
-                          (True, {'modelVersion': 'str', 'replicas': 'tet',
-                                  'subjectName': 'test_w'}),
-                          (True, {'modelVersion': 3, 'replicas': 'tet', 'subjectName': 'test_w'})])
-def test_validate_params(raise_error, params):
-    if raise_error:
-        with pytest.raises(InvalidParamException):
-            validate_params(params=params)
-    else:
-        validate_params(params=params)

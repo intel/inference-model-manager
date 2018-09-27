@@ -23,8 +23,6 @@ def test_endpoints_post(mocker, client, body, expected_status):
 def test_endpoints_delete(mocker, client):
     delete_endpoint_mock = mocker.patch('management_api.endpoints.endpoints.delete_endpoint')
     delete_endpoint_mock.return_value = "test"
-    external_address_mock = mocker.patch('management_api.endpoints.endpoints.create_url_to_service')
-    external_address_mock.return_value = {"test": "test"}
     header = {'Authorization': 'default'}
     expected_status = falcon.HTTP_OK
     body = {'endpointName': 'test'}
@@ -41,8 +39,6 @@ def test_endpoints_delete(mocker, client):
 def test_endpoints_patch(mocker, client, functionality, method_name, body, expected_status):
     method_mock = mocker.patch('management_api.endpoints.endpoints.' + method_name)
     method_mock.return_value = "test"
-    external_address_mock = mocker.patch('management_api.endpoints.endpoints.create_url_to_service')
-    external_address_mock.return_value = {"test": "test"}
     header = {'Authorization': 'default'}
     expected_message = 'patched successfully'
 

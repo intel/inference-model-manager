@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "title": "Endpoint DELETE Schema",
+  "required": [
+    "endpointName"
+  ],
+  "properties": {
+    "endpointName": {
+      "type": "string",
+      "title": "Endpoint name"
+    }
+  }
+}
