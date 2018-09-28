@@ -92,3 +92,24 @@ demo-helpers, please remember about mc configuration i.e. `mc config host add lo
   - `export HOST = <ingress_ip>:<port>` i.e. 127.0.0.1:443
   - `export MODEL = <model_name> `(use modelName provided in create_endpoint request)
   - run endpoint_test.py
+
+## scripts
+### authenticate
+A special script for authentication has been created, it is available under the path:
+```
+    cli-scripts/webbrowser_authenticate.py
+```
+It runs the appropriate page for authentication in the browser, then after the correct login it saves the token and refresh token to the file.
+By default this is the path "~ / .inferno".
+This path can be changed by setting the "INFERNO_CONFIG" environment variable.
+Command to run the script:
+
+```
+    python cli-scripts/webbrowser_authenticate.py --address <ip_to_management_api>
+```
+It works with both python versions.
+By default, management_api runs on port 5000 and this port is used in this script. To change this, add another flag when you start the script:
+```
+    python cli-scripts/webbrowser_authenticate.py --address <management_api ip> --port <management_api port>
+```
+

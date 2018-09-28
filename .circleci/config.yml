@@ -19,6 +19,7 @@ jobs:
             pip install -q flake8
             echo "management folder" && cd ~/inferno-platform/management/ && make style
             echo "tests folder && " && cd ~/inferno-platform/tests/ && make style
+            echo "cli-scripts folder" && cd ~/inferno-platform/cli-scripts/ && flake8 --max-line-length 100
       - run:
           name: Run unit tests
           command: |
