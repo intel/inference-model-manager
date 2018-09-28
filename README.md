@@ -1,4 +1,6 @@
 # inferno-platform
+[![CircleCI](https://circleci.com/gh/NervanaSystems/inferno-platform.svg?style=svg&circle-token=677ac34c125509e550220a080f4f8f68dfb8729c)](https://circleci.com/gh/NervanaSystems/inferno-platform)
+
 source code, deployment automation and tests for inference platform POC made for Blizzard
 
 ## management
