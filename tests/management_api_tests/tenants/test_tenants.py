@@ -120,7 +120,7 @@ def test_not_create_tenant_wrong_quota(quota_wrong_values,
     assert response.status_code == 400
     assert check_bucket_existence(minio_client,
                                   bucket=TENANT_NAME) == CheckResult.RESOURCE_DOES_NOT_EXIST
-    assert check_namespace_availability(api_instance, namespace=TENANT_NAME) == CheckResult.\
+    assert check_namespace_availability(api_instance, namespace=TENANT_NAME) == CheckResult. \
         RESOURCE_DOES_NOT_EXIST
 
 
@@ -173,9 +173,9 @@ def test_delete_tenant(minio_client, api_instance):
     assert response.text == 'Tenant {} deleted\n'.format(new_tenant_name)
     assert response.status_code == 200
 
-    assert check_bucket_existence(minio_client, bucket=new_tenant_name) == \
-        CheckResult.RESOURCE_DOES_NOT_EXIST
+    assert check_bucket_existence(
+        minio_client, bucket=new_tenant_name) == CheckResult.RESOURCE_DOES_NOT_EXIST
 
     namespace_status = check_namespace_availability(api_instance, namespace=new_tenant_name)
-    assert namespace_status == CheckResult.RESOURCE_DOES_NOT_EXIST or \
-        namespace_status == CheckResult.RESOURCE_BEING_DELETED
+    assert namespace_status == CheckResult.\
+        RESOURCE_DOES_NOT_EXIST or namespace_status == CheckResult.RESOURCE_BEING_DELETED

@@ -5,10 +5,14 @@ from management_api.utils.errors_handling import KubernetesCreateException, \
     KubernetesGetException
 from management_api.utils.logger import get_logger
 from management_api.utils.kubernetes_resources import get_ingress_external_ip, \
-    get_k8s_api_custom_client, get_k8s_api_client, validate_quota_compliance, \
-    transform_quota
-from management_api.config import CRD_GROUP, CRD_VERSION, CRD_PLURAL, \
-    CRD_API_VERSION, CRD_KIND, PLATFORM_DOMAIN, DELETE_BODY
+    get_k8s_api_custom_client, get_k8s_api_client, get_k8s_apps_api_client,\
+    validate_quota_compliance, transform_quota
+from management_api.config import CRD_GROUP, CRD_VERSION, CRD_PLURAL,\
+    CRD_API_VERSION, CRD_KIND, PLATFORM_DOMAIN, DELETE_BODY, REPLICA_FAILURE
+from management_api.utils.errors_handling import TenantDoesNotExistException
+from management_api.tenants.tenants_utils import tenant_exists
+
+
 logger = get_logger(__name__)
 
 
@@ -103,3 +107,44 @@ def update_endpoint(parameters: dict, namespace: str):
 
     endpoint_url = create_url_to_service(parameters['endpointName'], namespace)
     return endpoint_url
+
+
+def list_endpoints(namespace: str):
+    if not tenant_exists(namespace):
+        raise TenantDoesNotExistException(tenant_name=namespace)
+    apps_api_instance = get_k8s_apps_api_client()
+    try:
+        deployments = apps_api_instance.list_namespaced_deployment(namespace)
+    except ApiException as apiException:
+        raise KubernetesGetException('endpoint', apiException)
+    endpoints_name_status = get_endpoints_name_status(deployments, namespace)
+    logger.info(endpoints_name_status)
+    return endpoints_name_status
+
+
+def get_endpoints_name_status(deployments, namespace):
+    deployments = deployments.to_dict()['items']
+    name_status = "There's no endpoints present in {} tenant".format(namespace)
+    if not deployments == []:
+        endpoints_name_status = list()
+        for deployment in deployments:
+            endpoint_name_status = dict()
+            name = deployment['metadata']['labels']['endpoint']
+            endpoint_name_status['name'] = name
+            conditions = deployment['status']['conditions']
+            endpoint_name_status['status'], endpoint_name_status['message'] = \
+                get_endpoints_status(conditions)
+            endpoints_name_status.append(endpoint_name_status)
+        name_status = 'Endpoints present in {} tenant: {}'.\
+            format(namespace, endpoints_name_status)
+    return name_status
+
+
+def get_endpoints_status(conditions):
+    message = "Endpoint is up and running"
+    for condition in conditions:
+        if condition['status'] == 'True':
+            status = condition['type']
+            if status == REPLICA_FAILURE:
+                message = condition['message']
+    return status, message

@@ -88,7 +88,7 @@ class TenantDoesNotExistException(ManagementApiException):
     def handler(ex, req, resp, params):
         message = "Tenant {} does not exist".format(ex.tenant_name)
         logger.error(message)
-        raise falcon.HTTPNotFound(title=message)
+        raise falcon.HTTPNotFound(description=message)
 
 
 class InvalidParamException(ManagementApiException):
@@ -129,7 +129,7 @@ custom_errors = [ManagementApiException, KubernetesCallException, KubernetesDele
 def default_exception_handler(ex, req, resp, params):
     if hasattr(ex, 'title') and "Failed data validation" in ex.title:
         JsonSchemaException(ex)
-    message = "Unexpected error occurred: {}: {}".format(ex, ex.description)
+    message = "Unexpected error occurred: {}".format(ex)
     logger.error(message + "\nRequest: {}  Params: {}".format(req, params))
     raise falcon.HTTPInternalServerError(message)
 

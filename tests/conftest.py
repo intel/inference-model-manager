@@ -95,7 +95,7 @@ def minio_resource():
 
 @pytest.fixture(scope="function")
 def endpoint(function_context, tenant, get_k8s_custom_obj_client):
-    namespace = TENANT_NAME
+    namespace, _ = tenant
     metadata = {"name": "predict"}
     resources = transform_quota(ENDPOINT_RESOURCES)
     spec = {
@@ -152,3 +152,19 @@ def fake_tenant():
     name = TENANT_NAME + '-fake'
     quota = {}
     return name, quota
+
+
+@pytest.fixture(scope="function")
+def empty_endpoint(tenant):
+    return create_dummy_endpoint(tenant)
+
+
+@pytest.fixture(scope="function")
+def fake_tenant_endpoint(fake_tenant):
+    return create_dummy_endpoint(fake_tenant)
+
+
+def create_dummy_endpoint(tenant):
+    name, _ = tenant
+    body = {}
+    return name, body

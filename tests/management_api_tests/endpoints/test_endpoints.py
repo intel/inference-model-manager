@@ -230,3 +230,21 @@ def test_not_create_endpoint_with_incompliant_resource_quota(tenant, incompliant
 
     assert response.status_code == 400
     assert expected_error in response.text
+
+
+@pytest.mark.parametrize("endpoint_fix, expected_status, expected_message",
+                         [('endpoint', 200, "Endpoints present in {} tenant"),
+                          ('empty_endpoint', 200,
+                           "There's no endpoints present in {} tenant"),
+                          ('fake_tenant_endpoint', 404, "Tenant {} does not exist")
+                          ])
+def test_list_endpoints(request, endpoint_fix,
+                        expected_status, expected_message):
+    namespace, _ = request.getfuncargvalue(endpoint_fix)
+    headers = DEFAULT_HEADERS
+    headers['Authorization'] = namespace
+    url = ENDPOINT_MANAGEMENT_API_URL
+    response = requests.get(url, headers=headers)
+
+    assert expected_status == response.status_code
+    assert expected_message.format(namespace) in response.text

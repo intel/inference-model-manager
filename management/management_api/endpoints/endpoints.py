@@ -5,13 +5,21 @@ from management_api.config import RequiredParameters
 from management_api.utils.logger import get_logger
 from management_api.utils.parse_request import get_body, get_params
 from management_api.endpoints.endpoint_utils import create_endpoint, delete_endpoint, \
-    scale_endpoint, update_endpoint
+    scale_endpoint, update_endpoint, list_endpoints
 from management_api.schemas.loadschema import endpoint_post_schema, endpoint_delete_schema
 
 logger = get_logger(__name__)
 
 
 class Endpoints(object):
+    def on_get(self, req, resp):
+        """Handles GET requests"""
+        # TODO This needs to be replaced with the logic to obtain namespace out of JWT token
+        namespace = req.get_header('Authorization')
+        endpoints = list_endpoints(namespace)
+        resp.status = falcon.HTTP_200
+        resp.body = endpoints
+
     @jsonschema.validate(endpoint_post_schema)
     def on_post(self, req, resp):
         """Handles POST requests"""

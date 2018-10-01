@@ -102,3 +102,9 @@ def get_k8s_api_custom_client():
 def get_k8s_rbac_api_client():
     rbac_api_instance = client.RbacAuthorizationV1Api(client.ApiClient(get_k8s_configuration()))
     return rbac_api_instance
+
+
+@lru_cache(maxsize=None)
+def get_k8s_apps_api_client():
+    apps_api_client = client.AppsV1Api(client.ApiClient(get_k8s_configuration()))
+    return apps_api_client
