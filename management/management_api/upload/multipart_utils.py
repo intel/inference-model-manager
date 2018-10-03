@@ -11,3 +11,25 @@ def create_upload(bucket: str, key: str):
                                  format(clientError))
     mpu_id = mpu["UploadId"]
     return mpu_id
+
+
+def upload_part(data: bytes, part_number: int, bucket: str, key: str, multipart_id: str):
+    try:
+        minio_client.upload_part(Body=data, PartNumber=part_number,
+                                 Bucket=bucket, Key=key, UploadId=multipart_id)
+    except ClientError as clientError:
+        raise MinioCallException('An error occurred during part uploading: {}'.
+                                 format(clientError))
+
+
+def complete_upload(bucket: str, key: str, multipart_id: str):
+    try:
+        minio_client.complete_multipart_upload(Bucket=bucket, Key=key, UploadId=multipart_id)
+    except ClientError as clientError:
+        raise MinioCallException('An error occurred during multipart upload finishing: {}'.
+                                 format(clientError))
+
+
+def get_key(body):
+    return "{model_name}/{model_version}".format(model_name=body['modelName'],
+                                                 model_version=body['modelVersion'])

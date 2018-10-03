@@ -4,7 +4,8 @@ from management_api.utils.parse_request import get_body, get_params
 from management_api.tenants.tenants_utils import tenant_exists
 from management_api.config import RequiredParameters
 from management_api.utils.errors_handling import TenantDoesNotExistException
-from management_api.upload.multipart_utils import create_upload
+from management_api.upload.multipart_utils import create_upload, get_key, complete_upload, \
+    upload_part
 
 
 class StartMultiModel(object):
@@ -14,10 +15,46 @@ class StartMultiModel(object):
         namespace = req.get_header('Authorization')
         body = get_body(req)
         get_params(body, required_keys=RequiredParameters.MULTIPART_START)
+        key = get_key(body)
         if not tenant_exists(namespace):
             raise TenantDoesNotExistException(tenant_name=namespace)
-        key = "{model_name}/{model_version}".format(model_name=body['modelName'],
-                                                    model_version=body['modelVersion'])
+
         upload_id = create_upload(bucket=namespace, key=key)
         resp.status = falcon.HTTP_200
-        resp.body = 'Multipart ID: {}'.format(upload_id)
+        resp.body = 'Multipart ID: {} started'.format(upload_id)
+
+
+class WriteMultiModel(object):
+    def on_put(self, req, resp):
+        """Handles PUT requests"""
+        # TODO This needs to be replaced with the logic to obtain namespace out of JWT token
+        namespace = req.get_header('Authorization')
+        get_params(req.params, required_keys=RequiredParameters.MULTIPART_WRITE)
+        multipart_id = req.get_param('uploadId')
+        part_number = req.get_param('partNumber')
+        key = get_key(req.params)
+        data = req.stream.read()
+        if not tenant_exists(namespace):
+            raise TenantDoesNotExistException(tenant_name=namespace)
+
+        upload_part(data=data, part_number=part_number, bucket=namespace,
+                    key=key, multipart_id=multipart_id)
+        resp.status = falcon.HTTP_200
+        resp.body = 'Part {} of upload with ID: {} sent successfully'.format(part_number,
+                                                                             multipart_id)
+
+
+class FinishMultiModel(object):
+    def on_post(self, req, resp):
+        """Handles POST requests"""
+        # TODO This needs to be replaced with the logic to obtain namespace out of JWT token
+        namespace = req.get_header('Authorization')
+        body = get_body(req)
+        get_params(body, required_keys=RequiredParameters.MULTIPART_DONE)
+        key = get_key(body)
+        if not tenant_exists(namespace):
+            raise TenantDoesNotExistException(tenant_name=namespace)
+
+        complete_upload(bucket=namespace, key=key, multipart_id=body['multipartId'])
+        resp.status = falcon.HTTP_200
+        resp.body = 'Multipart ID: {} finished'.format(body['multipartId'])

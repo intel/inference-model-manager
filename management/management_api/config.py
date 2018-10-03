@@ -57,10 +57,11 @@ minio_resource = boto3.resource('s3',
 
 
 class RequiredParameters:
-
     UPDATE_ENDPOINT = ['modelName', 'modelVersion']
     SCALE_ENDPOINT = ['replicas']
     MULTIPART_START = ['modelName', 'modelVersion']
+    MULTIPART_WRITE = ['partNumber', 'uploadId', 'modelName', 'modelVersion']
+    MULTIPART_DONE = ['modelName', 'modelVersion', 'multipartId']
 
 
 # To edit this object please first use deep copy
