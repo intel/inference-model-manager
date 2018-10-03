@@ -6,10 +6,12 @@ from management_api.utils.errors_handling import KubernetesCreateException, \
 from management_api.utils.logger import get_logger
 from management_api.utils.kubernetes_resources import get_ingress_external_ip, \
     get_k8s_api_custom_client, get_k8s_api_client, get_k8s_apps_api_client,\
-    validate_quota_compliance, transform_quota
+    validate_quota_compliance, transform_quota, get_replicas, endpoint_exists, \
+    get_endpoint_status, get_crd_subject_name_and_resources
 from management_api.config import CRD_GROUP, CRD_VERSION, CRD_PLURAL,\
     CRD_API_VERSION, CRD_KIND, PLATFORM_DOMAIN, DELETE_BODY, REPLICA_FAILURE
-from management_api.utils.errors_handling import TenantDoesNotExistException
+from management_api.utils.errors_handling import TenantDoesNotExistException, \
+    EndpointDoesNotExistException
 from management_api.tenants.tenants_utils import tenant_exists
 
 
@@ -17,20 +19,20 @@ logger = get_logger(__name__)
 
 
 def create_endpoint(parameters: dict, namespace: str):
-    spec = parameters
     metadata = {"name": parameters['endpointName']}
-    body = {"apiVersion": CRD_API_VERSION, "kind": CRD_KIND, "spec": spec, "metadata": metadata}
+    body = {"apiVersion": CRD_API_VERSION, "kind": CRD_KIND,
+            "spec": parameters, "metadata": metadata}
     custom_obj_api_instance = get_k8s_api_custom_client()
     api_instance = get_k8s_api_client()
-    validate_quota_compliance(api_instance, namespace=namespace,
-                              endpoint_quota=parameters.get('resources', {}))
-    parameters['resources'] = transform_quota(parameters['resources'])
+    if 'resources' in parameters:
+        validate_quota_compliance(api_instance, namespace=namespace,
+                                  endpoint_quota=parameters['resources'])
+        parameters['resources'] = transform_quota(parameters['resources'])
     try:
         custom_obj_api_instance.create_namespaced_custom_object(CRD_GROUP, CRD_VERSION, namespace,
                                                                 CRD_PLURAL, body)
     except ApiException as apiException:
         raise KubernetesCreateException('endpoint', apiException)
-
     endpoint_url = create_url_to_service(parameters['endpointName'], namespace)
     logger.info('Endpoint {} created\n'.format(endpoint_url))
     return endpoint_url
@@ -109,6 +111,34 @@ def update_endpoint(parameters: dict, namespace: str):
     return endpoint_url
 
 
+def view_endpoint(endpoint_name: str, namespace: str):
+    if not tenant_exists(namespace):
+        raise TenantDoesNotExistException(tenant_name=namespace)
+    if not endpoint_exists(endpoint_name, namespace):
+        raise EndpointDoesNotExistException(endpoint_name=endpoint_name)
+    custom_api_instance = get_k8s_api_custom_client()
+    api_instance = get_k8s_api_client()
+    apps_api_instance = get_k8s_apps_api_client()
+
+    endpoint_status = get_endpoint_status(api_instance=api_instance, namespace=namespace,
+                                          endpoint_name=endpoint_name)
+    model_path = create_url_to_service(endpoint_name, namespace)
+    subject_name, resources = get_crd_subject_name_and_resources(
+        custom_api_instance=custom_api_instance, namespace=namespace, endpoint_name=endpoint_name)
+    replicas = get_replicas(apps_api_instance=apps_api_instance, namespace=namespace,
+                            endpoint_name=endpoint_name)
+
+    view_dict = {'Endpoint status': endpoint_status,
+                 'Model path': model_path,
+                 'Subject name': subject_name,
+                 'Resources': resources,
+                 'Replicas': replicas,
+                 }
+    message = f"Endpoint {endpoint_name} in {namespace} tenant: {view_dict}\n"
+    logger.info(message)
+    return message
+
+
 def list_endpoints(namespace: str):
     if not tenant_exists(namespace):
         raise TenantDoesNotExistException(tenant_name=namespace)
@@ -135,7 +165,7 @@ def get_endpoints_name_status(deployments, namespace):
             endpoint_name_status['status'], endpoint_name_status['message'] = \
                 get_endpoints_status(conditions)
             endpoints_name_status.append(endpoint_name_status)
-        name_status = 'Endpoints present in {} tenant: {}'.\
+        name_status = 'Endpoints present in {} tenant: {}\n'.\
             format(namespace, endpoints_name_status)
     return name_status
 

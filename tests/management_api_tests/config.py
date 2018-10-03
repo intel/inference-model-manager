@@ -34,6 +34,7 @@ TENANTS_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants')
 ENDPOINT_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'endpoints')
 ENDPOINT_MANAGEMENT_API_URL_SCALE = ENDPOINT_MANAGEMENT_API_URL + "/{endpoint_name}/scaling"
 ENDPOINT_MANAGEMENT_API_URL_UPDATE = ENDPOINT_MANAGEMENT_API_URL + "/{endpoint_name}/updating"
+ENDPOINT_MANAGEMENT_API_URL_VIEW = ENDPOINT_MANAGEMENT_API_URL + "/{endpoint_name}/viewing"
 START_MULTIPART_UPLOAD_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'upload/start')
 AUTH_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'authenticate')
 TOKEN_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'authenticate/token')

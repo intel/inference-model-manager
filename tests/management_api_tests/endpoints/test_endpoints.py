@@ -5,7 +5,7 @@ import json
 from management_api_tests.config import DEFAULT_HEADERS, ENDPOINT_MANAGEMENT_API_URL, CheckResult, \
     QUOTA_INCOMPLIANT_VALUES, ENDPOINT_RESOURCES, FAILING_UPDATE_PARAMS, FAILING_SCALE_PARAMS, \
     ENDPOINT_MANAGEMENT_API_URL_SCALE, ENDPOINT_MANAGEMENT_API_URL_UPDATE, OperationStatus, \
-    CORRECT_UPDATE_QUOTAS
+    CORRECT_UPDATE_QUOTAS, ENDPOINT_MANAGEMENT_API_URL_VIEW
 from management_api_tests.endpoints.endpoint_utils import check_replicas_number_matching_provided, \
     check_model_params_matching_provided, wait_server_setup, check_server_existence, \
     check_server_update_result
@@ -40,7 +40,7 @@ def test_create_endpoint(function_context, apps_api_instance, get_k8s_custom_obj
                              ) == OperationStatus.SUCCESS
 
 
-def test_delete_endpoint(tenant, apps_api_instance, get_k8s_custom_obj_client, endpoint):
+def test_delete_endpoint(apps_api_instance, get_k8s_custom_obj_client, endpoint):
     namespace, body = endpoint
     headers = DEFAULT_HEADERS
     headers['Authorization'] = namespace
@@ -58,7 +58,7 @@ def test_delete_endpoint(tenant, apps_api_instance, get_k8s_custom_obj_client, e
                              ) == OperationStatus.TERMINATED
 
 
-def test_try_create_the_same_endpoint(tenant, endpoint):
+def test_try_create_the_same_endpoint(endpoint):
     namespace, body = endpoint
     headers = DEFAULT_HEADERS
     body['spec']['resources'] = ENDPOINT_RESOURCES
@@ -73,7 +73,7 @@ def test_try_create_the_same_endpoint(tenant, endpoint):
 
 
 def test_create_endpoint_with_2_replicas(get_k8s_custom_obj_client, apps_api_instance,
-                                         function_context, api_instance, tenant):
+                                         function_context, tenant):
     headers = DEFAULT_HEADERS
     crd_server_name = 'predict'
     namespace, _ = tenant
@@ -106,8 +106,7 @@ def test_create_endpoint_with_2_replicas(get_k8s_custom_obj_client, apps_api_ins
                              ) == OperationStatus.SUCCESS
 
 
-def test_scale_endpoint(get_k8s_custom_obj_client, api_instance, apps_api_instance,
-                        tenant, endpoint):
+def test_scale_endpoint(get_k8s_custom_obj_client, apps_api_instance, endpoint):
     headers = DEFAULT_HEADERS
     namespace, body = endpoint
     headers['Authorization'] = namespace
@@ -145,8 +144,7 @@ def simulate_scaling(custom_obj_api, apps_api_instance, headers, namespace, name
 
 @pytest.mark.parametrize("auth, endpoint_name, scale_params, expected_error",
                          FAILING_SCALE_PARAMS)
-def test_not_scale_endpoint_bad_request(get_k8s_custom_obj_client, tenant,
-                                        auth, endpoint_name, scale_params,
+def test_not_scale_endpoint_bad_request(auth, endpoint_name, scale_params,
                                         expected_error, endpoint):
     headers = DEFAULT_HEADERS
     headers['Authorization'] = auth
@@ -162,7 +160,7 @@ def test_not_scale_endpoint_bad_request(get_k8s_custom_obj_client, tenant,
 
 @pytest.mark.parametrize("new_values", CORRECT_UPDATE_QUOTAS)
 def test_update_endpoint(get_k8s_custom_obj_client, apps_api_instance,
-                         tenant, endpoint, new_values):
+                         endpoint, new_values):
     headers = DEFAULT_HEADERS
     namespace, body = endpoint
     headers['Authorization'] = namespace
@@ -184,7 +182,7 @@ def test_update_endpoint(get_k8s_custom_obj_client, apps_api_instance,
 
 @pytest.mark.parametrize("auth, endpoint_name, update_params, expected_error",
                          FAILING_UPDATE_PARAMS)
-def test_not_update_endpoint_bad_request(get_k8s_custom_obj_client, tenant, apps_api_instance,
+def test_not_update_endpoint_bad_request(get_k8s_custom_obj_client,
                                          auth, endpoint_name, update_params, expected_error,
                                          endpoint):
     headers = DEFAULT_HEADERS
@@ -248,3 +246,18 @@ def test_list_endpoints(request, endpoint_fix,
 
     assert expected_status == response.status_code
     assert expected_message.format(namespace) in response.text
+
+
+@pytest.mark.parametrize("endpoint_fix, endpoint_name, expected_status, expected_message",
+                         [('endpoint', 'predict', 200, "Endpoint {} in {} tenant"),
+                          ('endpoint', 'not_exist', 404, 'Endpoint {} does not exist')])
+def test_view_endpoint(request, endpoint_fix, endpoint_name, expected_status, expected_message):
+    namespace, _ = request.getfuncargvalue(endpoint_fix)
+    endpoint_name = endpoint_name
+    headers = DEFAULT_HEADERS
+    headers['Authorization'] = namespace
+    url = ENDPOINT_MANAGEMENT_API_URL_VIEW.format(endpoint_name=endpoint_name)
+    response = requests.get(url, headers=headers)
+
+    assert expected_status == response.status_code
+    assert expected_message.format(endpoint_name, namespace) in response.text

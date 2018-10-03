@@ -49,16 +49,21 @@ def test_endpoints_patch(mocker, client, functionality, method_name, body, expec
     method_mock.assert_called_once()
 
 
-def test_endpoints_get(mocker, client):
-    namespace = 'default'
+@pytest.mark.parametrize("functionality, method_name, expected_status, expected_message",
+                         [("", "list_endpoints", falcon.HTTP_OK,
+                           "There's no endpoints presented in {0} tenant"),
+                          ("/predict/viewing", "view_endpoint", falcon.HTTP_OK,
+                           "Endpoint {1} in {0} tenant")])
+def test_endpoints_get(mocker, client, functionality, method_name,
+                       expected_status, expected_message):
+    namespace = 'test'
     header = {'Authorization': namespace}
-    get_endpoint_mock = mocker.patch('management_api.endpoints.endpoints.list_endpoints')
+    get_endpoint_mock = mocker.patch('management_api.endpoints.endpoints.' + method_name)
     get_endpoint_mock.return_value = namespace
-    expected_status = falcon.HTTP_OK
-    expected_message = "There's no endpoints presented in {} tenant".format(namespace)
 
-    result = client.simulate_request(method='GET', path='/endpoints', headers=header)
+    result = client.simulate_request(method='GET', path='/endpoints' + functionality,
+                                     headers=header)
 
     assert expected_status == result.status
-    assert result.text in expected_message.format(namespace)
+    assert result.text in expected_message.format(namespace, "predict")
     get_endpoint_mock.assert_called_once()

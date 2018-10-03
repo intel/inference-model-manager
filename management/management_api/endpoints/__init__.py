@@ -1,1 +1,1 @@
-from .endpoints import Endpoints, EndpointScale, EndpointUpdate  # noqa
+from .endpoints import Endpoints, EndpointScale, EndpointUpdate, EndpointView  # noqa

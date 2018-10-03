@@ -5,7 +5,8 @@ from kubernetes.client.rest import ApiException
 
 from management_api.utils.errors_handling import InvalidParamException, KubernetesGetException
 from management_api.utils.logger import get_logger
-from management_api.config import ING_NAME, ING_NAMESPACE
+from management_api.config import ING_NAME, ING_NAMESPACE, RESOURCE_DOES_NOT_EXIST, \
+    CRD_GROUP, CRD_VERSION, CRD_PLURAL
 
 logger = get_logger(__name__)
 
@@ -108,3 +109,58 @@ def get_k8s_rbac_api_client():
 def get_k8s_apps_api_client():
     apps_api_client = client.AppsV1Api(client.ApiClient(get_k8s_configuration()))
     return apps_api_client
+
+
+def get_crd_subject_name_and_resources(custom_api_instance, namespace, endpoint_name):
+    try:
+        crd = custom_api_instance.get_namespaced_custom_object(CRD_GROUP, CRD_VERSION, namespace,
+                                                               CRD_PLURAL, endpoint_name)
+    except ApiException as apiException:
+        raise KubernetesGetException('endpoint', apiException)
+
+    subject_name = crd['spec']['subjectName']
+    resources = "Not specified"
+    if 'resources' in crd['spec']:
+        resources = crd['spec']['resources']
+
+    return subject_name, resources
+
+
+def get_replicas(apps_api_instance, namespace, endpoint_name):
+    try:
+        deployment_status = apps_api_instance.read_namespaced_deployment_status(
+            endpoint_name, namespace)
+    except ApiException as apiException:
+        raise KubernetesGetException('deployment', apiException)
+    available_replicas = deployment_status.to_dict()['status']['available_replicas']
+    unavailable_replicas = deployment_status.to_dict()['status']['unavailable_replicas']
+    return {'Available': available_replicas, 'Unavailable': unavailable_replicas}
+
+
+def get_endpoint_status(api_instance, namespace, endpoint_name):
+    try:
+        pods = api_instance.list_namespaced_pod(namespace)
+    except ApiException as apiException:
+        raise KubernetesGetException('pods', apiException)
+    pod_phases = []
+    for pod in pods.to_dict()['items']:
+        if pod['metadata']['labels']['endpoint'] == endpoint_name:
+            pod_phase = pod['status']['phase']
+            pod_phases.append(pod_phase)
+    running = sum(pod_phase == 'Running' for pod_phase in pod_phases)
+    pending = sum(pod_phase == 'Pending' for pod_phase in pod_phases)
+    failed = sum(pod_phase == 'Failed' for pod_phase in pod_phase)
+    status = {'Running pods': running, 'Pending pods': pending, 'Failed pods': failed}
+    return status
+
+
+def endpoint_exists(endpoint_name, namespace):
+    custom_api_instance = get_k8s_api_custom_client()
+    try:
+        custom_api_instance.get_namespaced_custom_object(CRD_GROUP, CRD_VERSION, namespace,
+                                                         CRD_PLURAL, endpoint_name)
+    except ApiException as apiException:
+        if apiException.status == RESOURCE_DOES_NOT_EXIST:
+            return False
+        raise KubernetesGetException('endpoint', apiException)
+    return True

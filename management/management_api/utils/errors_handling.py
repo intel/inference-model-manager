@@ -91,6 +91,18 @@ class TenantDoesNotExistException(ManagementApiException):
         raise falcon.HTTPNotFound(description=message)
 
 
+class EndpointDoesNotExistException(ManagementApiException):
+    def __init__(self, endpoint_name):
+        super().__init__()
+        self.endpoint_name = endpoint_name
+
+    @staticmethod
+    def handler(ex, req, resp, params):
+        message = "Endpoint {} does not exist".format(ex.endpoint_name)
+        logger.error(message)
+        raise falcon.HTTPNotFound(description=message)
+
+
 class InvalidParamException(ManagementApiException):
     def __init__(self, param, error_message, validity_rules_message=None):
         super().__init__(error_message)
@@ -123,7 +135,8 @@ class JsonSchemaException(ManagementApiException):
 custom_errors = [ManagementApiException, KubernetesCallException, KubernetesDeleteException,
                  KubernetesCreateException, KubernetesGetException, KubernetesUpdateException,
                  MinioCallException, TenantAlreadyExistsException, TenantDoesNotExistException,
-                 InvalidParamException, MissingTokenException, JsonSchemaException]
+                 InvalidParamException, MissingTokenException, JsonSchemaException,
+                 EndpointDoesNotExistException]
 
 
 def default_exception_handler(ex, req, resp, params):

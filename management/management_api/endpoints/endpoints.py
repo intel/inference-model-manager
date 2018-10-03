@@ -5,7 +5,7 @@ from management_api.config import RequiredParameters
 from management_api.utils.logger import get_logger
 from management_api.utils.parse_request import get_body, get_params
 from management_api.endpoints.endpoint_utils import create_endpoint, delete_endpoint, \
-    scale_endpoint, update_endpoint, list_endpoints
+    scale_endpoint, update_endpoint, view_endpoint, list_endpoints
 from management_api.schemas.loadschema import endpoint_post_schema, endpoint_delete_schema
 
 logger = get_logger(__name__)
@@ -73,3 +73,12 @@ class EndpointUpdate(EndpointPatch):
 
     def patch(self, parameters, namespace):
         return update_endpoint(parameters, namespace)
+
+
+class EndpointView(object):
+    def on_get(self, req, resp, endpoint_name):
+        # TODO This needs to be replaced with the logic to obtain namespace out of JWT token
+        namespace = req.get_header('Authorization')
+        endpoint = view_endpoint(endpoint_name=endpoint_name, namespace=namespace)
+        resp.status = falcon.HTTP_200
+        resp.body = endpoint

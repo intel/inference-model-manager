@@ -1,5 +1,5 @@
 from management_api.endpoints.endpoint_utils import create_endpoint, delete_endpoint, \
-    create_url_to_service, update_endpoint, scale_endpoint, list_endpoints
+    create_url_to_service, update_endpoint, scale_endpoint, list_endpoints, view_endpoint
 from management_api.config import PLATFORM_DOMAIN
 from kubernetes.client.rest import ApiException
 import pytest
@@ -7,7 +7,7 @@ from unittest.mock import Mock
 
 from management_api.utils.errors_handling import KubernetesCreateException, \
     KubernetesDeleteException, KubernetesUpdateException, KubernetesGetException, \
-    TenantDoesNotExistException
+    TenantDoesNotExistException, EndpointDoesNotExistException
 
 
 @pytest.mark.parametrize("raise_error", [(False), (True)])
@@ -140,3 +140,45 @@ def test_create_url_to_service(mocker):
     expected_output = {'address': external_address, 'opts': "t_end-t_ns.{}".format(PLATFORM_DOMAIN)}
     output = create_url_to_service(endpoint_name='t_end', namespace="t_ns")
     assert expected_output == output
+
+
+@pytest.mark.parametrize("tenant_exception, endpoint_exception",
+                         [(True, False),
+                          (False, True),
+                          (False, False)])
+def test_view_endpoint(mocker, tenant_exception, endpoint_exception,
+                       api_client_mock_endpoint_utils, custom_client_mock_endpoint_utils,
+                       apps_client_mock_endpoint_utils):
+    tenant_exists_mock = mocker.patch(
+        'management_api.endpoints.endpoint_utils.tenant_exists')
+    endpoint_exists_mock = mocker.patch('management_api.endpoints.endpoint_utils.endpoint_exists')
+    if tenant_exception:
+        with pytest.raises(TenantDoesNotExistException):
+            tenant_exists_mock.return_value = False
+            view_endpoint(namespace="test", endpoint_name="test")
+    elif endpoint_exception:
+        with pytest.raises(EndpointDoesNotExistException):
+            endpoint_exists_mock.return_value = False
+            view_endpoint(namespace="test", endpoint_name="test")
+    else:
+        endpoint_status_mock = mocker.patch(
+            'management_api.endpoints.endpoint_utils.get_endpoint_status')
+        endpoint_status_mock.return_value = {}
+        model_path_mock = mocker.patch(
+            'management_api.endpoints.endpoint_utils.create_url_to_service')
+        model_path_mock.return_value = {}
+        subject_name_resources_mock = mocker.patch(
+            'management_api.endpoints.endpoint_utils.get_crd_subject_name_and_resources')
+        subject_name_resources_mock.return_value = "", ""
+        replicas_mock = mocker.patch('management_api.endpoints.endpoint_utils.get_replicas')
+        replicas_mock.return_value = 1
+        view_endpoint(namespace="test", endpoint_name="test")
+
+        endpoint_status_mock.assert_called_once()
+        model_path_mock.assert_called_once()
+        subject_name_resources_mock.assert_called_once()
+        replicas_mock.assert_called_once()
+
+        endpoint_exists_mock.assert_called_once()
+
+    tenant_exists_mock.assert_called_once()

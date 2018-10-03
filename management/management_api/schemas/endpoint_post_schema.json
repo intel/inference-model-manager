@@ -27,6 +27,7 @@
     },
     "resources": {
       "type": "object",
+      "optional": true,
       "title": "Resource quota",
       "properties": {
         "requests.cpu": {
