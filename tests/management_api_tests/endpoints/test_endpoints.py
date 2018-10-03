@@ -261,3 +261,25 @@ def test_view_endpoint(request, endpoint_fix, endpoint_name, expected_status, ex
 
     assert expected_status == response.status_code
     assert expected_message.format(endpoint_name, namespace) in response.text
+
+
+def test_not_create_endpoint_tenant_not_exist():
+    headers = DEFAULT_HEADERS
+    crd_server_name = 'predict'
+    namespace = 'not_exist'
+    headers['Authorization'] = namespace
+    replicas = 1
+    data = json.dumps({
+        'modelName': 'resnet',
+        'modelVersion': 1,
+        'endpointName': crd_server_name,
+        'subjectName': 'client',
+        'replicas': replicas,
+        'resources': ENDPOINT_RESOURCES
+    })
+    url = ENDPOINT_MANAGEMENT_API_URL
+
+    response = requests.post(url, data=data, headers=headers)
+
+    assert response.status_code == 404
+    assert "Tenant {} does not exist".format(namespace) in response.text

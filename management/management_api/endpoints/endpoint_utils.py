@@ -19,6 +19,8 @@ logger = get_logger(__name__)
 
 
 def create_endpoint(parameters: dict, namespace: str):
+    if not tenant_exists(namespace):
+        raise TenantDoesNotExistException(tenant_name=namespace)
     metadata = {"name": parameters['endpointName']}
     body = {"apiVersion": CRD_API_VERSION, "kind": CRD_KIND,
             "spec": parameters, "metadata": metadata}

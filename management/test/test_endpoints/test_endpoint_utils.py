@@ -10,10 +10,16 @@ from management_api.utils.errors_handling import KubernetesCreateException, \
     TenantDoesNotExistException, EndpointDoesNotExistException
 
 
-@pytest.mark.parametrize("raise_error", [(False), (True)])
+@pytest.mark.parametrize("tenant_exception, raise_error", [(True, False), (False, True)])
 def test_create_endpoint(mocker, url_to_service_endpoint_utils,
-                         custom_client_mock_endpoint_utils,
+                         custom_client_mock_endpoint_utils, tenant_exception,
                          raise_error, api_client_mock_endpoint_utils):
+    tenant_exists_mock = mocker.patch(
+        'management_api.endpoints.endpoint_utils.tenant_exists')
+    if tenant_exception:
+        with pytest.raises(TenantDoesNotExistException):
+            tenant_exists_mock.return_value = False
+            create_endpoint(parameters={'endpointName': "test", 'resources': {}}, namespace="test")
     ing_ip_mock, ing_ip_mock_return_values = url_to_service_endpoint_utils
     create_custom_client_mock, custom_client = custom_client_mock_endpoint_utils
     validate_quota_compliance_mock = mocker.patch(
@@ -24,10 +30,11 @@ def test_create_endpoint(mocker, url_to_service_endpoint_utils,
         with pytest.raises(KubernetesCreateException):
             custom_client.create_namespaced_custom_object.side_effect = ApiException()
             create_endpoint(parameters={'endpointName': "test", 'resources': {}}, namespace="test")
-
     else:
+        tenant_exists_mock.return_value = True
         create_endpoint(parameters={'endpointName': "test", 'resources': {}}, namespace="test")
         ing_ip_mock.assert_called_once()
+
     validate_quota_compliance_mock.assert_called_once()
     parameters_resources_mock.assert_called_once()
     custom_client.create_namespaced_custom_object.assert_called_once()
