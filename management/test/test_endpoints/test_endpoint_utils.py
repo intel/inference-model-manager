@@ -151,11 +151,8 @@ def test_create_url_to_service(mocker):
 
 @pytest.mark.parametrize("tenant_exception, endpoint_exception",
                          [(True, False),
-                          (False, True),
-                          (False, False)])
-def test_view_endpoint(mocker, tenant_exception, endpoint_exception,
-                       api_client_mock_endpoint_utils, custom_client_mock_endpoint_utils,
-                       apps_client_mock_endpoint_utils):
+                          (False, True)])
+def test_view_endpoint_fail(mocker, tenant_exception, endpoint_exception):
     tenant_exists_mock = mocker.patch(
         'management_api.endpoints.endpoint_utils.tenant_exists')
     endpoint_exists_mock = mocker.patch('management_api.endpoints.endpoint_utils.endpoint_exists')
@@ -167,25 +164,46 @@ def test_view_endpoint(mocker, tenant_exception, endpoint_exception,
         with pytest.raises(EndpointDoesNotExistException):
             endpoint_exists_mock.return_value = False
             view_endpoint(namespace="test", endpoint_name="test")
-    else:
-        endpoint_status_mock = mocker.patch(
-            'management_api.endpoints.endpoint_utils.get_endpoint_status')
-        endpoint_status_mock.return_value = {}
-        model_path_mock = mocker.patch(
-            'management_api.endpoints.endpoint_utils.create_url_to_service')
-        model_path_mock.return_value = {}
-        subject_name_resources_mock = mocker.patch(
-            'management_api.endpoints.endpoint_utils.get_crd_subject_name_and_resources')
-        subject_name_resources_mock.return_value = "", ""
-        replicas_mock = mocker.patch('management_api.endpoints.endpoint_utils.get_replicas')
-        replicas_mock.return_value = 1
-        view_endpoint(namespace="test", endpoint_name="test")
 
-        endpoint_status_mock.assert_called_once()
-        model_path_mock.assert_called_once()
-        subject_name_resources_mock.assert_called_once()
-        replicas_mock.assert_called_once()
-
-        endpoint_exists_mock.assert_called_once()
+            tenant_exists_mock.assert_called_once()
+            endpoint_exists_mock.assert_called_once()
 
     tenant_exists_mock.assert_called_once()
+
+
+def test_view_endpoint_success(mocker, api_client_mock_endpoint_utils,
+                               custom_client_mock_endpoint_utils, apps_client_mock_endpoint_utils):
+    tenant_exists_mock = mocker.patch(
+        'management_api.endpoints.endpoint_utils.tenant_exists')
+    endpoint_exists_mock = mocker.patch('management_api.endpoints.endpoint_utils.endpoint_exists')
+    tenant_exists_mock.return_value = True
+    endpoint_exists_mock.return_value = True
+
+    create_api_client_mock, api_client = api_client_mock_endpoint_utils
+    create_custom_client_mock, custom_client = custom_client_mock_endpoint_utils
+    create_apps_client_mock, apps_client = apps_client_mock_endpoint_utils
+
+    endpoint_status_mock = mocker.patch(
+        'management_api.endpoints.endpoint_utils.get_endpoint_status', api_instance=api_client)
+    endpoint_status_mock.return_value = {}
+    model_path_mock = mocker.patch(
+        'management_api.endpoints.endpoint_utils.create_url_to_service')
+    model_path_mock.return_value = {}
+    subject_name_resources_mock = mocker.patch(
+        'management_api.endpoints.endpoint_utils.get_crd_subject_name_and_resources',
+        custom_api_instance=custom_client)
+    subject_name_resources_mock.return_value = "", ""
+    replicas_mock = mocker.patch('management_api.endpoints.endpoint_utils.get_replicas',
+                                 apps_api_instance=apps_client)
+    replicas_mock.return_value = 1
+    view_endpoint(namespace="test", endpoint_name="test")
+
+    tenant_exists_mock.assert_called_once()
+    endpoint_exists_mock.assert_called_once()
+    endpoint_status_mock.assert_called_once()
+    model_path_mock.assert_called_once()
+    subject_name_resources_mock.assert_called_once()
+    replicas_mock.assert_called_once()
+    create_api_client_mock.assert_called_once()
+    create_custom_client_mock.assert_called_once()
+    create_apps_client_mock.assert_called_once()

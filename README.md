@@ -79,6 +79,20 @@ application/json" -H "Authorization: default" -H "Content-Type: application/json
 "{\"modelName\":<string>, \"modelVersion\":<int>}"
 ```
 
+example view endpoint
+
+```
+curl -X GET "http://<management_api_address>:5000/endpoints/<endpoint-name>/viewing" -H "accept: 
+application/json" -H "Authorization: default" -H "Content-Type: application/json"
+
+```
+
+example list endpoints
+```
+curl -X GET "http://<management_api_address>:5000/endpoints" -H "accept: application/json" 
+-H "Authorization: default" -H "Content-Type: application/json"
+```
+
 #### Inference endpoints
 E2E test using resnet model, scripts: https://github.com/NervanaSystems/inferno-platform/tree/demo-helpers/helpers/demo
 - create new tenant
