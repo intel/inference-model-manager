@@ -1,6 +1,6 @@
 version: 2.0
 jobs:
-  build:
+  style_and_unit_tests:
     docker:
       - image: circleci/python:3.6.6-jessie-browsers
     working_directory: ~/inferno-platform
@@ -25,6 +25,18 @@ jobs:
           command: |
             . ~/inferno-platform/.venv/bin/activate
             cd ~/inferno-platform/management/ && python setup.py test
+  functional_tests:
+    docker:
+      - image: circleci/python:3.6.6-jessie-browsers
+    working_directory: ~/inferno-platform
+    steps:
+      - setup_remote_docker
+      - checkout
+      - run:
+          name: Create venv
+          command: |
+            cd ~/inferno-platform/
+            python3 -m venv .venv 
       - run:
           name: Create k8s cluster
           command: |
@@ -93,7 +105,7 @@ jobs:
             export CTRL_TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
             cd ~/inferno-platform/helm-deployment/
             helm dep up .
-            helm install --set management-api-chart.tag=$MGMT_TAG --set crd-subchart.tag=$CTRL_TAG -f dex-values.yaml .
+            helm install --name inferno --set management-api-chart.tag=$MGMT_TAG --set crd-subchart.tag=$CTRL_TAG -f dex-values.yaml .
             sleep 150
       - run:
           name: Run tests
@@ -106,17 +118,6 @@ jobs:
             pip install -q -r requirements.txt
             . run_test.sh
       - run:
-          name: Delete cluster or wait 30 minutes
-          command: |
-            cd ~/inferno-platform
-            export IF_DEBUG=`git log -1 --pretty=%B | grep "[[please debug me]]"`
-            export PR_NR=`basename ${CIRCLE_PULL_REQUEST}`
-            export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
-            if [-n "$IF_DEBUG" ]; then
-               sleep 30m
-            fi
-            echo y | gcloud container clusters delete inferno-${CIRCLE_BRANCH}-${SHORT_SHA1} --zone us-west1-a
-      - run:
           name: Set images tags to latest on master
           command: |
             export BRANCH=$(git symbolic-ref --short HEAD)
@@ -126,8 +127,33 @@ jobs:
                gcloud container images add-tag gcr.io/constant-cubist-173123/management-api:$MGMT_TAG gcr.io/constant-cubist-173123/management-api:latest
                gcloud container images add-tag gcr.io/constant-cubist-173123/server-controller-prod:$CTRL_TAG gcr.io/constant-cubist-173123/server-controller-prod:latest
             fi
+      - run:
+          name: clean after success
+          when: on_success
+          command: |
+            export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
+            export CLUSTER_NAME="inferno-${CIRCLE_BRANCH}-${SHORT_SHA1}"
+            export CLUSTER_ALL_VMS_NETWORK="${CLUSTER_NAME}-all-vms-net"
+            helm delete inferno
+            echo y | gcloud compute firewall-rules delete $CLUSTER_ALL_VMS_NETWORK
+            sleep 1m
+            echo y | gcloud container clusters delete $CLUSTER_NAME --zone us-west1-a
+      - run:
+          name: clean after failure
+          when: on_fail
+          command: |
+            export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
+            export CLUSTER_NAME="inferno-${CIRCLE_BRANCH}-${SHORT_SHA1}"
+            export CLUSTER_ALL_VMS_NETWORK="${CLUSTER_NAME}-all-vms-net"
+            sleep 30m
+            helm delete inferno
+            echo y | gcloud compute firewall-rules delete $CLUSTER_ALL_VMS_NETWORK
+            sleep 1m
+            echo y | gcloud container clusters delete $CLUSTER_NAME --zone us-west1-a
+          no_output_timeout: 32m
 workflows:
   version: 2
   deploy-test:
     jobs:
-      - build
+      - style_and_unit_tests
+      - functional_tests
