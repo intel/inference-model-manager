@@ -10,6 +10,10 @@ spec:
         app: management-api
     spec:
       serviceAccountName: api-client
+{{ if .Values.openstack }}
+      imagePullSecrets:
+        - name: gcr-json-key
+{{ end }}
       containers:
       - name: management-api
         image: {{ .Values.image }}:{{ .Values.tag }}
@@ -21,7 +25,10 @@ spec:
         - name: PORT
           value: "5000"
         - name: MINIO_ENDPOINT_ADDR
-          value: "http://{{ .Release.Name }}-minio.default.svc.cluster.local:9000"
+          valueFrom:
+            secretKeyRef:
+              name: minio-access-info
+              key: minio.endpoint_url
         - name: MINIO_ACCESS_KEY_ID
           valueFrom:
             secretKeyRef:
@@ -34,6 +41,21 @@ spec:
               key: minio.access_secret_key
         - name: PLATFORM_DOMAIN
           value: "{{ .Values.global.platformDomain }}"
+        - name: STATIC_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: dex
+              key: staticClient.id
+        - name: STATIC_CLIENT_REDIRECT_URIS
+          valueFrom:
+            secretKeyRef:
+              name: dex
+              key: staticClient.redirectURIs
+        - name: STATIC_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: dex
+              key: staticClient.secret
         command:
         - /bin/sh
         - -c

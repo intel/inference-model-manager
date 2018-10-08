@@ -36,7 +36,7 @@ jobs:
           name: Create venv
           command: |
             cd ~/inferno-platform/
-            python3 -m venv .venv 
+            python3 -m venv .venv
       - run:
           name: Create k8s cluster
           command: |
@@ -105,7 +105,7 @@ jobs:
             export CTRL_TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
             cd ~/inferno-platform/helm-deployment/
             helm dep up .
-            helm install --name inferno --set management-api-chart.tag=$MGMT_TAG --set crd-subchart.tag=$CTRL_TAG -f dex-values.yaml .
+            helm install --name inferno --set management-api-chart.tag=$MGMT_TAG --set crd-subchart.tag=$CTRL_TAG .
             sleep 150
       - run:
           name: Run tests

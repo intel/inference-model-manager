@@ -53,6 +53,9 @@ global:
   accessKey: *accessKey
   secretKey: *secretKey
   platformDomain: "serving-service.com"
+  minioEndpoint: "127.0.0.1:9000"
+  minioEndpointUrl: "http://127.0.0.1:9000"
 tf-serving-subchart:
   enabled: true
+openstack: false
 

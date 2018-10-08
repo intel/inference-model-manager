@@ -1,0 +1,46 @@
+issuer: "http://127.0.0.1:443/dex"
+config:
+  issuer: "http://127.0.0.1:443/dex"
+  storage:
+      type: kubernetes
+      config:
+        inCluster: true
+  logger:
+    level: debug
+  web:
+    https: "0.0.0.0:443"
+    tlsCert: /etc/dex/tls/https/server/tls.crt
+    tlsKey: /etc/dex/tls/https/server/tls.key
+  connectors:
+  - type: ldap
+    name: OpenLDAP
+    id: ldap
+    config:
+      issuer: "http://127.0.0.1:443/dex"
+      # No TLS for this setup.
+      insecureNoSSL: true
+      # This would normally be a read-only user.
+      bindDN: "cn=admin,dc=example,dc=org"
+      bindPW: admin
+      groupSearch:
+        baseDN: "ou=Groups,dc=example,dc=org"
+        filter: (objectClass=groupOfNames)
+        groupAttr: member
+        nameAttr: cn
+        userAttr: DN
+      host: "10.138.0.26:389"
+      insecureNoSSL: true
+      userSearch:
+        baseDN: "ou=People,dc=example,dc=org"
+        emailAttr: mail
+        filter: (objectClass=person)
+        idAttr: DN
+        nameAttr: cn
+        username: mail
+      usernamePrompt: "Email Address"
+  staticClients:
+  - id: example-app
+    redirectURIs:
+    - 'http://127.0.0.1:5555/callback'
+    name: 'Example App'
+    secret: ZXhhbXBsZS1hcHAtc2VjcmV0

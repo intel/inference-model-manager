@@ -42,3 +42,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: api-client
+{{ if .Values.openstack }}
+imagePullSecrets:
+  - name: gcr-json-key
+{{ end }}

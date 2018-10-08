@@ -1,0 +1,42 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: dex
+  name: dex
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: dex
+    spec:
+      serviceAccountName: dex
+      containers:
+      - image: quay.io/dexidp/dex:v2.10.0
+        name: dex
+        command: ["/usr/local/bin/dex", "serve", "/etc/dex/cfg/config.yaml"]
+        ports:
+        - name: https
+          containerPort: 443
+        volumeMounts:
+        - name: config
+          mountPath: /etc/dex/cfg
+        - name: https-tls
+          mountPath: /etc/dex/tls/https/server
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        env:
+{{ toYaml .Values.env | indent 10 }}
+      volumes:
+      - name: config
+        secret:
+          defaultMode: 420
+          secretName: dex
+          items:
+          - key: config.yaml
+            path: config.yaml
+      - name: https-tls
+        secret:
+          defaultMode: 420
+          secretName: tls-secret

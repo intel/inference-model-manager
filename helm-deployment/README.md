@@ -3,7 +3,7 @@
 ```
 cd helm-deployment
 helm dep up .
-helm install --name inferno-platform . -f dex-values.yaml
+helm install --name inferno-platform . 
 ```
 `helm dep up .` will download minio and dex as subcharts
 `helm install --name inferno-platform .` will deploy all components on exisitng kubernetes cluster. Release will be named 'inferno-platform'.
@@ -75,3 +75,19 @@ grpc.framework.interfaces.face.face.CancellationError: CancellationError(code=St
 ```
 
 WARNING: /inferno-platform/helm-deployment/certs directory contains example ca.conf file required to create CRL list. Please adjust this configuration file to your environment before use in production.
+
+# Dex connector configuration
+In `helm-deployment/dex-subchart/values.yaml` there is a section about connector (`config
+.connectors`). If you would like to use a different one - please provide additional dex-values.yaml
+with proper configuration, which would override ldap connector.
+Example:
+```
+dex:
+  config:
+    connectors:
+    - type: <connector type, i.e. ldap>
+      name: <connector name, i.e. OpenLDAP>
+      id: <id, i.e. ldap>
+      config:
+        <new connector configuration>
+```
