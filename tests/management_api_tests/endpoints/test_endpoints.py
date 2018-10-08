@@ -2,20 +2,20 @@ import pytest
 import requests
 import json
 
-from management_api_tests.config import DEFAULT_HEADERS, ENDPOINT_MANAGEMENT_API_URL, CheckResult, \
-    QUOTA_INCOMPLIANT_VALUES, ENDPOINT_RESOURCES, FAILING_UPDATE_PARAMS, FAILING_SCALE_PARAMS, \
-    ENDPOINT_MANAGEMENT_API_URL_SCALE, ENDPOINT_MANAGEMENT_API_URL_UPDATE, OperationStatus, \
-    CORRECT_UPDATE_QUOTAS, ENDPOINT_MANAGEMENT_API_URL_VIEW
+from management_api_tests.config import DEFAULT_HEADERS, USER1_HEADERS,\
+    USER2_HEADERS, ENDPOINT_MANAGEMENT_API_URL, CheckResult, \
+    ENDPOINT_RESOURCES, ENDPOINT_MANAGEMENT_API_URL_SCALE, \
+    ENDPOINT_MANAGEMENT_API_URL_UPDATE, OperationStatus, CORRECT_UPDATE_QUOTAS, \
+    ENDPOINT_MANAGEMENT_API_URL_VIEW
+
 from management_api_tests.endpoints.endpoint_utils import check_replicas_number_matching_provided, \
     check_model_params_matching_provided, wait_server_setup, check_server_existence, \
     check_server_update_result
 
 
 def test_create_endpoint(function_context, apps_api_instance, get_k8s_custom_obj_client, tenant):
-    headers = DEFAULT_HEADERS
     crd_server_name = 'predict'
     namespace, _ = tenant
-    headers['Authorization'] = namespace
     replicas = 1
     data = json.dumps({
         'modelName': 'resnet',
@@ -27,7 +27,7 @@ def test_create_endpoint(function_context, apps_api_instance, get_k8s_custom_obj
     })
     url = ENDPOINT_MANAGEMENT_API_URL
 
-    response = requests.post(url, data=data, headers=headers)
+    response = requests.post(url, data=data, headers=DEFAULT_HEADERS)
 
     assert response.status_code == 200
     assert "created" in response.text
@@ -40,16 +40,15 @@ def test_create_endpoint(function_context, apps_api_instance, get_k8s_custom_obj
                              ) == OperationStatus.SUCCESS
 
 
-def test_delete_endpoint(apps_api_instance, get_k8s_custom_obj_client, endpoint):
-    namespace, body = endpoint
-    headers = DEFAULT_HEADERS
-    headers['Authorization'] = namespace
+def test_delete_endpoint(apps_api_instance, get_k8s_custom_obj_client,
+                         tenant_with_endpoint):
+    namespace, body = tenant_with_endpoint
     data = json.dumps({
         'endpointName': body['spec']['endpointName'],
     })
 
     url = ENDPOINT_MANAGEMENT_API_URL
-    response = requests.delete(url, data=data, headers=headers)
+    response = requests.delete(url, data=data, headers=DEFAULT_HEADERS)
     assert response.status_code == 200
     assert "deleted" in response.text
     assert check_server_existence(get_k8s_custom_obj_client, namespace, body['spec']['endpointName']
@@ -58,26 +57,23 @@ def test_delete_endpoint(apps_api_instance, get_k8s_custom_obj_client, endpoint)
                              ) == OperationStatus.TERMINATED
 
 
-def test_try_create_the_same_endpoint(endpoint):
-    namespace, body = endpoint
-    headers = DEFAULT_HEADERS
+def test_try_create_the_same_endpoint(tenant_with_endpoint):
+    namespace, body = tenant_with_endpoint
     body['spec']['resources'] = ENDPOINT_RESOURCES
     data = json.dumps(body['spec'])
-    headers['Authorization'] = namespace
 
     url = ENDPOINT_MANAGEMENT_API_URL
 
-    response = requests.post(url, data=data, headers=headers)
+    response = requests.post(url, data=data, headers=DEFAULT_HEADERS)
     assert response.status_code == 400
     assert "Conflict" in response.text
 
 
 def test_create_endpoint_with_2_replicas(get_k8s_custom_obj_client, apps_api_instance,
+
                                          function_context, tenant):
-    headers = DEFAULT_HEADERS
     crd_server_name = 'predict'
     namespace, _ = tenant
-    headers['Authorization'] = namespace
     model_name = 'resnet2'
     model_version = 1
     replicas = 2
@@ -92,7 +88,7 @@ def test_create_endpoint_with_2_replicas(get_k8s_custom_obj_client, apps_api_ins
 
     url = ENDPOINT_MANAGEMENT_API_URL
 
-    response = requests.post(url, data=data, headers=headers)
+    response = requests.post(url, data=data, headers=DEFAULT_HEADERS)
 
     assert response.status_code == 200
     assert "created" in response.text
@@ -106,10 +102,10 @@ def test_create_endpoint_with_2_replicas(get_k8s_custom_obj_client, apps_api_ins
                              ) == OperationStatus.SUCCESS
 
 
-def test_scale_endpoint(get_k8s_custom_obj_client, apps_api_instance, endpoint):
+def test_scale_endpoint(get_k8s_custom_obj_client, apps_api_instance,
+                        tenant_with_endpoint):
     headers = DEFAULT_HEADERS
-    namespace, body = endpoint
-    headers['Authorization'] = namespace
+    namespace, body = tenant_with_endpoint
     crd_server_name = body['spec']['endpointName']
 
     # -- scaling up 1 -> 5
@@ -125,7 +121,6 @@ def test_scale_endpoint(get_k8s_custom_obj_client, apps_api_instance, endpoint):
 
 def simulate_scaling(custom_obj_api, apps_api_instance, headers, namespace, name, replicas):
     url = ENDPOINT_MANAGEMENT_API_URL_SCALE.format(endpoint_name=name)
-    headers['Authorization'] = namespace
     data = json.dumps({
         'replicas': replicas
     })
@@ -142,34 +137,39 @@ def simulate_scaling(custom_obj_api, apps_api_instance, headers, namespace, name
                              ) == OperationStatus.SUCCESS
 
 
-@pytest.mark.parametrize("auth, endpoint_name, scale_params, expected_error",
+FAILING_SCALE_PARAMS = [
+    (DEFAULT_HEADERS, "wrong_name", {'replicas': 3}, 400, "Not Found"),
+    (DEFAULT_HEADERS, "predict", {'replicas': -1}, 400, "Unprocessable Entity"),
+    (DEFAULT_HEADERS, "predict", {'replicas': "many"}, 400, "Unprocessable Entity"),
+    (DEFAULT_HEADERS, "predict", {}, 400, "replicas parameter required"),
+]
+
+
+@pytest.mark.parametrize("auth, endpoint_name, scale_params, expected_status_code, "
+                         "expected_error_msg",
                          FAILING_SCALE_PARAMS)
-def test_not_scale_endpoint_bad_request(auth, endpoint_name, scale_params,
-                                        expected_error, endpoint):
-    headers = DEFAULT_HEADERS
-    headers['Authorization'] = auth
+def test_fail_to_scale_endpoint(auth, tenant_with_endpoint, endpoint_name, scale_params,
+                                expected_status_code, expected_error_msg):
     data = json.dumps(scale_params)
 
     url = ENDPOINT_MANAGEMENT_API_URL_SCALE.format(endpoint_name=endpoint_name)
 
-    response = requests.patch(url, data=data, headers=headers)
+    response = requests.patch(url, data=data, headers=auth)
 
-    assert response.status_code == 400
-    assert expected_error in response.text
+    assert response.status_code == expected_status_code
+    assert expected_error_msg in response.text
 
 
 @pytest.mark.parametrize("new_values", CORRECT_UPDATE_QUOTAS)
 def test_update_endpoint(get_k8s_custom_obj_client, apps_api_instance,
-                         endpoint, new_values):
-    headers = DEFAULT_HEADERS
-    namespace, body = endpoint
-    headers['Authorization'] = namespace
+                         tenant, tenant_with_endpoint, new_values):
+    namespace, body = tenant_with_endpoint
     crd_server_name = body['spec']['endpointName']
     data = json.dumps(new_values)
 
     url = ENDPOINT_MANAGEMENT_API_URL_UPDATE.format(endpoint_name=crd_server_name)
 
-    response = requests.patch(url, data=data, headers=headers)
+    response = requests.patch(url, data=data, headers=DEFAULT_HEADERS)
 
     assert response.status_code == 200
     assert "patched" in response.text
@@ -180,36 +180,54 @@ def test_update_endpoint(get_k8s_custom_obj_client, apps_api_instance,
                                       ) == CheckResult.CONTENTS_MATCHING
 
 
-@pytest.mark.parametrize("auth, endpoint_name, update_params, expected_error",
-                         FAILING_UPDATE_PARAMS)
-def test_not_update_endpoint_bad_request(get_k8s_custom_obj_client,
-                                         auth, endpoint_name, update_params, expected_error,
-                                         endpoint):
-    headers = DEFAULT_HEADERS
-    headers['Authorization'] = auth
-    namespace, body = endpoint
+FAILING_UPDATE_PARAMS = [
+    (DEFAULT_HEADERS, "wrong_name", {'modelName': 'super-model', 'modelVersion': 3}, 400,
+     "Not Found"),
+    (DEFAULT_HEADERS, "predict", {'modelName': 0, 'modelVersion': 3}, 400,
+     "Unprocessable Entity"),
+    (DEFAULT_HEADERS, "predict", {'modelName': 'super-model', 'modelVersion': "str"}, 400,
+     "Unprocessable Entity"),
+    (DEFAULT_HEADERS, "predict", {'modelVersion': 3}, 400, "modelName parameter required"),
+    (DEFAULT_HEADERS, "predict", {'modelName': 'super-model'}, 400,
+     "modelVersion parameter required"),
+]
+
+
+@pytest.mark.parametrize("auth, endpoint_name, update_params, expected_error_code, "
+                         "expected_error_msg", FAILING_UPDATE_PARAMS)
+def test_fail_to_update_endpoint(get_k8s_custom_obj_client,
+                                 auth, endpoint_name, update_params,
+                                 expected_error_code, expected_error_msg, tenant_with_endpoint):
+
+    namespace, body = tenant_with_endpoint
     crd_server_name = body['spec']['endpointName']
 
     data = json.dumps(update_params)
 
     url = ENDPOINT_MANAGEMENT_API_URL_UPDATE.format(endpoint_name=endpoint_name)
 
-    response = requests.patch(url, data=data, headers=headers)
+    response = requests.patch(url, data=data, headers=auth)
 
-    assert response.status_code == 400
-    assert expected_error in response.text
+    assert response.status_code == expected_error_code
+    assert expected_error_msg in response.text
     assert check_model_params_matching_provided(
         get_k8s_custom_obj_client, namespace, crd_server_name, provided_params=update_params
     ) == CheckResult.CONTENTS_MISMATCHING
 
 
+QUOTA_INCOMPLIANT_VALUES = [
+    ({}, "No resources provided"),
+    ({'requests.cpu': '1'}, "Missing resources values"),
+]
+
+
 @pytest.mark.parametrize("incompliant_quota, expected_error", QUOTA_INCOMPLIANT_VALUES)
 def test_not_create_endpoint_with_incompliant_resource_quota(tenant, incompliant_quota,
                                                              expected_error):
-    headers = DEFAULT_HEADERS
+
     crd_server_name = 'predict'
     namespace, _ = tenant
-    headers['Authorization'] = namespace
+
     model_name = 'resnet'
     model_version = 1
     replicas = 1
@@ -224,50 +242,46 @@ def test_not_create_endpoint_with_incompliant_resource_quota(tenant, incompliant
 
     url = ENDPOINT_MANAGEMENT_API_URL
 
+    headers = DEFAULT_HEADERS
     response = requests.post(url, data=data, headers=headers)
 
     assert response.status_code == 400
     assert expected_error in response.text
 
 
-@pytest.mark.parametrize("endpoint_fix, expected_status, expected_message",
-                         [('endpoint', 200, "Endpoints present in {} tenant"),
-                          ('empty_endpoint', 200,
+@pytest.mark.parametrize("tenant_fix, auth_headers, expected_status, expected_message",
+                         [('tenant_with_endpoint', DEFAULT_HEADERS, 200,
+                           "Endpoints present in {} tenant"),
+                          ('empty_tenant', DEFAULT_HEADERS, 200,
                            "There's no endpoints present in {} tenant"),
-                          ('fake_tenant_endpoint', 404, "Tenant {} does not exist")
+                          ('fake_tenant_endpoint', USER1_HEADERS, 404, "Tenant {} does not exist")
                           ])
-def test_list_endpoints(request, endpoint_fix,
+def test_list_endpoints(request, tenant_fix, auth_headers,
                         expected_status, expected_message):
-    namespace, _ = request.getfuncargvalue(endpoint_fix)
-    headers = DEFAULT_HEADERS
-    headers['Authorization'] = namespace
+    namespace, _ = request.getfuncargvalue(tenant_fix)
     url = ENDPOINT_MANAGEMENT_API_URL
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=auth_headers)
 
     assert expected_status == response.status_code
     assert expected_message.format(namespace) in response.text
 
 
 @pytest.mark.parametrize("endpoint_fix, endpoint_name, expected_status, expected_message",
-                         [('endpoint', 'predict', 200, "Endpoint {} in {} tenant"),
-                          ('endpoint', 'not_exist', 404, 'Endpoint {} does not exist')])
+                         [('tenant_with_endpoint', 'predict', 200, "Endpoint {} in {} tenant"),
+                          ('tenant_with_endpoint', 'not_exist', 404, 'Endpoint {} does not exist')])
 def test_view_endpoint(request, endpoint_fix, endpoint_name, expected_status, expected_message):
     namespace, _ = request.getfuncargvalue(endpoint_fix)
-    endpoint_name = endpoint_name
-    headers = DEFAULT_HEADERS
-    headers['Authorization'] = namespace
     url = ENDPOINT_MANAGEMENT_API_URL_VIEW.format(endpoint_name=endpoint_name)
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=DEFAULT_HEADERS)
 
     assert expected_status == response.status_code
     assert expected_message.format(endpoint_name, namespace) in response.text
 
 
 def test_not_create_endpoint_tenant_not_exist():
-    headers = DEFAULT_HEADERS
+    headers = USER2_HEADERS
     crd_server_name = 'predict'
-    namespace = 'not_exist'
-    headers['Authorization'] = namespace
+    namespace = 'janusz'
     replicas = 1
     data = json.dumps({
         'modelName': 'resnet',

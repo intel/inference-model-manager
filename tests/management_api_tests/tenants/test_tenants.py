@@ -2,7 +2,7 @@ import pytest
 import requests
 import json
 
-from management_api_tests.config import TENANT_NAME, DEFAULT_HEADERS, CERT, SCOPE_NAME, \
+from management_api_tests.config import TENANT_NAME, ADMIN_HEADERS, CERT, SCOPE_NAME, \
     QUOTA, QUOTA_WRONG_VALUES, QUOTA_REGEX, TENANTS_MANAGEMENT_API_URL, PORTABLE_SECRETS_PATHS, \
     WRONG_CERTS, WRONG_BODIES, CheckResult
 from management_api_tests.tenants.tenant_utils import check_namespaced_secret_existence, \
@@ -12,7 +12,7 @@ from management_api_tests.tenants.tenant_utils import check_namespaced_secret_ex
 
 
 def test_create_tenant(function_context, minio_client, api_instance, rbac_api_instance):
-    headers = DEFAULT_HEADERS
+
     data = json.dumps({
         'name': TENANT_NAME,
         'cert': CERT,
@@ -22,7 +22,7 @@ def test_create_tenant(function_context, minio_client, api_instance, rbac_api_in
 
     url = TENANTS_MANAGEMENT_API_URL
 
-    response = requests.post(url, data=data, headers=headers)
+    response = requests.post(url, data=data, headers=ADMIN_HEADERS)
     function_context.add_object(object_type='tenant', object_to_delete={'name': TENANT_NAME})
 
     assert response.text == 'Tenant {} created\n'.format(TENANT_NAME)
@@ -39,18 +39,16 @@ def test_create_tenant(function_context, minio_client, api_instance, rbac_api_in
 
 
 def test_not_create_tenant_already_exists(tenant, minio_client, api_instance):
-    headers = DEFAULT_HEADERS
     data = {
         'name': TENANT_NAME,
         'cert': CERT,
         'scope': SCOPE_NAME,
         'quota': QUOTA,
     }
-
     url = TENANTS_MANAGEMENT_API_URL
 
     data['quota']['limits.cpu'] = '3'
-    response = requests.post(url, data=json.dumps(data), headers=headers)
+    response = requests.post(url, data=json.dumps(data), headers=ADMIN_HEADERS)
     data['quota'].pop('maxEndpoints')
 
     assert response.text == """{"title": "Tenant """ + TENANT_NAME + """ already exists"}"""
@@ -66,12 +64,9 @@ def test_not_create_tenant_already_exists(tenant, minio_client, api_instance):
 @pytest.mark.parametrize("wrong_body, expected_error, expected_message", WRONG_BODIES)
 def test_not_create_tenant_improper_body(wrong_body, expected_error, expected_message,
                                          minio_client, api_instance):
-    headers = DEFAULT_HEADERS
     data = json.dumps(wrong_body)
-
     url = TENANTS_MANAGEMENT_API_URL
-
-    response = requests.post(url, data=data, headers=headers)
+    response = requests.post(url, data=data, headers=ADMIN_HEADERS)
 
     assert expected_error == response.status_code
     assert expected_message in response.text
@@ -90,10 +85,8 @@ def test_not_create_tenant_with_wrong_cert(wrong_cert, expected_error, minio_cli
         'name': TENANT_NAME,
         'quota': QUOTA,
     })
-
     url = TENANTS_MANAGEMENT_API_URL
-
-    response = requests.post(url, data=data, headers=DEFAULT_HEADERS)
+    response = requests.post(url, data=data, headers=ADMIN_HEADERS)
     assert expected_error in response.text
     assert response.status_code == 400
     assert check_bucket_existence(minio_client,
@@ -106,7 +99,6 @@ def test_not_create_tenant_with_wrong_cert(wrong_cert, expected_error, minio_cli
 @pytest.mark.parametrize("quota_wrong_values, expected_error", QUOTA_WRONG_VALUES)
 def test_not_create_tenant_wrong_quota(quota_wrong_values,
                                        expected_error, minio_client, api_instance):
-    headers = DEFAULT_HEADERS
     data = json.dumps({
         'name': TENANT_NAME,
         'cert': CERT,
@@ -114,7 +106,7 @@ def test_not_create_tenant_wrong_quota(quota_wrong_values,
         'quota': quota_wrong_values,
     })
     url = TENANTS_MANAGEMENT_API_URL
-    response = requests.post(url, data=data, headers=headers)
+    response = requests.post(url, data=data, headers=ADMIN_HEADERS)
 
     assert expected_error.format(QUOTA_REGEX) in response.text
     assert response.status_code == 400
@@ -133,8 +125,7 @@ def test_portable_secrets_propagation_succeeded(function_context, minio_client, 
     })
 
     url = TENANTS_MANAGEMENT_API_URL
-
-    requests.post(url, data=data, headers=DEFAULT_HEADERS)
+    requests.post(url, data=data, headers=ADMIN_HEADERS)
     function_context.add_object(object_type='tenant', object_to_delete={'name': TENANT_NAME})
 
     assert check_bucket_existence(minio_client,
@@ -164,12 +155,11 @@ def test_delete_tenant(minio_client, api_instance):
         'name': new_tenant_name,
         'quota': QUOTA,
     })
-
-    requests.post(url, data=data, headers=DEFAULT_HEADERS)
+    requests.post(url, data=data, headers=ADMIN_HEADERS)
     data = json.dumps({
         'name': new_tenant_name,
     })
-    response = requests.delete(url, data=data, headers=DEFAULT_HEADERS)
+    response = requests.delete(url, data=data, headers=ADMIN_HEADERS)
     assert response.text == 'Tenant {} deleted\n'.format(new_tenant_name)
     assert response.status_code == 200
 

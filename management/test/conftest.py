@@ -1,12 +1,21 @@
 from falcon import testing
 import pytest
-from management_api.main import app
+from management_api.main import create_app
 from unittest.mock import Mock
+from test_utils.auth_middleware_mock import AuthMiddlewareMock
+from unittest import mock
 
 
 @pytest.fixture(scope='session')
 def client():
-    return testing.TestClient(app)
+    with mock.patch('management_api.main.AuthMiddleware') as middleware:
+        middleware.return_value = AuthMiddlewareMock()
+        return testing.TestClient(create_app())
+
+
+@pytest.fixture(scope='session')
+def client_with_auth():
+    return testing.TestClient(create_app())
 
 
 @pytest.fixture(scope='function')

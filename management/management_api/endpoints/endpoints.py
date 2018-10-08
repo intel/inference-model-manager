@@ -4,27 +4,27 @@ from falcon.media.validators import jsonschema
 from management_api.config import RequiredParameters
 from management_api.utils.logger import get_logger
 from management_api.utils.parse_request import get_body, get_params
+from management_api.authenticate import get_namespace
+
 from management_api.endpoints.endpoint_utils import create_endpoint, delete_endpoint, \
     scale_endpoint, update_endpoint, view_endpoint, list_endpoints
+
 from management_api.schemas.loadschema import endpoint_post_schema, endpoint_delete_schema
+
 
 logger = get_logger(__name__)
 
 
 class Endpoints(object):
     def on_get(self, req, resp):
-        """Handles GET requests"""
-        # TODO This needs to be replaced with the logic to obtain namespace out of JWT token
-        namespace = req.get_header('Authorization')
+        namespace = get_namespace(req)
         endpoints = list_endpoints(namespace)
         resp.status = falcon.HTTP_200
         resp.body = endpoints
 
     @jsonschema.validate(endpoint_post_schema)
     def on_post(self, req, resp):
-        """Handles POST requests"""
-        # TODO This needs to be replaced with the logic to obtain namespace out of JWT token
-        namespace = req.get_header('Authorization')
+        namespace = get_namespace(req)
         body = get_body(req)
         endpoint_url = create_endpoint(parameters=body, namespace=namespace)
         resp.status = falcon.HTTP_200
@@ -32,9 +32,7 @@ class Endpoints(object):
 
     @jsonschema.validate(endpoint_delete_schema)
     def on_delete(self, req, resp):
-        """Handles DELETE requests"""
-        # TODO This needs to be replaced with the logic to obtain namespace out of JWT token
-        namespace = req.get_header('Authorization')
+        namespace = get_namespace(req)
         body = get_body(req)
         endpoint_url = delete_endpoint(parameters=body, namespace=namespace)
         resp.status = falcon.HTTP_200
@@ -47,9 +45,7 @@ class EndpointPatch(object):
         pass
 
     def on_patch(self, req, resp, endpoint_name):
-        """Handles PATCH requests"""
-        # TODO This needs to be replaced with the logic to obtain namespace out of JWT token
-        namespace = req.get_header('Authorization')
+        namespace = get_namespace(req)
         body = get_body(req)
         get_params(body, required_keys=self.required_parameters)
         body['endpointName'] = endpoint_name
@@ -77,8 +73,7 @@ class EndpointUpdate(EndpointPatch):
 
 class EndpointView(object):
     def on_get(self, req, resp, endpoint_name):
-        # TODO This needs to be replaced with the logic to obtain namespace out of JWT token
-        namespace = req.get_header('Authorization')
+        namespace = get_namespace(req)
         endpoint = view_endpoint(endpoint_name=endpoint_name, namespace=namespace)
         resp.status = falcon.HTTP_200
         resp.body = endpoint

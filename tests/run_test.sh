@@ -2,7 +2,13 @@
 
 MANAGEMENT_IP=`kubectl get svc -l "run=management-api" -o "jsonpath={$.items[0].status.loadBalancer.ingress[0].ip}"`
 export MANAGEMENT_API_URL='http://'"${MANAGEMENT_IP}"':5000'
-echo $MANAGEMENT_API_URL
+echo "URL FOR MANAGEMENT API: $MANAGEMENT_API_URL"
+
+DEX_SERVICE=`kubectl get svc|grep "\-dex   "| awk '{ print $1 }'`
+DEX_IP=`kubectl get svc "$DEX_SERVICE" -o "jsonpath={$.status.loadBalancer.ingress[0].ip}"`
+export DEX_URL='https://'"${DEX_IP}"':5554'
+echo "URL FOR DEX :  $DEX_URL"
+
 
 MINIO_SECRET_KEY=`kubectl get secret minio-access-info -o 'go-template={{index .data "minio.access_secret_key"}}' | base64 -d`
 echo $MINIO_SECRET_KEY

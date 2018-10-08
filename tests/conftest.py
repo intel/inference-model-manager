@@ -94,7 +94,7 @@ def minio_resource():
 
 
 @pytest.fixture(scope="function")
-def endpoint(function_context, tenant, get_k8s_custom_obj_client):
+def tenant_with_endpoint(function_context, tenant, get_k8s_custom_obj_client):
     namespace, _ = tenant
     metadata = {"name": "predict"}
     resources = transform_quota(ENDPOINT_RESOURCES)
@@ -149,22 +149,22 @@ def tenant(api_instance, minio_client, function_context):
 
 @pytest.fixture(scope="session")
 def fake_tenant():
-    name = TENANT_NAME + '-fake'
+    name = "andrzej" # USER1_HEADERS contain token for andrzej user with scope andrzej
     quota = {}
     return name, quota
 
 
 @pytest.fixture(scope="function")
-def empty_endpoint(tenant):
-    return create_dummy_endpoint(tenant)
+def empty_tenant(tenant):
+    return create_dummy_tenant(tenant)
 
 
 @pytest.fixture(scope="function")
 def fake_tenant_endpoint(fake_tenant):
-    return create_dummy_endpoint(fake_tenant)
+    return create_dummy_tenant(fake_tenant)
 
 
-def create_dummy_endpoint(tenant):
+def create_dummy_tenant(tenant):
     name, _ = tenant
     body = {}
     return name, body

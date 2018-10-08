@@ -8,5 +8,5 @@ WORKDIR /management
 
 RUN pip install .
 
-ENTRYPOINT gunicorn -w $WORKERS -k gevent -b $HOSTNAME:$PORT management_api.main:app
+ENTRYPOINT gunicorn -w $WORKERS -k gevent -b $HOSTNAME:$PORT management_api.runner:app
 

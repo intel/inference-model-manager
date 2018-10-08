@@ -1,6 +1,6 @@
 import os
 
-TENANT_NAME = os.environ.get('E2E_TENANT_NAME', 'e2etenant')
+TENANT_NAME = os.environ.get('E2E_TENANT_NAME', 'test')
 MODEL_NAME = os.environ.get('E2E_MODEL_NAME', 'e2emodel')
 
 RESNET_BUCKET = os.environ.get('E2E_RESNET_BUCKET', 'bucket-model')

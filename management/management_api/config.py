@@ -27,6 +27,8 @@ class AuthParameters:
     CLIENT_SECRET = os.getenv('AUTH_CLIENT_SECRET', 'ZXhhbXBsZS1hcHAtc2VjcmV0')
     TOKEN_PATH = os.getenv('AUTH_TOKEN_PATH', '/dex/token')
     AUTH_PATH = os.getenv('AUTH_TOKEN_PATH', '/dex/auth')
+    ADMIN_SCOPE = os.getenv('ADMIN_SCOPE', 'admin')
+    SYSTEM_NAMESPACE = os.getenv('SYSTEM_NAMESPACE', 'default')
 
 
 # CRD DEFINITIONS:

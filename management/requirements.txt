@@ -11,3 +11,4 @@ gevent==1.3.5
 gunicorn==19.9.0
 retrying==1.3.3
 requests_oauthlib==1.0.0
+jwt==0.5.4

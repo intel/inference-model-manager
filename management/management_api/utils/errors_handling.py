@@ -1,11 +1,11 @@
 import falcon
+import traceback
 from management_api.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
 
 class ManagementApiException(Exception):
-
     @staticmethod
     def handler(ex, req, resp, params):
         logger.error(str(ex))
@@ -140,10 +140,21 @@ custom_errors = [ManagementApiException, KubernetesCallException, KubernetesDele
 
 
 def default_exception_handler(ex, req, resp, params):
+
     if hasattr(ex, 'title') and "Failed data validation" in ex.title:
         JsonSchemaException(ex)
     message = "Unexpected error occurred: {}".format(ex)
     logger.error(message + "\nRequest: {}  Params: {}".format(req, params))
+
+    if isinstance(ex, falcon.HTTPUnauthorized):
+        raise ex
+
+    if isinstance(ex, falcon.HTTPForbidden):
+        raise ex
+
+    stacktrace = traceback.format_exc()
+    logger.error(stacktrace)
+
     raise falcon.HTTPInternalServerError(message)
 
 

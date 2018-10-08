@@ -6,13 +6,12 @@ from management_api.config import RequiredParameters
 from management_api.utils.errors_handling import TenantDoesNotExistException
 from management_api.upload.multipart_utils import create_upload, get_key, complete_upload, \
     upload_part
+from management_api.authenticate import get_namespace
 
 
 class StartMultiModel(object):
     def on_post(self, req, resp):
-        """Handles POST requests"""
-        # TODO This needs to be replaced with the logic to obtain namespace out of JWT token
-        namespace = req.get_header('Authorization')
+        namespace = get_namespace(req)
         body = get_body(req)
         get_params(body, required_keys=RequiredParameters.MULTIPART_START)
         key = get_key(body)
@@ -26,9 +25,7 @@ class StartMultiModel(object):
 
 class WriteMultiModel(object):
     def on_put(self, req, resp):
-        """Handles PUT requests"""
-        # TODO This needs to be replaced with the logic to obtain namespace out of JWT token
-        namespace = req.get_header('Authorization')
+        namespace = get_namespace(req)
         get_params(req.params, required_keys=RequiredParameters.MULTIPART_WRITE)
         multipart_id = req.get_param('uploadId')
         part_number = req.get_param('partNumber')
@@ -46,9 +43,7 @@ class WriteMultiModel(object):
 
 class FinishMultiModel(object):
     def on_post(self, req, resp):
-        """Handles POST requests"""
-        # TODO This needs to be replaced with the logic to obtain namespace out of JWT token
-        namespace = req.get_header('Authorization')
+        namespace = get_namespace(req)
         body = get_body(req)
         get_params(body, required_keys=RequiredParameters.MULTIPART_DONE)
         key = get_key(body)

@@ -1,6 +1,8 @@
 import os
 import urllib.parse
 from enum import Enum
+from management_api_tests.authenticate import get_user_token, get_admin_token, \
+    get_token
 
 MINIO_ACCESS_KEY_ID = os.environ.get('MINIO_ACCESS_KEY',
                                      'AKIAIOSFODNN7EXAMPLE')
@@ -13,7 +15,25 @@ PORTABLE_SECRETS_PATHS = ['default/minio-access-info', 'default/tls-secret']
 
 DEFAULT_HEADERS = {
     'accept': 'application/json',
-    'Authorization': 'default',
+    'Authorization': get_user_token(),
+    'Content-Type': 'application/json',
+}
+
+ADMIN_HEADERS = {
+    'accept': 'application/json',
+    'Authorization': get_admin_token(),
+    'Content-Type': 'application/json',
+}
+
+USER1_HEADERS = {
+    'accept': 'application/json',
+    'Authorization': get_token("andrzej"),
+    'Content-Type': 'application/json',
+}
+
+USER2_HEADERS = {
+    'accept': 'application/json',
+    'Authorization': get_token("janusz"),
     'Content-Type': 'application/json',
 }
 
@@ -28,6 +48,7 @@ JANE = {'login': "janedoe@example.com", 'password': "foo"}
 
 # Credentials for Joe which belongs in default group
 JOE = {'login': "johndoe@example.com", 'password': "bar"}
+
 
 MANAGEMENT_API_URL = os.environ.get('MANAGEMENT_API_URL', 'http://127.0.0.1:5000')
 TENANTS_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants')
@@ -199,33 +220,11 @@ TENANT_RESOURCES = {'limits.cpu': '2', 'limits.memory': '2Gi', 'requests.cpu': '
 ENDPOINT_RESOURCES = {'limits.cpu': '200m', 'limits.memory': '200Mi', 'requests.cpu': '100m',
                       'requests.memory': '100Mi'}
 
-QUOTA_INCOMPLIANT_VALUES = [
-    ({}, "No resources provided"),
-    ({'requests.cpu': '1'}, "Missing resources values"),
-]
-FAILING_UPDATE_PARAMS = [
-    ("wrong_auth", "predict", {'modelName': 'super-model', 'modelVersion': 3}, "Not Found"),
-    (TENANT_NAME, "wrong_name", {'modelName': 'super-model', 'modelVersion': 3}, "Not Found"),
-    (TENANT_NAME, "predict", {'modelName': 0, 'modelVersion': 3}, "Unprocessable Entity"),
-    (TENANT_NAME, "predict", {'modelName': 'super-model', 'modelVersion': "str"},
-     "Unprocessable Entity"),
-    (TENANT_NAME, "predict", {'modelVersion': 3}, "modelName parameter required"),
-    (TENANT_NAME, "predict", {'modelName': 'super-model'}, "modelVersion parameter required"),
-]
-
 CORRECT_UPDATE_QUOTAS = [
     {'modelName': 'new-name', 'modelVersion': 2},
     {'modelName': 'new-name', 'modelVersion': 2, 'resources':
         {'limits.cpu': '500m', 'limits.memory': '500Mi', 'requests.cpu': '200m',
          'requests.memory': '200Mi'}}
-]
-
-FAILING_SCALE_PARAMS = [
-    ("wrong_auth", "predict", {'replicas': 3}, "Not Found"),
-    (TENANT_NAME, "wrong_name", {'replicas': 3}, "Not Found"),
-    (TENANT_NAME, "predict", {'replicas': -1}, "Unprocessable Entity"),
-    (TENANT_NAME, "predict", {'replicas': "many"}, "Unprocessable Entity"),
-    (TENANT_NAME, "predict", {}, "replicas parameter required"),
 ]
 
 RESOURCE_NOT_FOUND = 404
