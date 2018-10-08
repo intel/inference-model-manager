@@ -38,6 +38,8 @@ config:
         nameAttr: cn
         username: mail
       usernamePrompt: "Email Address"
+  oauth2:
+      skipApprovalScreen: true
   staticClients:
   - id: example-app
     redirectURIs:
