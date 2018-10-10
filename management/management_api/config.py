@@ -64,6 +64,7 @@ class RequiredParameters:
     MULTIPART_START = ['modelName', 'modelVersion']
     MULTIPART_WRITE = ['partNumber', 'uploadId', 'modelName', 'modelVersion']
     MULTIPART_DONE = ['modelName', 'modelVersion', 'multipartId']
+    MULTIPART_ABORT = ['modelName', 'modelVersion', 'multipartId']
 
 
 # To edit this object please first use deep copy

@@ -5,7 +5,7 @@ from management_api.tenants.tenants_utils import tenant_exists
 from management_api.config import RequiredParameters
 from management_api.utils.errors_handling import TenantDoesNotExistException
 from management_api.upload.multipart_utils import create_upload, get_key, complete_upload, \
-    upload_part
+    upload_part, abort_upload
 from management_api.authenticate import get_namespace
 
 
@@ -41,7 +41,7 @@ class WriteMultiModel(object):
                                                                              multipart_id)
 
 
-class FinishMultiModel(object):
+class CompleteMultiModel(object):
     def on_post(self, req, resp):
         namespace = get_namespace(req)
         body = get_body(req)
@@ -53,3 +53,17 @@ class FinishMultiModel(object):
         complete_upload(bucket=namespace, key=key, multipart_id=body['multipartId'])
         resp.status = falcon.HTTP_200
         resp.body = 'Multipart ID: {} finished'.format(body['multipartId'])
+
+
+class AbortMultiModel(object):
+    def on_post(self, req, resp):
+        namespace = get_namespace(req)
+        body = get_body(req)
+        get_params(body, required_keys=RequiredParameters.MULTIPART_ABORT)
+        key = get_key(body)
+        if not tenant_exists(namespace):
+            raise TenantDoesNotExistException(tenant_name=namespace)
+
+        abort_upload(bucket=namespace, key=key, multipart_id=body['multipartId'])
+        resp.status = falcon.HTTP_200
+        resp.body = f"Multipart ID: {body['multipartId']} aborted"

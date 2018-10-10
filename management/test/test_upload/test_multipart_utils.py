@@ -1,7 +1,8 @@
 import pytest
 from botocore.exceptions import ClientError
 
-from management_api.upload.multipart_utils import create_upload, upload_part, complete_upload
+from management_api.upload.multipart_utils import create_upload, upload_part, complete_upload, \
+    abort_upload
 from management_api.utils.errors_handling import MinioCallException
 
 
@@ -60,3 +61,20 @@ def test_complete_upload(mocker, raise_exception):
         complete_upload(bucket=bucket, key=key, multipart_id=multipart_id)
 
     complete_upload_mock.assert_called_once()
+
+
+@pytest.mark.parametrize("raise_exception", [True, False])
+def test_abort_upload(mocker, raise_exception):
+    bucket = "test"
+    key = "test-file"
+    multipart_id = "some-id"
+    abort_upload_mock = mocker.patch('management_api.upload.multipart_utils.minio_client.'
+                                     'abort_multipart_upload')
+    if raise_exception:
+        with pytest.raises(MinioCallException):
+            abort_upload_mock.side_effect = ClientError(operation_name="test", error_response={})
+            abort_upload(bucket=bucket, key=key, multipart_id=multipart_id)
+    else:
+        abort_upload(bucket=bucket, key=key, multipart_id=multipart_id)
+
+    abort_upload_mock.assert_called_once()
