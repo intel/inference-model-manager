@@ -13,3 +13,5 @@ tenant_delete_schema = load_schema('management_api/schemas/tenant_delete_schema.
 
 endpoint_post_schema = load_schema('management_api/schemas/endpoint_post_schema.json')
 endpoint_delete_schema = load_schema('management_api/schemas/endpoint_delete_schema.json')
+
+model_delete_schema = load_schema('management_api/schemas/model_delete_schema.json')

@@ -59,6 +59,7 @@ ENDPOINT_MANAGEMENT_API_URL_VIEW = ENDPOINT_MANAGEMENT_API_URL + "/{endpoint_nam
 START_MULTIPART_UPLOAD_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'upload/start')
 AUTH_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'authenticate')
 TOKEN_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'authenticate/token')
+MODEL_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'models')
 
 TENANT_NAME = os.environ.get('TENANT_NAME', 'test')
 

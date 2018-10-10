@@ -20,6 +20,7 @@ from management_api_tests.reused import propagate_portable_secrets, transform_qu
 def configuration():
     return config.load_kube_config()
 
+
 @pytest.fixture(scope="session")
 def api_instance(configuration):
     return client.CoreV1Api(client.ApiClient(configuration))
@@ -98,9 +99,10 @@ def tenant_with_endpoint(function_context, tenant, get_k8s_custom_obj_client):
     namespace, _ = tenant
     metadata = {"name": "predict"}
     resources = transform_quota(ENDPOINT_RESOURCES)
+    model_name, model_version = 'resnet', 1
     spec = {
-        'modelName': 'resnet',
-        'modelVersion': 1,
+        'modelName': model_name,
+        'modelVersion': model_version,
         'endpointName': 'predict',
         'subjectName': 'client',
         'replicas': 1,
@@ -168,3 +170,30 @@ def create_dummy_tenant(tenant):
     name, _ = tenant
     body = {}
     return name, body
+
+
+@pytest.fixture(scope="function")
+def fake_endpoint(tenant):
+    namespace, _ = tenant
+    model_name, model_version = 'fake', 1
+    body = {'spec': {'modelName': model_name,
+                     'modelVersion': model_version}}
+    return namespace, body
+
+
+def create_empty_model(endpoint, minio_client):
+    namespace, body = endpoint
+    model_name, model_version = body['spec']['modelName'], body['spec']['modelVersion']
+    model_path = f'{model_name}-{model_version}/'
+    minio_client.put_object(Bucket=namespace, Body='', Key=model_path)
+    return namespace, body
+
+
+@pytest.fixture(scope="function")
+def endpoint_with_empty_model(tenant_with_endpoint, minio_client):
+    return create_empty_model(tenant_with_endpoint, minio_client)
+
+
+@pytest.fixture(scope="function")
+def fake_endpoint_with_empty_model(fake_endpoint, minio_client):
+    return create_empty_model(fake_endpoint, minio_client)

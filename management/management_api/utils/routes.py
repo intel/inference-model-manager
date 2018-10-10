@@ -2,6 +2,7 @@ from management_api.upload.multipart import StartMultiModel, FinishMultiModel, W
 from management_api.tenants import Tenants
 from management_api.endpoints import Endpoints, EndpointScale, EndpointUpdate, EndpointView
 from management_api.authenticate import Authenticate, Token
+from management_api.models import Models
 
 routes = [
     dict(resource=Tenants(), url='/tenants'),
@@ -14,7 +15,7 @@ routes = [
     dict(resource=FinishMultiModel(), url='/upload/done'),
     dict(resource=Authenticate(), url='/authenticate'),
     dict(resource=Token(), url='/authenticate/token'),
-
+    dict(resource=Models(), url='/models'),
 ]
 
 

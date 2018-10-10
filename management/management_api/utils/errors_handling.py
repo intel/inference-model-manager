@@ -103,6 +103,18 @@ class EndpointDoesNotExistException(ManagementApiException):
         raise falcon.HTTPNotFound(description=message)
 
 
+class ModelDoesNotExistException(ManagementApiException):
+    def __init__(self, model_name):
+        super().__init__()
+        self.model_name = model_name
+
+    @staticmethod
+    def handler(ex, req, resp, params):
+        message = f"Model {ex.model_name} does not exist"
+        logger.error(message)
+        raise falcon.HTTPNotFound(description=message)
+
+
 class InvalidParamException(ManagementApiException):
     def __init__(self, param, error_message, validity_rules_message=None):
         super().__init__(error_message)
@@ -132,11 +144,23 @@ class JsonSchemaException(ManagementApiException):
         raise
 
 
+class ModelDeleteException(ManagementApiException):
+    def __init__(self, message):
+        super().__init__()
+        self.message = message
+
+    @staticmethod
+    def handler(ex, req, resp, params):
+        message = f"Model delete error: {ex.message}"
+        logger.error(message)
+        raise falcon.HTTPConflict(description=message)
+
+
 custom_errors = [ManagementApiException, KubernetesCallException, KubernetesDeleteException,
                  KubernetesCreateException, KubernetesGetException, KubernetesUpdateException,
                  MinioCallException, TenantAlreadyExistsException, TenantDoesNotExistException,
                  InvalidParamException, MissingTokenException, JsonSchemaException,
-                 EndpointDoesNotExistException]
+                 EndpointDoesNotExistException, ModelDeleteException, ModelDoesNotExistException]
 
 
 def default_exception_handler(ex, req, resp, params):
