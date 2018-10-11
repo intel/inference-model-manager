@@ -32,10 +32,10 @@ class AuthParameters:
 
 
 # CRD DEFINITIONS:
-CRD_GROUP = 'intel.com'
+CRD_GROUP = 'aipg.intel.com'
 CRD_VERSION = 'v1'
 CRD_PLURAL = 'servers'
-CRD_API_VERSION = 'intel.com/v1'
+CRD_API_VERSION = 'aipg.intel.com/v1'
 CRD_KIND = 'Server'
 
 ING_NAME = 'ingress-nginx'

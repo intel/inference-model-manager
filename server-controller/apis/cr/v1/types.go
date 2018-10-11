@@ -27,7 +27,7 @@ import (
 )
 
 // GroupName is the group name used in this package.
-const GroupName = "intel.com"
+const GroupName = "aipg.intel.com"
 
 const Version = "v1"
 

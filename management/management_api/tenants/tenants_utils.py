@@ -224,7 +224,7 @@ def create_role(name):
                                         verbs=["create", "list", "get", "delete"])
     deployment_rules = client.V1PolicyRule(api_groups=[""], resources=["deployments"],
                                            verbs=["create", "list", "get", "delete"])
-    server_rules = client.V1PolicyRule(api_groups=["intel.com"], resources=["servers"],
+    server_rules = client.V1PolicyRule(api_groups=["aipg.intel.com"], resources=["servers"],
                                        verbs=["create", "get", "delete", "patch"])
     role = client.V1Role(api_version=api_version, metadata=meta,
                          rules=[service_rules, ingress_rules, deployment_rules, server_rules])

@@ -56,6 +56,6 @@ Server-controller will spin new deployment, service and ingress record for you.
 
 ### Resources removal
 In order to remove all resources that sums up to your Tensorflow Serving instance just remove CRD resource you introduced:
-```kubectl delete servers.intel.com my-super-server```
+```kubectl delete servers.aipg.intel.com my-super-server```
 
 

@@ -17,7 +17,7 @@
     "pkg/states",
     "pkg/util"
   ]
-  revision = "2a63e246bb31474960187174ef77e4893b99ac49"
+  revision = "96cff2ce7887101654396b203b4f1a48d488e8d6"
 
 [[projects]]
   name = "github.com/PuerkitoBio/purell"

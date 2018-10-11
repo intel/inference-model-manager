@@ -12,7 +12,7 @@ rules:
 - apiGroups: [""]
   resources: ["secrets", "resourcequotas"]
   verbs: ["create", "list", "get"]
-- apiGroups: ["intel.com"]
+- apiGroups: ["aipg.intel.com"]
   resources: ["servers"]
   verbs: ["create", "delete", "get", "patch"]
 - apiGroups: ["rbac.authorization.k8s.io"]
