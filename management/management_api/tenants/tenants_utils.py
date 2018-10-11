@@ -2,8 +2,7 @@ import falcon
 from botocore.exceptions import ClientError
 from kubernetes import client
 from kubernetes.client.rest import ApiException
-from retrying import retry
-
+from tenacity import retry, stop_after_attempt, wait_fixed
 from management_api.config import CERT_SECRET_NAME, PORTABLE_SECRETS_PATHS, \
     minio_client, minio_resource, RESOURCE_DOES_NOT_EXIST, \
     NAMESPACE_BEING_DELETED, NO_SUCH_BUCKET_EXCEPTION, TERMINATION_IN_PROGRESS
@@ -106,7 +105,7 @@ def create_resource_quota(name, quota):
     return response
 
 
-@retry(stop_max_attempt_number=5, wait_fixed=2000)
+@retry(stop=stop_after_attempt(5), wait=wait_fixed(2))
 def delete_bucket(name):
     response = 'Bucket {} does not exist'.format(name)
     existed = True
@@ -126,7 +125,7 @@ def delete_bucket(name):
     return response
 
 
-@retry(stop_max_attempt_number=5, wait_fixed=2000)
+@retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
 def delete_namespace(name):
     body = client.V1DeleteOptions()
     response = 'Namespace {} does not exist'.format(name)

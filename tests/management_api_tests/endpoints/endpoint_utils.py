@@ -1,6 +1,6 @@
 from time import sleep
 
-from retrying import retry
+from tenacity import retry, stop_after_attempt
 
 from management_api_tests.config import CRD_GROUP, CRD_PLURAL, CRD_VERSION, CheckResult, \
     RESOURCE_NOT_FOUND, OperationStatus
@@ -105,7 +105,7 @@ def check_server_update_result(api_instance, namespace, endpoint_name, new_value
     return CheckResult.CONTENTS_MATCHING
 
 
-@retry(stop_max_attempt_number=50)
+@retry(stop=stop_after_attempt(50))
 def wait_server_setup(api_instance, namespace, endpoint_name, replicas):
     sleep(2)
     try:

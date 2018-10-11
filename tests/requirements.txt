@@ -7,5 +7,5 @@ kubernetes
 utils
 boto3
 botocore
-retrying
+tenacity
 beautifulsoup4==4.6.3

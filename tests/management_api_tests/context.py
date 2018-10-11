@@ -1,4 +1,4 @@
-from retrying import retry
+from tenacity import retry, stop_after_attempt, wait_fixed
 import logging
 from kubernetes import client
 
@@ -67,7 +67,7 @@ class Context(object):
             logging.info('Tenant {} deletion timeout.'.format(object_to_delete['name']))
         return OperationStatus.SUCCESS
 
-    @retry(stop_max_attempt_number=3, wait_fixed=2000)
+    @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
     def _delete_crd_server(self, object_to_delete):
         delete_body = client.V1DeleteOptions()
         try:
@@ -87,7 +87,7 @@ class Context(object):
             logging.info('CRD {} deletion timeout.'.format(object_to_delete['name']))
         return response
 
-    @retry(stop_max_attempt_number=100, wait_fixed=2000)
+    @retry(stop=stop_after_attempt(100), wait=wait_fixed(2))
     def _wait_server_deletion(self, object_to_delete):
         server_status = check_server_existence(
             self.k8s_client_custom, object_to_delete['namespace'], object_to_delete['name'])
@@ -104,7 +104,7 @@ class Context(object):
             return OperationStatus.SUCCESS
         raise Exception
 
-    @retry(stop_max_attempt_number=100, wait_fixed=2000)
+    @retry(stop=stop_after_attempt(100), wait=wait_fixed(2))
     def _wait_tenant_deletion(self, name):
         bucket_status = check_bucket_existence(self.minio_client, name)
         namespace_status = check_namespace_availability(self.k8s_client_api, name)

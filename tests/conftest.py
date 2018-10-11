@@ -1,7 +1,7 @@
 import boto3
 import pytest
 import requests
-from retrying import retry
+from tenacity import retry, stop_after_attempt, wait_fixed
 from bs4 import BeautifulSoup
 from botocore.client import Config
 from kubernetes import config, client
@@ -117,7 +117,7 @@ def tenant_with_endpoint(function_context, tenant, get_k8s_custom_obj_client):
     return namespace, body
 
 
-@retry(stop_max_attempt_number=3, wait_fixed=200)
+@retry(stop=stop_after_attempt(3), wait=wait_fixed(0.2))
 def get_all_pods_in_namespace(k8s_client, namespace, label_selector=''):
     try:
         api_response = k8s_client.list_namespaced_pod(namespace=namespace,
