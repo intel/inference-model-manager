@@ -151,7 +151,7 @@ def tenant(api_instance, minio_client, function_context):
 
 @pytest.fixture(scope="session")
 def fake_tenant():
-    name = "andrzej" # USER1_HEADERS contain token for andrzej user with scope andrzej
+    name = "andrzej"  # USER1_HEADERS contain token for andrzej user with scope andrzej
     quota = {}
     return name, quota
 

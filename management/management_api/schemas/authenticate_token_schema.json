@@ -1,0 +1,25 @@
+{
+  "type": "object",
+  "title": "Authenticate token endpoint",
+  "oneOf": [{
+    "required": [
+      "code"
+    ]
+  },
+    {
+      "required": [
+        "refresh_token"
+      ]
+    }
+  ],
+  "properties": {
+    "code": {
+      "type": "string",
+      "title": "auth code"
+    },
+    "refresh_token": {
+      "type": "string",
+      "title": "refresh token"
+    }
+  }
+}

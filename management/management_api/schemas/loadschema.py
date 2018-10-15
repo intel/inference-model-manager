@@ -15,3 +15,5 @@ endpoint_post_schema = load_schema('management_api/schemas/endpoint_post_schema.
 endpoint_delete_schema = load_schema('management_api/schemas/endpoint_delete_schema.json')
 
 model_delete_schema = load_schema('management_api/schemas/model_delete_schema.json')
+
+authenticate_token_schema = load_schema('management_api/schemas/authenticate_token_schema.json')

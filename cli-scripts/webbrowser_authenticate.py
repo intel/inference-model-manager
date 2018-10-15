@@ -127,7 +127,7 @@ def parse_args():
 
 def main():
     args = parse_args()
-    config_path = getenv('INFERNO_CONFIG', join(expanduser("~"), '.inferno'))
+    config_file_path = getenv('INFERNO_CONFIG_PATH', join(expanduser("~"), '.inferno'))
     auth_url = get_dex_auth_url(address=args.address, port=args.port)
     auth_url_with_refresh_token = enable_getting_refresh_token(auth_url)
 
@@ -137,11 +137,10 @@ def main():
 
     run_server(redirect_port, auth_url_with_refresh_token)
     print('Code recieved, waiting for token.')
-    dex_url = urlunparse((auth_url_unparsed.scheme, auth_url_unparsed.netloc, '', '', '', ''))
     token = get_dex_auth_token(address=args.address, port=args.port, auth_code=code)
-    token.update({'dex_url': dex_url})
-    save_to_file(config_path, token)
-    print("Your token and refresh token are available in file: {}".format(config_path))
+    token.update({'management_api_address': args.address, 'management_api_port': args.port})
+    save_to_file(config_file_path, token)
+    print("Your token and refresh token are available in file: {}".format(config_file_path))
 
 
 if __name__ == '__main__':

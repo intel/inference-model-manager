@@ -13,8 +13,9 @@ def test_get_auth_controller_url(external_svc_auth_controller):
     external_ip_port_mock.assert_called_once()
 
 
-@pytest.mark.parametrize("raise_error", [(False), (True)])
-def test_get_token(mocker, external_svc_auth_controller, raise_error):
+@pytest.mark.parametrize("case", [('fetch_token'), ('fetch_token_exc'), ('refresh_token'),
+                                  ('refresh_token_exc')])
+def test_get_token(mocker, external_svc_auth_controller, case):
     oauth_session = Mock()
     create_custom_client_mock = mocker.patch('management_api.authenticate.auth_controller.'
                                              'OAuth2Session')
@@ -22,16 +23,29 @@ def test_get_token(mocker, external_svc_auth_controller, raise_error):
 
     create_custom_client_mock, external_ip_port_mock = external_svc_auth_controller
     external_ip_port_mock.return_value = ['127.0.0.1', 1234]
-    if raise_error:
+    if case == 'fetch_token_exc':
         oauth_session.fetch_token.side_effect = Exception()
         with pytest.raises(Exception):
-            get_token(auth_code='test')
-    else:
+            get_token(parameters={'code': 'test'})
+    elif case == 'fetch_token':
         returned_message = {'token': 'test'}
         oauth_session.fetch_token.return_value = returned_message
-        output = get_token(auth_code='test')
+        output = get_token(parameters={'code': 'test'})
         assert returned_message == output
-    oauth_session.fetch_token.assert_called_once()
+    elif case == 'refresh_token':
+        returned_message = {'token': 'test'}
+        oauth_session.refresh_token.return_value = returned_message
+        output = get_token(parameters={'refresh_token': 'test'})
+        assert returned_message == output
+    else:
+        oauth_session.refresh_token.side_effect = Exception()
+        with pytest.raises(Exception):
+            get_token(parameters={'refresh_token': 'test'})
+
+    if 'refresh' in case:
+        oauth_session.refresh_token.assert_called_once()
+    else:
+        oauth_session.fetch_token.assert_called_once()
     create_custom_client_mock.assert_called_once()
     external_ip_port_mock.assert_called_once()
     create_custom_client_mock.assert_called_once()

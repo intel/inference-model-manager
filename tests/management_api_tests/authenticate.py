@@ -20,12 +20,12 @@ client_secret = 'ZXhhbXBsZS1hcHAtc2VjcmV0'
 
 # Requests authentication form provided by dex.
 # Path and parameters need to be scrapped from "action" attribute of form tag.
-def authenticate(username, password):
+def authenticate(username, password, token=True):
     params = {
         'client_id': 'example-app',
         'redirect_uri': redirect_uri,
         'response_type': 'code',
-        'scope': 'groups openid email',
+        'scope': 'groups openid email offline_access',
         }
     resp = requests.get(urljoin(dex_baseurl, '/dex/auth'), params=params,
                         verify=False)
@@ -57,12 +57,14 @@ def authenticate(username, password):
     auth_code = parse_qs(query)['code'][0]
 
     # Exchanges id_token with authorization code.
+    if token:
+        oauth = OAuth2Session(client_id, redirect_uri=redirect_uri)
+        token = oauth.fetch_token(urljoin(dex_baseurl, '/dex/token'),
+                                  code=auth_code, verify=False,
+                                  client_secret=client_secret)
+        return token
 
-    oauth = OAuth2Session(client_id, redirect_uri=redirect_uri)
-    token = oauth.fetch_token(urljoin(dex_baseurl, '/dex/token'),
-                              code=auth_code, verify=False,
-                              client_secret=client_secret)
-    return token['id_token']
+    return auth_code
 
 
 user_token = None

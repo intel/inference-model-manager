@@ -15,25 +15,25 @@ PORTABLE_SECRETS_PATHS = ['default/minio-access-info', 'default/tls-secret']
 
 DEFAULT_HEADERS = {
     'accept': 'application/json',
-    'Authorization': get_user_token(),
+    'Authorization': get_user_token()['id_token'],
     'Content-Type': 'application/json',
 }
 
 ADMIN_HEADERS = {
     'accept': 'application/json',
-    'Authorization': get_admin_token(),
+    'Authorization': get_admin_token()['id_token'],
     'Content-Type': 'application/json',
 }
 
 USER1_HEADERS = {
     'accept': 'application/json',
-    'Authorization': get_token("andrzej"),
+    'Authorization': get_token("andrzej")['id_token'],
     'Content-Type': 'application/json',
 }
 
 USER2_HEADERS = {
     'accept': 'application/json',
-    'Authorization': get_token("janusz"),
+    'Authorization': get_token("janusz")['id_token'],
     'Content-Type': 'application/json',
 }
 

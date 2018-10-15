@@ -14,7 +14,8 @@ def test_authenticate_get(mocker, client):
 
 @pytest.mark.parametrize("body, expected_status",
                          [({'code': 'test'}, falcon.HTTP_OK),
-                          ({'modelName': 'wrong'}, falcon.HTTP_400)])
+                          ({'modelName': 'wrong'}, falcon.HTTP_400),
+                          ({'refresh_token': 'test'}, falcon.HTTP_OK)])
 def test_token_post(mocker, client, body, expected_status):
     get_token_mock = mocker.patch('management_api.authenticate.authenticate.get_token')
     get_token_mock.return_value = "test"

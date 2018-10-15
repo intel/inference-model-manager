@@ -30,15 +30,21 @@ def get_auth_controller_url():
     return url
 
 
-def get_token(auth_code: str):
+def get_token(parameters: dict):
     oauth = OAuth2Session(AuthParameters.CLIENT_ID, redirect_uri=AuthParameters.REDIRECT_URL)
-    api_instance = get_k8s_api_client()
-    ip, port = get_dex_external_ip(api_instance)
-    auth_controller_url = f'https://{ip}:{port}'
+    auth_controller_url = get_address_of_dex()
     try:
-        token = oauth.fetch_token(urljoin(auth_controller_url, AuthParameters.TOKEN_PATH),
-                                  code=auth_code, verify=False,
-                                  client_secret=AuthParameters.CLIENT_SECRET)
+        if 'code' in parameters:
+            token = oauth.fetch_token(urljoin(auth_controller_url, AuthParameters.TOKEN_PATH),
+                                      code=parameters['code'], verify=False,
+                                      client_secret=AuthParameters.CLIENT_SECRET)
+        elif 'refresh_token' in parameters:
+            extra = {'client_id': AuthParameters.CLIENT_ID,
+                     'client_secret': AuthParameters.CLIENT_SECRET}
+            token = oauth.refresh_token(urljoin(auth_controller_url, AuthParameters.TOKEN_PATH),
+                                        refresh_token=parameters['refresh_token'], verify=False,
+                                        **extra)
+
     except Exception as e:
         raise MissingTokenException(e)
 
@@ -46,9 +52,7 @@ def get_token(auth_code: str):
 
 
 def _get_keys_from_dex():
-    api_instance = get_k8s_api_client()
-    ip, port = get_dex_external_ip(api_instance)
-    auth_controller_url = f'https://{ip}:{port}'
+    auth_controller_url = get_address_of_dex()
     resp = requests.get(urljoin(auth_controller_url, "/dex/keys"), params=None, verify=False)
     data = json.loads(resp.text)
     keys = []
@@ -65,3 +69,10 @@ def _get_keys_from_dex():
 
 def get_keys_from_dex():
     return _get_keys_from_dex()
+
+
+def get_address_of_dex():
+    api_instance = get_k8s_api_client()
+    ip, port = get_dex_external_ip(api_instance)
+    auth_controller_url = f'https://{ip}:{port}'
+    return auth_controller_url
