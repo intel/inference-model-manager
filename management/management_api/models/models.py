@@ -15,4 +15,4 @@ class Models(object):
         body = get_body(req)
         response = delete_model(body, namespace)
         resp.status = falcon.HTTP_OK
-        resp.body = f'Model deleted: {response}'
+        resp.body = f'Model {response} deleted\n'

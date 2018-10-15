@@ -1,8 +1,7 @@
 import argparse
 from kubernetes.client.rest import ApiException
-from botocore.exceptions import ClientError
 
-from management_api.config import minio_resource, minio_client, RESOURCE_DOES_NOT_EXIST
+from management_api.config import minio_resource
 from management_api.utils.kubernetes_resources import get_k8s_apps_api_client
 from management_api.utils.errors_handling import KubernetesGetException, ModelDeleteException, \
     ModelDoesNotExistException, TenantDoesNotExistException
@@ -14,8 +13,10 @@ def delete_model(parameters: dict, namespace: str):
         raise TenantDoesNotExistException(namespace)
 
     model_path = f"{parameters['modelName']}-{parameters['modelVersion']}"
+    bucket = minio_resource.Bucket(name=namespace)
+    model_in_bucket = bucket.objects.filter(Prefix=model_path)
 
-    if not model_exists(namespace, model_path):
+    if not model_exists(model_in_bucket):
         raise ModelDoesNotExistException(model_path)
 
     apps_api_client = get_k8s_apps_api_client()
@@ -26,8 +27,10 @@ def delete_model(parameters: dict, namespace: str):
 
     endpoints_using_model(deployments, model_path)
 
-    response = minio_client.delete_object(Bucket=namespace, Key=model_path)
-    return response
+    for key in model_in_bucket:
+        key.delete()
+
+    return model_path
 
 
 def endpoints_using_model(deployments, model_path):
@@ -42,14 +45,10 @@ def endpoints_using_model(deployments, model_path):
         raise ModelDeleteException(f'model is used by endpoints: {endpoint_names}')
 
 
-def model_exists(namespace, model_path):
-    try:
-        minio_resource.Object(namespace, model_path + '/').load()
-    except ClientError as e:
-        if e.response['Error']['Code'] == str(RESOURCE_DOES_NOT_EXIST):
-            return False
-        else:
-            raise
+def model_exists(model):
+    model_keys = sum(1 for _ in model)
+    if model_keys == 0:
+        return False
     return True
 
 

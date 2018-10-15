@@ -46,51 +46,73 @@ helpers/get_minio_credentials.sh)
 	(`helm-deployment/charts/management-api-subchart/values.yaml`)
 	* `helm install .`
 	
-### example
-* create new tenant:
+### Examples
+
+#### Tenants
+Create tenant:
 ```
-curl -X POST "http://<management_api_address>:5000/tenants" -H "accept: application/json"-H "Authorization: '<token>'" -H "Content-Type: application/json" -d "{\"cert\":\"<cert_encoded_with_base64>\", \"scope\":\"<scope_name>\", \"name\": \"<name>\", \"quota\": {<quota_dict>}}"
+curl -X POST "http://<management_api_address>:5000/tenants" -H "accept: application/json" \
+-H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
+-d "{\"cert\": \"<cert_encoded_with_base64>\", \"scope\": <string>, \"name\": <string>, \"quota\": <dict>}"
 ```
+Delete tenant:
+```
+curl -X DELETE "http://<management_api_address>:5000/tenants" -H "accept: application/json" \
+-H "Authorization: <jwt_token>" -H "Content-Type: application/json" -d "{\"name\": <string>}"
+```
+
 Cert field value is used in kubernetes secret. Because of that, cert shall be provided in Base64 encoded format.
 * example with valid certificate:
 ```
-curl -X POST "http://localhost:8000/tenants" -H "accept: application/json" -H "Authorization: '<jwt_token>'" \
--H "Content-Type: application/json" -d "{\"name\": \"tenantname\", \"cert\":\"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tDQpNSUlGSVRDQ0F3bWdBd0lCQWdJSkFQMUpTL283ZEt3WE1BMEdDU3FHU0liM0RRRUJDd1VBTUNjeEpUQWpCZ05WDQpCQU1NSEhObGNuWnBibWN0YzJWeWRtbGpaUzVyZFdKbExtTnNkWE4wWlhJd0hoY05NVGd3T0RBeE1EZ3dPVE00DQpXaGNOTVRrd09EQXhNRGd3T1RNNFdqQW5NU1V3SXdZRFZRUUREQnh6WlhKMmFXNW5MWE5sY25acFkyVXVhM1ZpDQpaUzVqYkhWemRHVnlNSUlDSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQWc4QU1JSUNDZ0tDQWdFQXV5R24vSTZ1DQp2dzNQcXdaN0pPVVRNdlNiL3ZiajRaNE5hTFdTb2J5dlFMT2JHNndrVzdkOW11c1M3clRSRGN0QUVqaVBTVktXDQp4eDhrcklXSkZmR05tZlVjQnNjbWwzMVpVeThiVUJCMVdIT2ZoM2dZT1h3SXUvZDFHR0gyaWQ3ZHhScHJJY1hkDQphSkM3TjRFQjltNEVkaWFSbjNGRGRsNm5FcDlUU1pSVy8xazJyTmpyRlVpUUh4NU5PRk96NEVVRDJ4YWh6cVB5DQpPUnhHV3lHdVRmQmhGb21NWWRGT3pUS09sVXZuVDc3UDh4WEhEbFFPZWNCN0RvWkdhTjBsUnRSOWpUREJFRmVMDQovYlgrYWI2YW5kTFk3OEx3N1NQYjZsQWF0QmdRWWZBVzV0ZlVVNGVJbGNGSjE4SFJ5b2I3SiswUFh1YkZlUVFlDQp1enBsMHg4WTVCdndKazVYV1RLakhpNDFMNkJ5amF6K0c2QzB6VzFCM2pOY0tWYXZuYjBsSlhTejkzcUNyeUMrDQpsQVU5WFFiMmhXcTBib3o0ZGhBbm9mWVV2Vi9sNGJnekV1U2tGamp2ZlRIRGpXdUYwWUtwQ0ZWdlBQVUh2UE91DQpSSmtkNWxMNDFObTNMZFVHbUdEcEZhQ29mSWp3NjI4bHFEZ1dJbUJ4UGtLRURLUnRnWmtkcElKRlJSdVNYcll4DQpIWThqNkhvT0ZqR2dSSDZ3TTFHdmJyb3h2bk0vZ01xWHhrOXArMXZZQWVPdmtHVlBFNS9pMWVDbDM5bjdqTExzDQpTcjNFQmhTTFFxb2srMGMvVnE3cVFSck4vZktWd2pEOW5FcGJyQmR5YStWelozTVJ2QkE5WDBHbjVnb3BhdjJxDQpVL0p1ajg1RGNaUG5iVGI4a0ZlVzFWOGNkT1ZwengzV0Ixa0NBd0VBQWFOUU1FNHdIUVlEVlIwT0JCWUVGTkdXDQpjSURBdFhyTFFMSHpRb0hpa2MvVEpBeXpNQjhHQTFVZEl3UVlNQmFBRk5HV2NJREF0WHJMUUxIelFvSGlrYy9UDQpKQXl6TUF3R0ExVWRFd1FGTUFNQkFmOHdEUVlKS29aSWh2Y05BUUVMQlFBRGdnSUJBTEpoYm1hMXNYSFdnaWNmDQpjTmNEZ0Z5OEcyV2N4dk1ja2s2MkE3ZGw1ODhVUW1VYnBHbEpicVJ5Q0Evak1lNERhOEFFSHUrWUxCRkVjRURVDQo5V2liS3AyQ0xkVFlwYnBDbzRxeXhBallRZ2lCdWlJNms3aWJuMG9DSVBhTFZRelcxKzlac21SVEFtSTg1cWpqDQpscTQwS3UvZEgxeXdua2RKemNBNDE1V3h1MFU5a3hyVktZUzRheG1pRENRdlI1bmxJeDdGcHdlNVEybEgrZllMDQpJYVIxMVNPcGVpMFZlcEQvb0tQcHp0Mk05dmZ0OW9ReEVTZ3NLaGd2RmdmTHhJbjlrMXRZRDkwdFBkb2w5dzBEDQoxblFqbkZZc1c1VG9LOGJ3UHc2WnJWY05VY0Q3ZWhGYnJyTDNOMUZ5TWFIWHIwWjd4d2lpbHZSWjdQOEM0ZjE5DQoxZkR5ZDZvS29XcU5teDlBQmlJcEdjeFd1NE9pY2swQnkrcmhVQks3My80ZXFpZS9GeDdFd0ZNbEdtRHFLdlNmDQpIWjJua1YyOFpDWHM4WHNzNVZvRFRkSzR6alRjVXNSdmdNSG5XZUVOT2RTaXNXMm9tcGFYc2xHdjRER3U0SXplDQorYk11cnhQOUIwRXp6T0hpNlVOYmhvUVBGYy9DNkYxQ0hsZ2Qra3BPaHlPdno2dmxNNEtsMmp5YTRDWWVvWWF3DQpmbEZ1UE1CMElKMlZlZ1puWFVyd0VRYXBrM0JFODF1NTRaNzR3Q3greE5LbFdhTWZhN2Vmb1I0K0J2Tkw0VkZ4DQpxTHNMSVJrM202aUpDcmMvR3F4eVJOdTAyZDJyQXBFMEpGNklITmFtY292UWdKUmg3OHVvZ3Fyekc1SXlhR2kwDQpnVHZoT3FpSkthM1pGV2ErNnA0TTRzNE03TndtDQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tDQo=\", \"scope\":\"scope_name\", \"quota\": {\"requests.cpu\": \"1\", \"requests.memory\": \"1Gi\", \"limits.cpu\": \"2\", \"limits.memory\": \"2Gi\", \"maxEndpoints\": \"15\"}}"
+curl -X POST "http://<management_api_address>:5000/tenants" -H "accept: application/json" -H "Authorization: '<jwt_token>'" \
+-H "Content-Type: application/json" -d "{\"name\": \"tenant-name\", \"cert\":\"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tDQpNSUlGSVRDQ0F3bWdBd0lCQWdJSkFQMUpTL283ZEt3WE1BMEdDU3FHU0liM0RRRUJDd1VBTUNjeEpUQWpCZ05WDQpCQU1NSEhObGNuWnBibWN0YzJWeWRtbGpaUzVyZFdKbExtTnNkWE4wWlhJd0hoY05NVGd3T0RBeE1EZ3dPVE00DQpXaGNOTVRrd09EQXhNRGd3T1RNNFdqQW5NU1V3SXdZRFZRUUREQnh6WlhKMmFXNW5MWE5sY25acFkyVXVhM1ZpDQpaUzVqYkhWemRHVnlNSUlDSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQWc4QU1JSUNDZ0tDQWdFQXV5R24vSTZ1DQp2dzNQcXdaN0pPVVRNdlNiL3ZiajRaNE5hTFdTb2J5dlFMT2JHNndrVzdkOW11c1M3clRSRGN0QUVqaVBTVktXDQp4eDhrcklXSkZmR05tZlVjQnNjbWwzMVpVeThiVUJCMVdIT2ZoM2dZT1h3SXUvZDFHR0gyaWQ3ZHhScHJJY1hkDQphSkM3TjRFQjltNEVkaWFSbjNGRGRsNm5FcDlUU1pSVy8xazJyTmpyRlVpUUh4NU5PRk96NEVVRDJ4YWh6cVB5DQpPUnhHV3lHdVRmQmhGb21NWWRGT3pUS09sVXZuVDc3UDh4WEhEbFFPZWNCN0RvWkdhTjBsUnRSOWpUREJFRmVMDQovYlgrYWI2YW5kTFk3OEx3N1NQYjZsQWF0QmdRWWZBVzV0ZlVVNGVJbGNGSjE4SFJ5b2I3SiswUFh1YkZlUVFlDQp1enBsMHg4WTVCdndKazVYV1RLakhpNDFMNkJ5amF6K0c2QzB6VzFCM2pOY0tWYXZuYjBsSlhTejkzcUNyeUMrDQpsQVU5WFFiMmhXcTBib3o0ZGhBbm9mWVV2Vi9sNGJnekV1U2tGamp2ZlRIRGpXdUYwWUtwQ0ZWdlBQVUh2UE91DQpSSmtkNWxMNDFObTNMZFVHbUdEcEZhQ29mSWp3NjI4bHFEZ1dJbUJ4UGtLRURLUnRnWmtkcElKRlJSdVNYcll4DQpIWThqNkhvT0ZqR2dSSDZ3TTFHdmJyb3h2bk0vZ01xWHhrOXArMXZZQWVPdmtHVlBFNS9pMWVDbDM5bjdqTExzDQpTcjNFQmhTTFFxb2srMGMvVnE3cVFSck4vZktWd2pEOW5FcGJyQmR5YStWelozTVJ2QkE5WDBHbjVnb3BhdjJxDQpVL0p1ajg1RGNaUG5iVGI4a0ZlVzFWOGNkT1ZwengzV0Ixa0NBd0VBQWFOUU1FNHdIUVlEVlIwT0JCWUVGTkdXDQpjSURBdFhyTFFMSHpRb0hpa2MvVEpBeXpNQjhHQTFVZEl3UVlNQmFBRk5HV2NJREF0WHJMUUxIelFvSGlrYy9UDQpKQXl6TUF3R0ExVWRFd1FGTUFNQkFmOHdEUVlKS29aSWh2Y05BUUVMQlFBRGdnSUJBTEpoYm1hMXNYSFdnaWNmDQpjTmNEZ0Z5OEcyV2N4dk1ja2s2MkE3ZGw1ODhVUW1VYnBHbEpicVJ5Q0Evak1lNERhOEFFSHUrWUxCRkVjRURVDQo5V2liS3AyQ0xkVFlwYnBDbzRxeXhBallRZ2lCdWlJNms3aWJuMG9DSVBhTFZRelcxKzlac21SVEFtSTg1cWpqDQpscTQwS3UvZEgxeXdua2RKemNBNDE1V3h1MFU5a3hyVktZUzRheG1pRENRdlI1bmxJeDdGcHdlNVEybEgrZllMDQpJYVIxMVNPcGVpMFZlcEQvb0tQcHp0Mk05dmZ0OW9ReEVTZ3NLaGd2RmdmTHhJbjlrMXRZRDkwdFBkb2w5dzBEDQoxblFqbkZZc1c1VG9LOGJ3UHc2WnJWY05VY0Q3ZWhGYnJyTDNOMUZ5TWFIWHIwWjd4d2lpbHZSWjdQOEM0ZjE5DQoxZkR5ZDZvS29XcU5teDlBQmlJcEdjeFd1NE9pY2swQnkrcmhVQks3My80ZXFpZS9GeDdFd0ZNbEdtRHFLdlNmDQpIWjJua1YyOFpDWHM4WHNzNVZvRFRkSzR6alRjVXNSdmdNSG5XZUVOT2RTaXNXMm9tcGFYc2xHdjRER3U0SXplDQorYk11cnhQOUIwRXp6T0hpNlVOYmhvUVBGYy9DNkYxQ0hsZ2Qra3BPaHlPdno2dmxNNEtsMmp5YTRDWWVvWWF3DQpmbEZ1UE1CMElKMlZlZ1puWFVyd0VRYXBrM0JFODF1NTRaNzR3Q3greE5LbFdhTWZhN2Vmb1I0K0J2Tkw0VkZ4DQpxTHNMSVJrM202aUpDcmMvR3F4eVJOdTAyZDJyQXBFMEpGNklITmFtY292UWdKUmg3OHVvZ3Fyekc1SXlhR2kwDQpnVHZoT3FpSkthM1pGV2ErNnA0TTRzNE03TndtDQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tDQo=\", \
+\"scope\": \"test\", \"quota\": {\"requests.cpu\": \"1\", \"requests.memory\": \"1Gi\", \"limits.cpu\": \"2\", \"limits.memory\": \"2Gi\", \"maxEndpoints\": 15}}"
 ```
 
-example create new endpoint
-
+#### Endpoints
+Create endpoint
 ```
-curl -X POST "http://<management_api_address>:5000/endpoints" -H "accept: application/json" -H "Authorization: default" -H "Content-Type: application/json" -d "{\"modelName\":\"<some_model_name>\", \"modelVersion\":1, \"endpointName\": \"name\", \"subjectName\": \"sdad\"}"
+curl -X POST "http://<management_api_address>:5000/endpoints" -H "accept: application/json" \
+-H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
+-d "{\"modelName\": <string>, \"modelVersion\": <int>, \"endpointName\": <string>, \"subjectName\": <string>
+\"resources\": {<dict>}}"
 ```
+```resources``` field is optional.
 
-example scale endpoint
-
+Scale endpoint
 ```
-curl -X PATCH "http://<management_api_address>:5000/endpoints/<endpoint-name>/scaling" -H "accept: 
-application/json" -H "Authorization: default" -H "Content-Type: application/json" -d "{\"replicas\":<number_of_replicas>}"
-```
-
-example update endpoint
-
-```
-curl -X PATCH "http://<management_api_address>:5000/endpoints/<endpoint-name>/updating" -H "accept: 
-application/json" -H "Authorization: default" -H "Content-Type: application/json" -d 
-"{\"modelName\":<string>, \"modelVersion\":<int>}"
+curl -X PATCH "http://<management_api_address>:5000/endpoints/<endpoint-name>/scaling" \
+-H "accept: application/json" -H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
+-d "{\"replicas\": <int>}"
 ```
 
-example view endpoint
+Update endpoint
+```
+curl -X PATCH "http://<management_api_address>:5000/endpoints/<endpoint-name>/updating" \
+-H "accept: application/json" -H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
+-d "{\"modelName\": <string>, \"modelVersion\": <int>}"
+```
+
+View endpoint
+```
+curl -X GET "http://<management_api_address>:5000/endpoints/<endpoint-name>/viewing" \
+-H "accept: application/json" -H "Authorization: <jwt_token>" -H "Content-Type: application/json"
 
 ```
-curl -X GET "http://<management_api_address>:5000/endpoints/<endpoint-name>/viewing" -H "accept: 
-application/json" -H "Authorization: default" -H "Content-Type: application/json"
 
+List endpoints
 ```
+curl -X GET "http://<management_api_address>:5000/endpoints" -H "accept: application/json" \
+-H "Authorization: <jwt_token>" -H "Content-Type: application/json"
+```
+#### Models
 
-example list endpoints
+Delete model
 ```
-curl -X GET "http://<management_api_address>:5000/endpoints" -H "accept: application/json" 
--H "Authorization: default" -H "Content-Type: application/json"
+curl -X DELETE "<management_api_address>:5000/models" -H "accept: application/json" \
+-H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
+-d "{\"modelName\": <string>, \"modelVersion\": <int>}"
+
 ```
 
 #### Inference endpoints
