@@ -16,7 +16,7 @@ from management_api_tests.config import DEFAULT_HEADERS, USER1_HEADERS, \
                            404),
                           ])
 def test_multipart_upload(request, tenant_fix, auth, body, expected_status):
-    namespace, _ = request.getfuncargvalue(tenant_fix)
+    namespace, _ = request.getfixturevalue(tenant_fix)
     data = json.dumps(body)
     url = START_MULTIPART_UPLOAD_API_URL
     response = requests.post(url, data=data, headers=auth)

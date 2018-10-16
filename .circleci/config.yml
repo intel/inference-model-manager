@@ -148,7 +148,7 @@ jobs:
             sleep 30m
             helm delete inferno
             echo y | gcloud compute firewall-rules delete $CLUSTER_ALL_VMS_NETWORK
-            sleep 1m
+            sleep 2m
             echo y | gcloud container clusters delete $CLUSTER_NAME --zone us-west1-a
           no_output_timeout: 32m
 workflows:

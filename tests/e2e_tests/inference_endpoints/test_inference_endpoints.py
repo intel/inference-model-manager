@@ -1,11 +1,11 @@
 from grpc.beta import implementations
-from grpc.framework.interfaces.face import face
 import logging
 import numpy
 import pytest
 import tensorflow as tf
 import json
 import time
+import grpc
 
 from e2e_tests.management_api_requests import create_endpoint, create_tenant
 from e2e_tests.minio_client import copy
@@ -120,10 +120,10 @@ def test_wrong_certificates(function_context, minio_client):
     request.inputs['import/input_tensor'].CopyFrom(
             tf.contrib.util.make_tensor_proto(numpy_input, shape=[1, 224, 224, 3]))
 
-    with pytest.raises(face.CancellationError) as context:
+    with pytest.raises(grpc.RpcError) as context:
         stub.Predict(request, 10.0)
 
-    assert context.value.details == 'Received http2 header with status: 403'
+    assert context.value.details() == 'Received http2 header with status: 403'
 
 
 def test_no_certificates(function_context, minio_client):
@@ -144,10 +144,10 @@ def test_no_certificates(function_context, minio_client):
     request.inputs['import/input_tensor'].CopyFrom(
             tf.contrib.util.make_tensor_proto(numpy_input, shape=[1, 224, 224, 3]))
 
-    with pytest.raises(face.CancellationError) as context:
+    with pytest.raises(grpc.RpcError) as context:
         stub.Predict(request, 10.0)
 
-    assert context.value.details == 'Received http2 header with status: 400'
+    assert context.value.details() == 'Received http2 header with status: 400'
 
 
 def prepare_tenant_endpoint(minio_client):

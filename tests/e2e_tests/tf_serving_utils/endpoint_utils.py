@@ -1,7 +1,6 @@
-from grpc.beta import implementations
-from grpc import secure_channel
+import grpc
 from tensorflow_serving.apis import predict_pb2
-from tensorflow_serving.apis import prediction_service_pb2
+from tensorflow_serving.apis import prediction_service_pb2_grpc
 
 
 def prepare_certs(server_cert=None, client_key=None, client_ca=None):
@@ -19,8 +18,8 @@ def prepare_certs(server_cert=None, client_key=None, client_ca=None):
 
 def prepare_stub_and_request(creds, opts, address, model_name):
     opts = (('grpc.ssl_target_name_override', opts),)
-    channel = implementations.Channel(secure_channel(address, creds, options=opts))
-    stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
+    channel = grpc.secure_channel(address, creds, options=opts)
+    stub = prediction_service_pb2_grpc.PredictionServiceStub(channel)
     request = predict_pb2.PredictRequest()
     request.model_spec.name = model_name
     return stub, request

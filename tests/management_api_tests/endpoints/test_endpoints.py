@@ -258,7 +258,7 @@ def test_not_create_endpoint_with_incompliant_resource_quota(tenant, incompliant
                           ])
 def test_list_endpoints(request, tenant_fix, auth_headers,
                         expected_status, expected_message):
-    namespace, _ = request.getfuncargvalue(tenant_fix)
+    namespace, _ = request.getfixturevalue(tenant_fix)
     url = ENDPOINT_MANAGEMENT_API_URL
     response = requests.get(url, headers=auth_headers)
 
@@ -270,7 +270,7 @@ def test_list_endpoints(request, tenant_fix, auth_headers,
                          [('tenant_with_endpoint', 'predict', 200, "Endpoint {} in {} tenant"),
                           ('tenant_with_endpoint', 'not_exist', 404, 'Endpoint {} does not exist')])
 def test_view_endpoint(request, endpoint_fix, endpoint_name, expected_status, expected_message):
-    namespace, _ = request.getfuncargvalue(endpoint_fix)
+    namespace, _ = request.getfixturevalue(endpoint_fix)
     url = ENDPOINT_MANAGEMENT_API_URL_VIEW.format(endpoint_name=endpoint_name)
     response = requests.get(url, headers=DEFAULT_HEADERS)
 
