@@ -181,19 +181,19 @@ def fake_endpoint(tenant):
     return namespace, body
 
 
-def create_empty_model(endpoint, minio_client):
+def create_fake_model(endpoint, minio_client):
     namespace, body = endpoint
     model_name, model_version = body['spec']['modelName'], body['spec']['modelVersion']
-    model_path = f'{model_name}-{model_version}/'
-    minio_client.put_object(Bucket=namespace, Body='', Key=model_path)
+    model_path = f'{model_name}-{model_version}/0/model.pb'
+    minio_client.put_object(Bucket=namespace, Body=b'Some model content', Key=model_path)
     return namespace, body
 
 
 @pytest.fixture(scope="function")
-def endpoint_with_empty_model(tenant_with_endpoint, minio_client):
-    return create_empty_model(tenant_with_endpoint, minio_client)
+def endpoint_with_fake_model(tenant_with_endpoint, minio_client):
+    return create_fake_model(tenant_with_endpoint, minio_client)
 
 
 @pytest.fixture(scope="function")
-def fake_endpoint_with_empty_model(fake_endpoint, minio_client):
-    return create_empty_model(fake_endpoint, minio_client)
+def fake_endpoint_with_fake_model(fake_endpoint, minio_client):
+    return create_fake_model(fake_endpoint, minio_client)

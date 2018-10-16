@@ -14,7 +14,8 @@
     },
     "modelVersion": {
       "type": "integer",
-      "title": "Model version"
+      "title": "Model version",
+      "minimum": 0
     },
     "endpointName": {
       "type": "string",

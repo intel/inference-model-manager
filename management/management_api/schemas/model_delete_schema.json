@@ -13,7 +13,7 @@
     "modelVersion": {
       "type": "integer",
       "title": "Model version",
-      "minimum": 1
+      "minimum": 0
       }
     }
 }
