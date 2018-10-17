@@ -51,14 +51,15 @@ def test_complete_upload(mocker, raise_exception):
     bucket = "test"
     key = "test-file"
     multipart_id = "some-id"
+    parts = []
     complete_upload_mock = mocker.patch('management_api.upload.multipart_utils.minio_client.'
                                         'complete_multipart_upload')
     if raise_exception:
         with pytest.raises(MinioCallException):
             complete_upload_mock.side_effect = ClientError(operation_name="test", error_response={})
-            complete_upload(bucket=bucket, key=key, multipart_id=multipart_id)
+            complete_upload(bucket=bucket, key=key, multipart_id=multipart_id, parts=parts)
     else:
-        complete_upload(bucket=bucket, key=key, multipart_id=multipart_id)
+        complete_upload(bucket=bucket, key=key, multipart_id=multipart_id, parts=parts)
 
     complete_upload_mock.assert_called_once()
 
