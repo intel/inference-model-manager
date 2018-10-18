@@ -58,15 +58,6 @@ minio_resource = boto3.resource('s3',
                                 region_name=MINIO_REGION)
 
 
-class RequiredParameters:
-    UPDATE_ENDPOINT = ['modelName', 'modelVersion']
-    SCALE_ENDPOINT = ['replicas']
-    MULTIPART_START = ['modelName', 'modelVersion', 'fileName']
-    MULTIPART_WRITE = ['modelName', 'modelVersion', 'fileName', 'partNumber', 'uploadId']
-    MULTIPART_DONE = ['modelName', 'modelVersion', 'fileName', 'uploadId', 'parts']
-    MULTIPART_ABORT = ['modelName', 'modelVersion', 'fileName', 'uploadId']
-
-
 # To edit this object please first use deep copy
 DELETE_BODY = client.V1DeleteOptions()
 

@@ -1,21 +1,26 @@
 import json
-
 import falcon
+from falcon.media.validators import jsonschema
 
-from management_api.utils.parse_request import get_body, get_params, logger
+from management_api.utils.logger import get_logger
 from management_api.tenants.tenants_utils import tenant_exists
-from management_api.config import RequiredParameters
-from management_api.utils.errors_handling import TenantDoesNotExistException, InvalidParamException
+from management_api.utils.errors_handling import TenantDoesNotExistException, \
+    MissingParamException, InvalidParamException
 from management_api.upload.multipart_utils import create_upload, get_key, complete_upload, \
     upload_part, abort_upload
 from management_api.authenticate import get_namespace
+from management_api.schemas.uploads import multipart_start_schema, multipart_done_schema,\
+    multipart_abort_schema
+
+
+logger = get_logger(__name__)
 
 
 class StartMultiModel(object):
+    @jsonschema.validate(multipart_start_schema)
     def on_post(self, req, resp):
         namespace = get_namespace(req)
-        body = get_body(req)
-        get_params(body, required_keys=RequiredParameters.MULTIPART_START)
+        body = req.media
         key = get_key(body)
         if not tenant_exists(namespace):
             raise TenantDoesNotExistException(tenant_name=namespace)
@@ -27,16 +32,24 @@ class StartMultiModel(object):
 
 
 class WriteMultiModel(object):
+
+    def model_put_params_validator(func):
+        def func_wrapper(self, req, resp):
+            required_keys = ['modelName', 'modelVersion', 'fileName', 'partNumber', 'uploadId']
+            for required_key in required_keys:
+                if required_key not in req.params:
+                    raise MissingParamException(required_key)
+            func(self, req, resp)
+        return func_wrapper
+
+    @model_put_params_validator
     def on_put(self, req, resp):
         namespace = get_namespace(req)
-        get_params(req.params, required_keys=RequiredParameters.MULTIPART_WRITE)
-        multipart_id = str(req.get_param('uploadId'))
-
+        multipart_id = req.get_param('uploadId')
         try:
             part_number = int(req.get_param('partNumber'))
         except (ValueError, TypeError):
             raise InvalidParamException('partNumber', 'Wrong partNumber parameter value')
-
         key = get_key(req.params)
         logger.info(f"Key: {key} ID: {multipart_id}")
         data = req.stream.read()
@@ -51,10 +64,10 @@ class WriteMultiModel(object):
 
 
 class CompleteMultiModel(object):
+    @jsonschema.validate(multipart_done_schema)
     def on_post(self, req, resp):
         namespace = get_namespace(req)
-        body = get_body(req)
-        get_params(body, required_keys=RequiredParameters.MULTIPART_DONE)
+        body = req.media
         key = get_key(body)
         if not tenant_exists(namespace):
             raise TenantDoesNotExistException(tenant_name=namespace)
@@ -66,10 +79,10 @@ class CompleteMultiModel(object):
 
 
 class AbortMultiModel(object):
+    @jsonschema.validate(multipart_abort_schema)
     def on_post(self, req, resp):
         namespace = get_namespace(req)
-        body = get_body(req)
-        get_params(body, required_keys=RequiredParameters.MULTIPART_ABORT)
+        body = req.media
         key = get_key(body)
         if not tenant_exists(namespace):
             raise TenantDoesNotExistException(tenant_name=namespace)

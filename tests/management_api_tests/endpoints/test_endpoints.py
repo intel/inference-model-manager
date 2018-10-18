@@ -139,9 +139,9 @@ def simulate_scaling(custom_obj_api, apps_api_instance, headers, namespace, name
 
 FAILING_SCALE_PARAMS = [
     (DEFAULT_HEADERS, "wrong_name", {'replicas': 3}, 400, "Not Found"),
-    (DEFAULT_HEADERS, "predict", {'replicas': -1}, 400, "Unprocessable Entity"),
-    (DEFAULT_HEADERS, "predict", {'replicas': "many"}, 400, "Unprocessable Entity"),
-    (DEFAULT_HEADERS, "predict", {}, 400, "replicas parameter required"),
+    (DEFAULT_HEADERS, "predict", {'replicas': -1}, 400, "-1 is less than the minimum of 1"),
+    (DEFAULT_HEADERS, "predict", {'replicas': "many"}, 400, "'many' is not of type 'integer'"),
+    (DEFAULT_HEADERS, "predict", {}, 400, "{} is not valid under any of the given schemas"),
 ]
 
 
@@ -184,12 +184,13 @@ FAILING_UPDATE_PARAMS = [
     (DEFAULT_HEADERS, "wrong_name", {'modelName': 'super-model', 'modelVersion': 3}, 400,
      "Not Found"),
     (DEFAULT_HEADERS, "predict", {'modelName': 0, 'modelVersion': 3}, 400,
-     "Unprocessable Entity"),
+     "0 is not of type 'string'"),
     (DEFAULT_HEADERS, "predict", {'modelName': 'super-model', 'modelVersion': "str"}, 400,
-     "Unprocessable Entity"),
-    (DEFAULT_HEADERS, "predict", {'modelVersion': 3}, 400, "modelName parameter required"),
+     "'str' is not of type 'integer'"),
+    (DEFAULT_HEADERS, "predict", {'modelVersion': 3}, 400, "{'modelVersion': 3} is not valid "
+                                                           "under any of the given schemas"),
     (DEFAULT_HEADERS, "predict", {'modelName': 'super-model'}, 400,
-     "modelVersion parameter required"),
+     "{'modelName': 'super-model'} is not valid under any of the given schema"),
 ]
 
 

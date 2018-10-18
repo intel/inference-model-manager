@@ -9,9 +9,8 @@ from falcon.media.validators import jsonschema
 from management_api.config import AuthParameters
 from management_api.authenticate.auth_controller import get_auth_controller_url, get_token,\
     get_keys_from_dex
-from management_api.utils.parse_request import get_body
 from management_api.utils.logger import get_logger
-from management_api.schemas.loadschema import authenticate_token_schema
+from management_api.schemas.authenticate import authenticate_token_schema
 
 logger = get_logger(__name__)
 
@@ -28,7 +27,7 @@ class Token():
 
     @jsonschema.validate(authenticate_token_schema)
     def on_post(self, req, resp):
-        body = get_body(req)
+        body = req.media
         token = get_token(parameters=body)
         resp.status = falcon.HTTP_200
         resp.body = json.dumps({'status': 'OK', 'data': {'token': token}})
