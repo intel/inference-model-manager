@@ -134,9 +134,10 @@ jobs:
             export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
             export CLUSTER_NAME="inferno-${CIRCLE_BRANCH}-${SHORT_SHA1}"
             export CLUSTER_ALL_VMS_NETWORK="${CLUSTER_NAME}-all-vms-net"
-            helm delete inferno
+            helm --debug delete inferno
+            export RESOURCES=`gcloud compute target-pools list --format=json|grep $CLUSTER_NAME`
+            while [ -n "$RESOURCES" ]; do sleep 10; RESOURCES=`gcloud compute target-pools list --format=json|grep $CLUSTER_NAME`; done
             echo y | gcloud compute firewall-rules delete $CLUSTER_ALL_VMS_NETWORK
-            sleep 1m
             echo y | gcloud container clusters delete $CLUSTER_NAME --zone us-west1-a
       - run:
           name: clean after failure
@@ -146,9 +147,10 @@ jobs:
             export CLUSTER_NAME="inferno-${CIRCLE_BRANCH}-${SHORT_SHA1}"
             export CLUSTER_ALL_VMS_NETWORK="${CLUSTER_NAME}-all-vms-net"
             sleep 30m
-            helm delete inferno
+            helm --debug delete inferno
+            export RESOURCES=`gcloud compute target-pools list --format=json|grep $CLUSTER_NAME`
+            while [ -n "$RESOURCES" ]; do sleep 10; RESOURCES=`gcloud compute target-pools list --format=json|grep $CLUSTER_NAME`; done
             echo y | gcloud compute firewall-rules delete $CLUSTER_ALL_VMS_NETWORK
-            sleep 2m
             echo y | gcloud container clusters delete $CLUSTER_NAME --zone us-west1-a
           no_output_timeout: 32m
 workflows:
