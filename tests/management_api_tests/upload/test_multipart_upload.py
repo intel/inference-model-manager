@@ -6,16 +6,13 @@ from management_api_tests.config import DEFAULT_HEADERS, USER1_HEADERS, \
 
 
 @pytest.mark.parametrize("tenant_fix, auth, body, expected_status",
-                         [('tenant', DEFAULT_HEADERS, {'modelName': 'resnet2',
-                                                       'modelVersion': 1,
-                                                       'fileName': 'saved_model.pb'},
-                           200),
-                          ('tenant', DEFAULT_HEADERS, {'modelName': 'resnet2'},
-                           400),
+                         [('session_tenant', DEFAULT_HEADERS, {'modelName': 'resnet2',
+                                                               'modelVersion': 1,
+                                                               'fileName': 'saved_model.pb'}, 200),
+                          ('session_tenant', DEFAULT_HEADERS, {'modelName': 'resnet2'}, 400),
                           ('fake_tenant', USER1_HEADERS, {'modelName': 'resnet2',
                                                           'modelVersion': 1,
-                                                          'fileName': 'saved_model.pb'},
-                           404),
+                                                          'fileName': 'saved_model.pb'}, 404),
                           ])
 def test_multipart_upload(request, tenant_fix, auth, body, expected_status):
     namespace, _ = request.getfixturevalue(tenant_fix)

@@ -13,9 +13,10 @@ from management_api_tests.endpoints.endpoint_utils import check_replicas_number_
     check_server_update_result
 
 
-def test_create_endpoint(function_context, apps_api_instance, get_k8s_custom_obj_client, tenant):
+def test_create_endpoint(function_context, apps_api_instance, get_k8s_custom_obj_client,
+                         session_tenant):
     crd_server_name = 'predict'
-    namespace, _ = tenant
+    namespace, _ = session_tenant
     replicas = 1
     data = json.dumps({
         'modelName': 'resnet',
@@ -70,10 +71,9 @@ def test_try_create_the_same_endpoint(tenant_with_endpoint):
 
 
 def test_create_endpoint_with_2_replicas(get_k8s_custom_obj_client, apps_api_instance,
-
-                                         function_context, tenant):
+                                         function_context, session_tenant):
     crd_server_name = 'predict'
-    namespace, _ = tenant
+    namespace, _ = session_tenant
     model_name = 'resnet2'
     model_version = 1
     replicas = 2
@@ -162,7 +162,7 @@ def test_fail_to_scale_endpoint(auth, tenant_with_endpoint, endpoint_name, scale
 
 @pytest.mark.parametrize("new_values", CORRECT_UPDATE_QUOTAS)
 def test_update_endpoint(get_k8s_custom_obj_client, apps_api_instance,
-                         tenant, tenant_with_endpoint, new_values):
+                         tenant_with_endpoint, new_values):
     namespace, body = tenant_with_endpoint
     crd_server_name = body['spec']['endpointName']
     data = json.dumps(new_values)
@@ -225,11 +225,11 @@ QUOTA_INCOMPLIANT_VALUES = [
 
 
 @pytest.mark.parametrize("incompliant_quota, expected_error", QUOTA_INCOMPLIANT_VALUES)
-def test_not_create_endpoint_with_incompliant_resource_quota(tenant, incompliant_quota,
+def test_not_create_endpoint_with_incompliant_resource_quota(session_tenant, incompliant_quota,
                                                              expected_error):
 
     crd_server_name = 'predict'
-    namespace, _ = tenant
+    namespace, _ = session_tenant
 
     model_name = 'resnet'
     model_version = 1

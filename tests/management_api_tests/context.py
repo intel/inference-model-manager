@@ -20,7 +20,8 @@ class Context(object):
         self.minio_client = minio_client
 
         self.DELETE_FUNCTIONS = {'tenant': self._delete_namespace_bucket,
-                                 'CRD': self._delete_crd_server}
+                                 'CRD': self._delete_crd_server,
+                                 'model': self._delete_model}
 
     def delete_all_objects(self):
         while len(self._objects) > 0:
@@ -86,6 +87,16 @@ class Context(object):
         else:
             logging.info('CRD {} deletion timeout.'.format(object_to_delete['name']))
         return response
+
+    @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
+    def _delete_model(self, object_to_delete):
+        bucket = self.minio_resource_client.Bucket(name=object_to_delete['namespace'])
+        try:
+            for key in bucket.objects.all():
+                key.delete()
+        except Exception as e:
+            logging.error(e)
+            raise
 
     @retry(stop=stop_after_attempt(100), wait=wait_fixed(2))
     def _wait_server_deletion(self, object_to_delete):

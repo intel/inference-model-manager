@@ -11,7 +11,7 @@ from urllib.parse import urljoin, urlparse, parse_qs
 from management_api_tests.config import MINIO_SECRET_ACCESS_KEY, MINIO_ACCESS_KEY_ID, \
     MINIO_REGION, MINIO_ENDPOINT_ADDR, SIGNATURE_VERSION, CRD_VERSION, CRD_PLURAL, CRD_KIND, \
     CRD_GROUP, CRD_API_VERSION, TENANT_NAME, TENANT_RESOURCES, ENDPOINT_RESOURCES, \
-    AUTH_MANAGEMENT_API_URL, JANE
+    AUTH_MANAGEMENT_API_URL, JANE, SESSION_TENANT_NAME
 from management_api_tests.context import Context
 from management_api_tests.reused import propagate_portable_secrets, transform_quota
 
@@ -73,6 +73,15 @@ def function_context(request, get_k8s_custom_obj_client, api_instance, minio_res
 
 
 @pytest.fixture(scope="session")
+def session_context(request, get_k8s_custom_obj_client, api_instance, minio_resource,
+                     minio_client):
+    context = Context(k8s_client=api_instance, k8s_client_custom=get_k8s_custom_obj_client,
+                      minio_resource_client=minio_resource, minio_client=minio_client)
+    request.addfinalizer(context.delete_all_objects)
+    return context
+
+
+@pytest.fixture(scope="session")
 def minio_client():
     return boto3.client('s3',
                         endpoint_url=MINIO_ENDPOINT_ADDR,
@@ -94,16 +103,31 @@ def minio_resource():
                           region_name=MINIO_REGION)
 
 
+@pytest.fixture(scope="session")
+def session_tenant(api_instance, minio_client, session_context):
+    name = SESSION_TENANT_NAME
+    name_object = client.V1ObjectMeta(name=name)
+    namespace = client.V1Namespace(metadata=name_object)
+    api_instance.create_namespace(namespace)
+    propagate_portable_secrets(api_instance, name)
+    quota = resource_quota(api_instance, quota=TENANT_RESOURCES, namespace=name)
+    minio_client.create_bucket(Bucket=name)
+    session_context.add_object(object_type='tenant', object_to_delete={'name': name})
+    return name, quota
+
+
 @pytest.fixture(scope="function")
-def tenant_with_endpoint(function_context, tenant, get_k8s_custom_obj_client):
-    namespace, _ = tenant
-    metadata = {"name": "predict"}
+def tenant_with_endpoint(function_context, session_tenant, get_k8s_custom_obj_client):
+    namespace, _ = session_tenant
     resources = transform_quota(ENDPOINT_RESOURCES)
+    endpoint_name = 'predict'
+    metadata = {"name": endpoint_name}
     model_name, model_version = 'resnet', 1
+    model_path = f'{model_name}-{model_version}'
     spec = {
         'modelName': model_name,
         'modelVersion': model_version,
-        'endpointName': 'predict',
+        'endpointName': endpoint_name,
         'subjectName': 'client',
         'replicas': 1,
         'resources': resources
@@ -112,41 +136,13 @@ def tenant_with_endpoint(function_context, tenant, get_k8s_custom_obj_client):
             "apiVersion": CRD_API_VERSION, "metadata": metadata}
     get_k8s_custom_obj_client. \
         create_namespaced_custom_object(CRD_GROUP, CRD_VERSION, namespace, CRD_PLURAL, body)
-    object_to_delete = {'name': "predict", 'namespace': namespace}
-    function_context.add_object(object_type='CRD', object_to_delete=object_to_delete)
+
+    endpoint_to_delete = {'name': endpoint_name, 'namespace': namespace}
+    model_to_delete = {'name': model_path, 'namespace': namespace}
+    function_context.add_object(object_type='CRD', object_to_delete=endpoint_to_delete)
+    function_context.add_object(object_type='model', object_to_delete=model_to_delete)
+
     return namespace, body
-
-
-@retry(stop=stop_after_attempt(3), wait=wait_fixed(0.2))
-def get_all_pods_in_namespace(k8s_client, namespace, label_selector=''):
-    try:
-        api_response = k8s_client.list_namespaced_pod(namespace=namespace,
-                                                      label_selector=label_selector)
-    except ApiException as e:
-        print("Exception when calling CoreV1Api->list_pod_for_all_namespaces: %s\n" % e)
-
-    return api_response
-
-
-def resource_quota(api_instance, quota={}, namespace=TENANT_NAME):
-    name_object = client.V1ObjectMeta(name=namespace)
-    resource_quota_spec = client.V1ResourceQuotaSpec(hard=quota)
-    body = client.V1ResourceQuota(spec=resource_quota_spec, metadata=name_object)
-    api_instance.create_namespaced_resource_quota(namespace=namespace, body=body)
-    return quota
-
-
-@pytest.fixture(scope="function")
-def tenant(api_instance, minio_client, function_context):
-    name = TENANT_NAME
-    name_object = client.V1ObjectMeta(name=name)
-    namespace = client.V1Namespace(metadata=name_object)
-    api_instance.create_namespace(namespace)
-    propagate_portable_secrets(api_instance, name)
-    quota = resource_quota(api_instance, quota=TENANT_RESOURCES)
-    minio_client.create_bucket(Bucket=name)
-    function_context.add_object(object_type='tenant', object_to_delete={'name': name})
-    return name, quota
 
 
 @pytest.fixture(scope="session")
@@ -157,8 +153,8 @@ def fake_tenant():
 
 
 @pytest.fixture(scope="function")
-def empty_tenant(tenant):
-    return create_dummy_tenant(tenant)
+def empty_tenant(session_tenant):
+    return create_dummy_tenant(session_tenant)
 
 
 @pytest.fixture(scope="function")
@@ -166,15 +162,15 @@ def fake_tenant_endpoint(fake_tenant):
     return create_dummy_tenant(fake_tenant)
 
 
-def create_dummy_tenant(tenant):
-    name, _ = tenant
+def create_dummy_tenant(session_tenant):
+    name, _ = session_tenant
     body = {}
     return name, body
 
 
 @pytest.fixture(scope="function")
-def fake_endpoint(tenant):
-    namespace, _ = tenant
+def fake_endpoint(session_tenant):
+    namespace, _ = session_tenant
     model_name, model_version = 'fake', 1
     body = {'spec': {'modelName': model_name,
                      'modelVersion': model_version}}
@@ -197,3 +193,22 @@ def endpoint_with_fake_model(tenant_with_endpoint, minio_client):
 @pytest.fixture(scope="function")
 def fake_endpoint_with_fake_model(fake_endpoint, minio_client):
     return create_fake_model(fake_endpoint, minio_client)
+
+
+@retry(stop=stop_after_attempt(3), wait=wait_fixed(0.2))
+def get_all_pods_in_namespace(k8s_client, namespace, label_selector=''):
+    try:
+        api_response = k8s_client.list_namespaced_pod(namespace=namespace,
+                                                      label_selector=label_selector)
+    except ApiException as e:
+        print("Exception when calling CoreV1Api->list_pod_for_all_namespaces: %s\n" % e)
+
+    return api_response
+
+
+def resource_quota(api_instance, quota={}, namespace=TENANT_NAME):
+    name_object = client.V1ObjectMeta(name=namespace)
+    resource_quota_spec = client.V1ResourceQuotaSpec(hard=quota)
+    body = client.V1ResourceQuota(spec=resource_quota_spec, metadata=name_object)
+    api_instance.create_namespaced_resource_quota(namespace=namespace, body=body)
+    return quota

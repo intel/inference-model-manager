@@ -12,7 +12,6 @@ from management_api_tests.tenants.tenant_utils import check_namespaced_secret_ex
 
 
 def test_create_tenant(function_context, minio_client, api_instance, rbac_api_instance):
-
     data = json.dumps({
         'name': TENANT_NAME,
         'cert': CERT,
@@ -38,9 +37,10 @@ def test_create_tenant(function_context, minio_client, api_instance, rbac_api_in
                                        rolebinding=TENANT_NAME) == CheckResult.RESOURCE_AVAILABLE
 
 
-def test_not_create_tenant_already_exists(tenant, minio_client, api_instance):
+def test_not_create_tenant_already_exists(session_tenant, minio_client, api_instance):
+    name, _ = session_tenant
     data = {
-        'name': TENANT_NAME,
+        'name': name,
         'cert': CERT,
         'scope': SCOPE_NAME,
         'quota': QUOTA,
@@ -51,14 +51,14 @@ def test_not_create_tenant_already_exists(tenant, minio_client, api_instance):
     response = requests.post(url, data=json.dumps(data), headers=ADMIN_HEADERS)
     data['quota'].pop('maxEndpoints')
 
-    assert response.text == """{"title": "Tenant """ + TENANT_NAME + """ already exists"}"""
+    assert response.text == """{"title": "Tenant """ + name + """ already exists"}"""
     assert response.status_code == 409
     assert check_namespace_availability(api_instance,
-                                        namespace=TENANT_NAME) == CheckResult.RESOURCE_AVAILABLE
+                                        namespace=name) == CheckResult.RESOURCE_AVAILABLE
     assert check_bucket_existence(minio_client,
-                                  bucket=TENANT_NAME) == CheckResult.RESOURCE_AVAILABLE
+                                  bucket=name) == CheckResult.RESOURCE_AVAILABLE
     assert check_resource_quota_matching_provided(
-        api_instance, TENANT_NAME, provided_quota=data['quota']) == CheckResult.CONTENTS_MISMATCHING
+        api_instance, name, provided_quota=data['quota']) == CheckResult.CONTENTS_MISMATCHING
 
 
 @pytest.mark.parametrize("wrong_body, expected_error, expected_message", WRONG_BODIES)
