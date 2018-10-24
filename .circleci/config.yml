@@ -16,7 +16,7 @@ jobs:
           name: Style checker
           command: |
             . ~/inferno-platform/.venv/bin/activate
-            pip install -q flake8
+            pip install -q flake8==3.5.0
             echo "management folder" && cd ~/inferno-platform/management/ && make style
             echo "tests folder && " && cd ~/inferno-platform/tests/ && make style
             echo "cli-scripts folder" && cd ~/inferno-platform/cli-scripts/ && flake8 --max-line-length 100
