@@ -32,7 +32,7 @@ def test_add_endpoint_auth_valid_user_token(mocker, client_with_auth, body, expe
     get_keys_mock = mocker.patch('management_api.authenticate.auth_controller._get_keys_from_dex')
     get_keys_mock.side_effect = get_keys
     header = {'Authorization': user_token}
-    result = client_with_auth.simulate_request(method='POST', path='/endpoints',
+    result = client_with_auth.simulate_request(method='POST', path='/tenants/default/endpoints',
                                                headers=header, json=body)
     assert expected_status == result.status
 
@@ -48,7 +48,7 @@ def test_add_endpoint_auth_expired_token(mocker, client_with_auth, body, expecte
     get_keys_mock = mocker.patch('management_api.authenticate.auth_controller._get_keys_from_dex')
     get_keys_mock.side_effect = get_keys
     header = {'Authorization': user_token}
-    result = client_with_auth.simulate_request(method='POST', path='/endpoints',
+    result = client_with_auth.simulate_request(method='POST', path='/tenants/default/endpoints',
                                                headers=header, json=body)
     assert expected_status == result.status
 

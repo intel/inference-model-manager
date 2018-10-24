@@ -12,7 +12,8 @@ def test_multipart_start(client, mocker, tenant_exists, expected_status):
     tenant_existence_mock.return_value = tenant_exists
     upload_id_mock = mocker.patch('management_api.upload.multipart.create_upload')
     upload_id_mock.return_value = upload_id
-    result = client.simulate_request(method='POST', path='/upload/start', headers={},
+    result = client.simulate_request(method='POST', path='/tenants/default/upload/start',
+                                     headers={},
                                      json=body)
     assert expected_status == result.status
     tenant_existence_mock.assert_called_once()
@@ -29,7 +30,7 @@ def test_multipart_write(client, mocker, tenant_exists, expected_status):
     upload_part_mock = mocker.patch('management_api.upload.multipart.upload_part')
     upload_part_mock.return_value = 'part_etag'
     result = client.simulate_request(method='PUT',
-                                     path='/upload',
+                                     path='/tenants/default/upload',
                                      params={'partNumber': '1',
                                              'uploadId': 'some-id',
                                              'modelName': 'model',
@@ -51,7 +52,8 @@ def test_multipart_done(client, mocker, tenant_exists, expected_status):
     tenant_existence_mock = mocker.patch('management_api.upload.multipart.tenant_exists')
     tenant_existence_mock.return_value = tenant_exists
     complete_upload_mock = mocker.patch('management_api.upload.multipart.complete_upload')
-    result = client.simulate_request(method='POST', path='/upload/done', headers={},
+    result = client.simulate_request(method='POST', path='/tenants/default/upload/done',
+                                     headers={},
                                      json=body)
     assert expected_status == result.status
     tenant_existence_mock.assert_called_once()
@@ -68,7 +70,8 @@ def test_multipart_abort(client, mocker, tenant_exists, expected_status):
     tenant_existence_mock = mocker.patch('management_api.upload.multipart.tenant_exists')
     tenant_existence_mock.return_value = tenant_exists
     abort_upload_mock = mocker.patch('management_api.upload.multipart.abort_upload')
-    result = client.simulate_request(method='POST', path='/upload/abort', headers={},
+    result = client.simulate_request(method='POST', path='/tenants/default/upload/abort',
+                                     headers={},
                                      json=body)
     assert expected_status == result.status
     tenant_existence_mock.assert_called_once()

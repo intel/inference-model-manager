@@ -18,8 +18,8 @@ logger = get_logger(__name__)
 
 class StartMultiModel(object):
     @jsonschema.validate(multipart_start_schema)
-    def on_post(self, req, resp):
-        namespace = get_namespace(req)
+    def on_post(self, req, resp, tenant_name):
+        namespace = get_namespace(tenant_name)
         body = req.media
         key = get_key(body)
         if not tenant_exists(namespace):
@@ -34,17 +34,17 @@ class StartMultiModel(object):
 class WriteMultiModel(object):
 
     def model_put_params_validator(func):
-        def func_wrapper(self, req, resp):
+        def func_wrapper(self, req, resp, tenant_name):
             required_keys = ['modelName', 'modelVersion', 'fileName', 'partNumber', 'uploadId']
             for required_key in required_keys:
                 if required_key not in req.params:
                     raise MissingParamException(required_key)
-            func(self, req, resp)
+            func(self, req, resp, tenant_name)
         return func_wrapper
 
     @model_put_params_validator
-    def on_put(self, req, resp):
-        namespace = get_namespace(req)
+    def on_put(self, req, resp, tenant_name):
+        namespace = get_namespace(tenant_name)
         multipart_id = req.get_param('uploadId')
         try:
             part_number = int(req.get_param('partNumber'))
@@ -65,8 +65,8 @@ class WriteMultiModel(object):
 
 class CompleteMultiModel(object):
     @jsonschema.validate(multipart_done_schema)
-    def on_post(self, req, resp):
-        namespace = get_namespace(req)
+    def on_post(self, req, resp, tenant_name):
+        namespace = get_namespace(tenant_name)
         body = req.media
         key = get_key(body)
         if not tenant_exists(namespace):
@@ -80,8 +80,8 @@ class CompleteMultiModel(object):
 
 class AbortMultiModel(object):
     @jsonschema.validate(multipart_abort_schema)
-    def on_post(self, req, resp):
-        namespace = get_namespace(req)
+    def on_post(self, req, resp, tenant_name):
+        namespace = get_namespace(tenant_name)
         body = req.media
         key = get_key(body)
         if not tenant_exists(namespace):

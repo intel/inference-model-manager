@@ -52,14 +52,17 @@ JOE = {'login': "johndoe@example.com", 'password': "bar"}
 
 MANAGEMENT_API_URL = os.environ.get('MANAGEMENT_API_URL', 'http://127.0.0.1:5000')
 TENANTS_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants')
-ENDPOINT_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'endpoints')
+ENDPOINT_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants/' +
+                                                                       '{tenant_name}/endpoints')
 ENDPOINT_MANAGEMENT_API_URL_SCALE = ENDPOINT_MANAGEMENT_API_URL + "/{endpoint_name}/scaling"
 ENDPOINT_MANAGEMENT_API_URL_UPDATE = ENDPOINT_MANAGEMENT_API_URL + "/{endpoint_name}/updating"
 ENDPOINT_MANAGEMENT_API_URL_VIEW = ENDPOINT_MANAGEMENT_API_URL + "/{endpoint_name}/viewing"
-START_MULTIPART_UPLOAD_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'upload/start')
+START_MULTIPART_UPLOAD_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants/' +
+                                                                          '{tenant_name}/' +
+                                                                          'upload/start')
 AUTH_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'authenticate')
 TOKEN_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'authenticate/token')
-MODEL_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'models')
+MODEL_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants/{tenant_name}/models')
 
 TENANT_NAME = os.environ.get('TENANT_NAME', 'test')
 

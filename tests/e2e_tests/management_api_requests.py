@@ -29,7 +29,7 @@ def create_endpoint():
         'subjectName': 'client',
         'resources': TENANT_RESOURCES,
     })
-    url = ENDPOINT_MANAGEMENT_API_URL
+    url = ENDPOINT_MANAGEMENT_API_URL.format(tenant_name=TENANT_NAME)
 
     response = requests.post(url, data=data, headers=headers)
     return response

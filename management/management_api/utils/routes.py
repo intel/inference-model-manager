@@ -7,17 +7,18 @@ from management_api.models import Models
 
 routes = [
     dict(resource=Tenants(), url='/tenants'),
-    dict(resource=Endpoints(), url='/endpoints'),
-    dict(resource=EndpointScale(), url='/endpoints/{endpoint_name}/scaling'),
-    dict(resource=EndpointUpdate(), url='/endpoints/{endpoint_name}/updating'),
-    dict(resource=EndpointView(), url='/endpoints/{endpoint_name}/viewing'),
-    dict(resource=StartMultiModel(), url='/upload/start'),
-    dict(resource=WriteMultiModel(), url='/upload'),
-    dict(resource=CompleteMultiModel(), url='/upload/done'),
-    dict(resource=AbortMultiModel(), url='/upload/abort'),
+    dict(resource=Endpoints(), url='/tenants/{tenant_name}/endpoints'),
+    dict(resource=EndpointScale(), url='/tenants/{tenant_name}/endpoints/{endpoint_name}/scaling'),
+    dict(resource=EndpointUpdate(),
+         url='/tenants/{tenant_name}/endpoints/{endpoint_name}/updating'),
+    dict(resource=EndpointView(), url='/tenants/{tenant_name}/endpoints/{endpoint_name}/viewing'),
+    dict(resource=StartMultiModel(), url='/tenants/{tenant_name}/upload/start'),
+    dict(resource=WriteMultiModel(), url='/tenants/{tenant_name}/upload'),
+    dict(resource=CompleteMultiModel(), url='/tenants/{tenant_name}/upload/done'),
+    dict(resource=AbortMultiModel(), url='/tenants/{tenant_name}/upload/abort'),
     dict(resource=Authenticate(), url='/authenticate'),
     dict(resource=Token(), url='/authenticate/token'),
-    dict(resource=Models(), url='/models'),
+    dict(resource=Models(), url='/tenants/{tenant_name}/models'),
 ]
 
 

@@ -132,5 +132,5 @@ class AuthMiddleware:
         return False
 
 
-def get_namespace(request):
-    return request.context['groups'][0]
+def get_namespace(tenant_name):
+    return tenant_name

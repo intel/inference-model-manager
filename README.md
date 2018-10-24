@@ -72,7 +72,8 @@ curl -X POST "http://<management_api_address>:5000/tenants" -H "accept: applicat
 #### Endpoints
 Create endpoint
 ```
-curl -X POST "http://<management_api_address>:5000/endpoints" -H "accept: application/json" \
+curl -X POST "http://<management_api_address>:5000/tenants/<namespace>/endpoints" -H "accept: 
+application/json" \
 -H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
 -d "{\"modelName\": <string>, \"modelVersion\": <int>, \"endpointName\": <string>, \"subjectName\": <string>
 \"resources\": {<dict>}}"
@@ -81,35 +82,35 @@ curl -X POST "http://<management_api_address>:5000/endpoints" -H "accept: applic
 
 Scale endpoint
 ```
-curl -X PATCH "http://<management_api_address>:5000/endpoints/<endpoint-name>/scaling" \
+curl -X PATCH "http://<management_api_address>:5000/tenants/<namespace>/endpoints/<endpoint-name>/scaling" \
 -H "accept: application/json" -H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
 -d "{\"replicas\": <int>}"
 ```
 
 Update endpoint
 ```
-curl -X PATCH "http://<management_api_address>:5000/endpoints/<endpoint-name>/updating" \
+curl -X PATCH "http://<management_api_address>:5000/tenants/<namespace>/endpoints/<endpoint-name>/updating" \
 -H "accept: application/json" -H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
 -d "{\"modelName\": <string>, \"modelVersion\": <int>}"
 ```
 
 View endpoint
 ```
-curl -X GET "http://<management_api_address>:5000/endpoints/<endpoint-name>/viewing" \
+curl -X GET "http://<management_api_address>:5000/tenants/<namespace>/endpoints/<endpoint-name>/viewing" \
 -H "accept: application/json" -H "Authorization: <jwt_token>" -H "Content-Type: application/json"
 
 ```
 
 List endpoints
 ```
-curl -X GET "http://<management_api_address>:5000/endpoints" -H "accept: application/json" \
+curl -X GET "http://<management_api_address>:5000/tenants/<namespace>/endpoints" -H "accept: application/json" \
 -H "Authorization: <jwt_token>" -H "Content-Type: application/json"
 ```
 #### Models
 
 Delete model
 ```
-curl -X DELETE "<management_api_address>:5000/models" -H "accept: application/json" \
+curl -X DELETE "<management_api_address>:5000/tenants/<namespace>/models" -H "accept: application/json" \
 -H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
 -d "{\"modelName\": <string>, \"modelVersion\": <int>}"
 

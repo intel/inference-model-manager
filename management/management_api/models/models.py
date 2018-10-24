@@ -7,16 +7,16 @@ from management_api.schemas.models import model_delete_schema
 
 
 class Models(object):
-    def on_get(self, req, resp):
-        namespace = get_namespace(req)
+    def on_get(self, req, resp, tenant_name):
+        namespace = get_namespace(tenant_name)
         response = list_models(namespace)
         resp.status = falcon.HTTP_OK
         resp.body = response
 
     @jsonschema.validate(model_delete_schema)
-    def on_delete(self, req, resp):
+    def on_delete(self, req, resp, tenant_name):
         """Handles DELETE requests"""
-        namespace = get_namespace(req)
+        namespace = get_namespace(tenant_name)
         body = req.media
         response = delete_model(body, namespace)
         resp.status = falcon.HTTP_OK

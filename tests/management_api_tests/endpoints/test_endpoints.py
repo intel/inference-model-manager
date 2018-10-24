@@ -25,7 +25,7 @@ def test_create_endpoint(function_context, apps_api_instance, get_k8s_custom_obj
         'replicas': replicas,
         'resources': ENDPOINT_RESOURCES
     })
-    url = ENDPOINT_MANAGEMENT_API_URL
+    url = ENDPOINT_MANAGEMENT_API_URL.format(tenant_name=namespace)
 
     response = requests.post(url, data=data, headers=DEFAULT_HEADERS)
 
@@ -47,7 +47,7 @@ def test_delete_endpoint(apps_api_instance, get_k8s_custom_obj_client,
         'endpointName': body['spec']['endpointName'],
     })
 
-    url = ENDPOINT_MANAGEMENT_API_URL
+    url = ENDPOINT_MANAGEMENT_API_URL.format(tenant_name=namespace)
     response = requests.delete(url, data=data, headers=DEFAULT_HEADERS)
     assert response.status_code == 200
     assert "deleted" in response.text
@@ -62,7 +62,7 @@ def test_try_create_the_same_endpoint(tenant_with_endpoint):
     body['spec']['resources'] = ENDPOINT_RESOURCES
     data = json.dumps(body['spec'])
 
-    url = ENDPOINT_MANAGEMENT_API_URL
+    url = ENDPOINT_MANAGEMENT_API_URL.format(tenant_name=namespace)
 
     response = requests.post(url, data=data, headers=DEFAULT_HEADERS)
     assert response.status_code == 400
@@ -86,7 +86,7 @@ def test_create_endpoint_with_2_replicas(get_k8s_custom_obj_client, apps_api_ins
         'resources': ENDPOINT_RESOURCES
     })
 
-    url = ENDPOINT_MANAGEMENT_API_URL
+    url = ENDPOINT_MANAGEMENT_API_URL.format(tenant_name=namespace)
 
     response = requests.post(url, data=data, headers=DEFAULT_HEADERS)
 
@@ -120,7 +120,7 @@ def test_scale_endpoint(get_k8s_custom_obj_client, apps_api_instance,
 
 
 def simulate_scaling(custom_obj_api, apps_api_instance, headers, namespace, name, replicas):
-    url = ENDPOINT_MANAGEMENT_API_URL_SCALE.format(endpoint_name=name)
+    url = ENDPOINT_MANAGEMENT_API_URL_SCALE.format(endpoint_name=name, tenant_name=namespace)
     data = json.dumps({
         'replicas': replicas
     })
@@ -150,10 +150,10 @@ FAILING_SCALE_PARAMS = [
                          FAILING_SCALE_PARAMS)
 def test_fail_to_scale_endpoint(auth, tenant_with_endpoint, endpoint_name, scale_params,
                                 expected_status_code, expected_error_msg):
+    namespace, _ = tenant_with_endpoint
     data = json.dumps(scale_params)
-
-    url = ENDPOINT_MANAGEMENT_API_URL_SCALE.format(endpoint_name=endpoint_name)
-
+    url = ENDPOINT_MANAGEMENT_API_URL_SCALE.format(endpoint_name=endpoint_name,
+                                                   tenant_name=namespace)
     response = requests.patch(url, data=data, headers=auth)
 
     assert response.status_code == expected_status_code
@@ -167,7 +167,8 @@ def test_update_endpoint(get_k8s_custom_obj_client, apps_api_instance,
     crd_server_name = body['spec']['endpointName']
     data = json.dumps(new_values)
 
-    url = ENDPOINT_MANAGEMENT_API_URL_UPDATE.format(endpoint_name=crd_server_name)
+    url = ENDPOINT_MANAGEMENT_API_URL_UPDATE.format(endpoint_name=crd_server_name,
+                                                    tenant_name=namespace)
 
     response = requests.patch(url, data=data, headers=DEFAULT_HEADERS)
 
@@ -205,7 +206,8 @@ def test_fail_to_update_endpoint(get_k8s_custom_obj_client,
 
     data = json.dumps(update_params)
 
-    url = ENDPOINT_MANAGEMENT_API_URL_UPDATE.format(endpoint_name=endpoint_name)
+    url = ENDPOINT_MANAGEMENT_API_URL_UPDATE.format(endpoint_name=endpoint_name,
+                                                    tenant_name=namespace)
 
     response = requests.patch(url, data=data, headers=auth)
 
@@ -241,7 +243,7 @@ def test_not_create_endpoint_with_incompliant_resource_quota(tenant, incompliant
         'resources': incompliant_quota
     })
 
-    url = ENDPOINT_MANAGEMENT_API_URL
+    url = ENDPOINT_MANAGEMENT_API_URL.format(tenant_name=namespace)
 
     headers = DEFAULT_HEADERS
     response = requests.post(url, data=data, headers=headers)
@@ -260,7 +262,7 @@ def test_not_create_endpoint_with_incompliant_resource_quota(tenant, incompliant
 def test_list_endpoints(request, tenant_fix, auth_headers,
                         expected_status, expected_message):
     namespace, _ = request.getfixturevalue(tenant_fix)
-    url = ENDPOINT_MANAGEMENT_API_URL
+    url = ENDPOINT_MANAGEMENT_API_URL.format(tenant_name=namespace)
     response = requests.get(url, headers=auth_headers)
 
     assert expected_status == response.status_code
@@ -272,7 +274,8 @@ def test_list_endpoints(request, tenant_fix, auth_headers,
                           ('tenant_with_endpoint', 'not_exist', 404, 'Endpoint {} does not exist')])
 def test_view_endpoint(request, endpoint_fix, endpoint_name, expected_status, expected_message):
     namespace, _ = request.getfixturevalue(endpoint_fix)
-    url = ENDPOINT_MANAGEMENT_API_URL_VIEW.format(endpoint_name=endpoint_name)
+    url = ENDPOINT_MANAGEMENT_API_URL_VIEW.format(endpoint_name=endpoint_name,
+                                                  tenant_name=namespace)
     response = requests.get(url, headers=DEFAULT_HEADERS)
 
     assert expected_status == response.status_code
@@ -292,7 +295,7 @@ def test_not_create_endpoint_tenant_not_exist():
         'replicas': replicas,
         'resources': ENDPOINT_RESOURCES
     })
-    url = ENDPOINT_MANAGEMENT_API_URL
+    url = ENDPOINT_MANAGEMENT_API_URL.format(tenant_name=namespace)
 
     response = requests.post(url, data=data, headers=headers)
 

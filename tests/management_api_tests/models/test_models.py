@@ -11,7 +11,7 @@ from management_api_tests.config import DEFAULT_HEADERS, MODEL_MANAGEMENT_API_UR
                            "There are no models present in {} tenant")])
 def test_list_models(request, endpoint_fix, expected_status, expected_message):
     namespace, _ = request.getfixturevalue(endpoint_fix)
-    url = MODEL_MANAGEMENT_API_URL
+    url = MODEL_MANAGEMENT_API_URL.format(tenant_name=namespace)
     response = requests.get(url, headers=DEFAULT_HEADERS)
     assert expected_status == response.status_code
     assert expected_message.format(namespace) in response.text
@@ -27,11 +27,8 @@ def test_delete_model(request, endpoint_fix, expected_status, expected_message):
         'modelName': model_name,
         'modelVersion': model_version
     })
-
-    url = MODEL_MANAGEMENT_API_URL
-
+    url = MODEL_MANAGEMENT_API_URL.format(tenant_name=namespace)
     response = requests.delete(url, data=data, headers=DEFAULT_HEADERS)
-
     model_path = f'{model_name}-{model_version}'
     assert expected_status == response.status_code
     assert expected_message.format(model_path) in response.text

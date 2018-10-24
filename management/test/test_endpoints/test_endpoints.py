@@ -13,7 +13,8 @@ def test_endpoints_post(mocker, client, body, expected_status):
     create_endpoint_mock.return_value = "test"
     expected_message = 'Endpoint created\n {}'.format("test")
 
-    result = client.simulate_request(method='POST', path='/endpoints', headers={}, json=body)
+    result = client.simulate_request(method='POST', path='/tenants/default/endpoints', headers={},
+                                     json=body)
     assert expected_status == result.status
     assert expected_message == result.text
     create_endpoint_mock.assert_called_once()
@@ -25,7 +26,8 @@ def test_endpoints_delete(mocker, client):
     expected_status = falcon.HTTP_OK
     body = {'endpointName': 'test'}
 
-    result = client.simulate_request(method='DELETE', path='/endpoints', headers={}, json=body)
+    result = client.simulate_request(method='DELETE', path='/tenants/default/endpoints', headers={},
+                                     json=body)
     assert expected_status == result.status
     delete_endpoint_mock.assert_called_once()
 
@@ -39,7 +41,8 @@ def test_endpoints_patch(mocker, client, functionality, method_name, body, expec
     method_mock.return_value = "test"
     expected_message = 'patched successfully'
 
-    result = client.simulate_request(method='PATCH', path='/endpoints/test/' + functionality,
+    result = client.simulate_request(method='PATCH', path=f'/tenants/default/endpoints/test/'
+                                                          f'{functionality}',
                                      headers={}, json=body)
     assert expected_status == result.status
     assert expected_message in result.text
@@ -58,7 +61,8 @@ def test_endpoints_get(mocker, client, functionality, method_name,
     get_endpoint_mock = mocker.patch('management_api.endpoints.endpoints.' + method_name)
     get_endpoint_mock.return_value = namespace
 
-    result = client.simulate_request(method='GET', path='/endpoints' + functionality,
+    result = client.simulate_request(method='GET', path=f'/tenants/{namespace}/endpoints'
+                                                        f'{functionality}',
                                      headers=header)
 
     assert expected_status == result.status
