@@ -133,10 +133,11 @@ jobs:
           command: |
             export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
             export CLUSTER_NAME="inferno-${CIRCLE_BRANCH}-${SHORT_SHA1}"
+            export SHORT_CLUSTER_NAME=`echo ${CLUSTER_NAME} | cut -c 1-20`
             export CLUSTER_ALL_VMS_NETWORK="${CLUSTER_NAME}-all-vms-net"
             helm --debug delete inferno
-            export RESOURCES=`gcloud compute target-pools list --format=json|grep $CLUSTER_NAME`
-            while [ -n "$RESOURCES" ]; do sleep 10; RESOURCES=`gcloud compute target-pools list --format=json|grep $CLUSTER_NAME`; done
+            export RESOURCES=`gcloud compute target-pools list --format=json|grep $SHORT_CLUSTER_NAME|| true`
+            while [ -n "$RESOURCES" ]; do sleep 10; RESOURCES=`gcloud compute target-pools list --format=json|grep $SHORT_CLUSTER_NAME|| true`; done
             echo y | gcloud compute firewall-rules delete $CLUSTER_ALL_VMS_NETWORK
             echo y | gcloud container clusters delete $CLUSTER_NAME --zone us-west1-a
       - run:
@@ -145,11 +146,12 @@ jobs:
           command: |
             export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
             export CLUSTER_NAME="inferno-${CIRCLE_BRANCH}-${SHORT_SHA1}"
+            export SHORT_CLUSTER_NAME=`echo ${CLUSTER_NAME} | cut -c 1-20`
             export CLUSTER_ALL_VMS_NETWORK="${CLUSTER_NAME}-all-vms-net"
             sleep 30m
             helm --debug delete inferno
-            export RESOURCES=`gcloud compute target-pools list --format=json|grep $CLUSTER_NAME`
-            while [ -n "$RESOURCES" ]; do sleep 10; RESOURCES=`gcloud compute target-pools list --format=json|grep $CLUSTER_NAME`; done
+            export RESOURCES=`gcloud compute target-pools list --format=json|grep $SHORT_CLUSTER_NAME|| true`
+            while [ -n "$RESOURCES" ]; do sleep 10; RESOURCES=`gcloud compute target-pools list --format=json|grep $SHORT_CLUSTER_NAME|| true`; done
             echo y | gcloud compute firewall-rules delete $CLUSTER_ALL_VMS_NETWORK
             echo y | gcloud container clusters delete $CLUSTER_NAME --zone us-west1-a
           no_output_timeout: 32m
