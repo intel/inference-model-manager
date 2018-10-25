@@ -89,7 +89,7 @@ def model_exists(model):
 
 def get_model_base_path(args):
     parser = argparse.ArgumentParser()
-    parser.add_argument('./tensorflow_model_server')
+    parser.add_argument('tensorflow_model_server')
     parser.add_argument('--port')
     parser.add_argument('--model_name')
     parser.add_argument('--model_base_path')

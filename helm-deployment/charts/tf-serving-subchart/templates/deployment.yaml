@@ -43,6 +43,6 @@ spec:
           - /bin/sh
           - -c
           args:
-          - ./tensorflow_model_server --port=9000 --model_name=resnet --model_base_path="s3://bucket-model/resnet"
+          - tensorflow_model_server --port=9000 --model_name=resnet --model_base_path="s3://bucket-model/resnet"
           ports:
           - containerPort: 9000

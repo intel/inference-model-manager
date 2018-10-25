@@ -2,10 +2,12 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 replicaCount: 1
-image:
-  repository: gcr.io/constant-cubist-173123/tf-s-native-centos-clean
-  tag: latest
-  pullPolicy: IfNotPresent
+tf-serving-subchart:
+  enabled: true
+  image:
+    repository: tensorflow/serving
+    tag: 1.7.1
+    pullPolicy: IfNotPresent
 service:
   name: resnet-service
   type: LoadBalancer
@@ -55,7 +57,4 @@ global:
   platformDomain: "serving-service.com"
   minioEndpoint: "127.0.0.1:9000"
   minioEndpointUrl: "http://127.0.0.1:9000"
-tf-serving-subchart:
-  enabled: true
 openstack: false
-

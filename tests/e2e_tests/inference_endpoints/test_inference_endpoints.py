@@ -20,6 +20,8 @@ images = IMAGES
 image = numpy.expand_dims(images[0], axis=0)
 labels = LABELS
 first_label = labels[0]
+model_input = "in"
+model_output = "out"
 
 
 def test_prediction_with_certificates(function_context, minio_client):
@@ -41,13 +43,13 @@ def test_prediction_with_certificates(function_context, minio_client):
                                                     certificate_chain=trusted_ca)
     stub, request = prepare_stub_and_request(creds, opts, address, MODEL_NAME)
 
-    request.inputs['import/input_tensor'].CopyFrom(
+    request.inputs[model_input].CopyFrom(
             tf.contrib.util.make_tensor_proto(image, shape=image.shape))
     prediction_response = stub.Predict(request, 10.0)
 
     assert prediction_response is not None
 
-    response = numpy.array(prediction_response.outputs['import/softmax_tensor'].float_val)
+    response = numpy.array(prediction_response.outputs[model_output].float_val)
 
     max_output = numpy.argmax(response) - 1
     num_label = classes.imagenet_classes[max_output]
@@ -75,11 +77,11 @@ def test_prediction_batch_with_certificates(function_context, minio_client):
                                                     certificate_chain=trusted_ca)
     stub, request = prepare_stub_and_request(creds, opts, address, MODEL_NAME)
 
-    request.inputs['import/input_tensor'].CopyFrom(
+    request.inputs[model_input].CopyFrom(
             tf.contrib.util.make_tensor_proto(images, shape=images.shape))
     prediction_response = stub.Predict(request, 10.0)
 
-    response = numpy.array(prediction_response.outputs['import/softmax_tensor'].float_val)
+    response = numpy.array(prediction_response.outputs[model_output].float_val)
 
     offset = 1001
     max_outputs = []
@@ -117,7 +119,7 @@ def test_wrong_certificates(function_context, minio_client):
 
     numpy_input = numpy.zeros((1, 224, 224, 3), numpy.dtype('<f'))
 
-    request.inputs['import/input_tensor'].CopyFrom(
+    request.inputs[model_input].CopyFrom(
             tf.contrib.util.make_tensor_proto(numpy_input, shape=[1, 224, 224, 3]))
 
     with pytest.raises(grpc.RpcError) as context:
@@ -141,7 +143,7 @@ def test_no_certificates(function_context, minio_client):
 
     numpy_input = numpy.zeros((1, 224, 224, 3), numpy.dtype('<f'))
 
-    request.inputs['import/input_tensor'].CopyFrom(
+    request.inputs[model_input].CopyFrom(
             tf.contrib.util.make_tensor_proto(numpy_input, shape=[1, 224, 224, 3]))
 
     with pytest.raises(grpc.RpcError) as context:

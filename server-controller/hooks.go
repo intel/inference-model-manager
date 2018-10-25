@@ -50,7 +50,7 @@ type patchStructMap struct {
 var replicaPath = "/spec/replicas"
 var argPath = "/spec/template/spec/containers/0/args/0"
 var resourcePath = "/spec/template/spec/containers/0/resources/{{.ResourcePath}}"
-var argValue = "./tensorflow_model_server --port=9000 --model_name={{.ModelName}} --model_base_path=s3://{{.Namespace}}/{{.ModelName}}-{{.ModelVersion}}"
+var argValue = "tensorflow_model_server --port=9000 --model_name={{.ModelName}} --model_base_path=s3://{{.Namespace}}/{{.ModelName}}-{{.ModelVersion}}"
 
 func (c *serverHooks) Add(obj interface{}) {
 	server := obj.(*crv1.Server)
