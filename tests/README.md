@@ -25,4 +25,3 @@ $ pip install -r requirements.txt
 * pytest -v .
 
 * you can check how to get required values in get_test_envs.sh script
-

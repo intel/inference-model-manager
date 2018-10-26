@@ -1,9 +1,6 @@
 import os
 import sys
-
 import requests
-
-from grpc.beta import implementations
 import logging
 import numpy
 import pytest
@@ -12,15 +9,15 @@ import json
 import time
 import grpc
 
-sys.path.append(os.path.join(os.path.expanduser("~"), 'inferno-platform/common'))  # noqa
-from model_upload import upload_model
+sys.path.append(os.path.realpath(os.path.join(os.path.realpath(__file__), '../../../../common')))  # noqa
 
+import classes
+from endpoint_utils import prepare_certs, prepare_stub_and_request
+from model_upload import upload_model
 from e2e_tests.management_api_requests import create_endpoint, create_tenant
 from e2e_tests.config import MODEL_NAME, TENANT_NAME, \
     CERT_BAD_CLIENT, CERT_BAD_CLIENT_KEY, CERT_CLIENT, CERT_CLIENT_KEY, CERT_SERVER
-from e2e_tests.tf_serving_utils import classes
 from e2e_tests.tf_serving_utils.load_numpy import IMAGES, LABELS
-from e2e_tests.tf_serving_utils.endpoint_utils import prepare_certs, prepare_stub_and_request
 from management_api_tests.authenticate import get_user_token
 from management_api_tests.config import MANAGEMENT_API_URL
 
@@ -48,10 +45,9 @@ def test_prediction_with_certificates(function_context, minio_client):
         CERT_SERVER,
         CERT_CLIENT_KEY,
         CERT_CLIENT)
-    creds = implementations.ssl_channel_credentials(root_certificates=trusted_cert,
-                                                    private_key=trusted_key,
-                                                    certificate_chain=trusted_ca)
-    stub, request = prepare_stub_and_request(creds, opts, address, MODEL_NAME)
+    creds = grpc.ssl_channel_credentials(root_certificates=trusted_cert,
+                                         private_key=trusted_key, certificate_chain=trusted_ca)
+    stub, request = prepare_stub_and_request(address, MODEL_NAME, creds, opts)
 
     request.inputs[model_input].CopyFrom(
         tf.contrib.util.make_tensor_proto(image, shape=image.shape))
@@ -83,10 +79,9 @@ def test_prediction_batch_with_certificates(function_context, minio_client):
         CERT_SERVER,
         CERT_CLIENT_KEY,
         CERT_CLIENT)
-    creds = implementations.ssl_channel_credentials(root_certificates=trusted_cert,
-                                                    private_key=trusted_key,
-                                                    certificate_chain=trusted_ca)
-    stub, request = prepare_stub_and_request(creds, opts, address, MODEL_NAME)
+    creds = grpc.ssl_channel_credentials(root_certificates=trusted_cert,
+                                         private_key=trusted_key, certificate_chain=trusted_ca)
+    stub, request = prepare_stub_and_request(address, MODEL_NAME, creds, opts)
 
     request.inputs[model_input].CopyFrom(
         tf.contrib.util.make_tensor_proto(images, shape=images.shape))
@@ -124,10 +119,9 @@ def test_wrong_certificates(function_context, minio_client):
         CERT_SERVER,
         CERT_BAD_CLIENT_KEY,
         CERT_BAD_CLIENT)
-    creds = implementations.ssl_channel_credentials(root_certificates=trusted_cert,
-                                                    private_key=wrong_key,
-                                                    certificate_chain=wrong_ca)
-    stub, request = prepare_stub_and_request(creds, opts, address, MODEL_NAME)
+    creds = grpc.ssl_channel_credentials(root_certificates=trusted_cert,
+                                         private_key=wrong_key, certificate_chain=wrong_ca)
+    stub, request = prepare_stub_and_request(address, MODEL_NAME, creds, opts)
 
     numpy_input = numpy.zeros((1, 224, 224, 3), numpy.dtype('<f'))
 
@@ -151,8 +145,8 @@ def test_no_certificates(function_context, minio_client):
     time.sleep(40)
 
     trusted_cert, _, _ = prepare_certs(CERT_SERVER)
-    creds = implementations.ssl_channel_credentials(root_certificates=trusted_cert)
-    stub, request = prepare_stub_and_request(creds, opts, address, MODEL_NAME)
+    creds = grpc.ssl_channel_credentials(root_certificates=trusted_cert)
+    stub, request = prepare_stub_and_request(address, MODEL_NAME, creds, opts)
 
     numpy_input = numpy.zeros((1, 224, 224, 3), numpy.dtype('<f'))
 
