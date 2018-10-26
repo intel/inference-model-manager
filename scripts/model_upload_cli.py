@@ -5,7 +5,7 @@ import time
 from os import getenv
 from os.path import expanduser, join
 
-from common.model_upload import upload_model
+from model_upload import upload_model
 
 
 def read_config():

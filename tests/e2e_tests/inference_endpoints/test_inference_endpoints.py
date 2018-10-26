@@ -10,7 +10,7 @@ import time
 import grpc
 
 sys.path.append(os.path.realpath(os.path.join(os.path.realpath(__file__), '../../../../common')))  # noqa
-
+sys.path.append(os.path.realpath(os.path.join(os.path.realpath(__file__), '../../../../scripts')))  # noqa
 import classes
 from endpoint_utils import prepare_certs, prepare_stub_and_request
 from model_upload import upload_model
@@ -20,7 +20,6 @@ from e2e_tests.config import MODEL_NAME, TENANT_NAME, \
 from e2e_tests.tf_serving_utils.load_numpy import IMAGES, LABELS
 from management_api_tests.authenticate import get_user_token
 from management_api_tests.config import MANAGEMENT_API_URL
-
 
 images = IMAGES
 image = numpy.expand_dims(images[0], axis=0)

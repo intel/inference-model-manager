@@ -74,4 +74,3 @@ def upload_model(url, params, headers, part_size):
         return
 
     print(f"Upload with id: {upload_id} completed successfully")
-
