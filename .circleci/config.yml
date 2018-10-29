@@ -44,7 +44,7 @@ jobs:
             export PR_NR=`basename ${CIRCLE_PULL_REQUEST}`
             export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
             export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
-            export CLUSTER_NAME="inferno-${CIRCLE_BRANCH}-${SHORT_SHA1}"
+            export CLUSTER_NAME="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}"
             export CLUSTER_ALL_VMS_NETWORK="${CLUSTER_NAME}-all-vms-net"
             echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
             curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
@@ -132,7 +132,7 @@ jobs:
           when: on_success
           command: |
             export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
-            export CLUSTER_NAME="inferno-${CIRCLE_BRANCH}-${SHORT_SHA1}"
+            export CLUSTER_NAME="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}"
             export SHORT_CLUSTER_NAME=`echo ${CLUSTER_NAME} | cut -c 1-20`
             export CLUSTER_ALL_VMS_NETWORK="${CLUSTER_NAME}-all-vms-net"
             helm --debug delete inferno
@@ -145,7 +145,7 @@ jobs:
           when: on_fail
           command: |
             export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
-            export CLUSTER_NAME="inferno-${CIRCLE_BRANCH}-${SHORT_SHA1}"
+            export CLUSTER_NAME="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}"
             export SHORT_CLUSTER_NAME=`echo ${CLUSTER_NAME} | cut -c 1-20`
             export CLUSTER_ALL_VMS_NETWORK="${CLUSTER_NAME}-all-vms-net"
             sleep 30m
