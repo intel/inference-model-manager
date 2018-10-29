@@ -113,8 +113,8 @@ def test_scale_endpoint(get_k8s_custom_obj_client, apps_api_instance,
     simulate_scaling(get_k8s_custom_obj_client, apps_api_instance, headers, namespace,
                      crd_server_name, replicas)
 
-    # -- scaling down 5 -> 3
-    replicas = 3
+    # -- scaling down 5 -> 0
+    replicas = 0
     simulate_scaling(get_k8s_custom_obj_client, apps_api_instance, headers, namespace,
                      crd_server_name, replicas)
 
@@ -139,7 +139,7 @@ def simulate_scaling(custom_obj_api, apps_api_instance, headers, namespace, name
 
 FAILING_SCALE_PARAMS = [
     (DEFAULT_HEADERS, "wrong_name", {'replicas': 3}, 400, "Not Found"),
-    (DEFAULT_HEADERS, "predict", {'replicas': -1}, 400, "-1 is less than the minimum of 1"),
+    (DEFAULT_HEADERS, "predict", {'replicas': -1}, 400, "-1 is less than the minimum of 0"),
     (DEFAULT_HEADERS, "predict", {'replicas': "many"}, 400, "'many' is not of type 'integer'"),
     (DEFAULT_HEADERS, "predict", {}, 400, "{} is not valid under any of the given schemas"),
 ]

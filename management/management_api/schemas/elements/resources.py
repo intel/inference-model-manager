@@ -31,5 +31,5 @@ replicas = {
     "type": "integer",
     "optional": True,
     "title": "Replicas",
-    "minimum": 1
+    "minimum": 0
 }

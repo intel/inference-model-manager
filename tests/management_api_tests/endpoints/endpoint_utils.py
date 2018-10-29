@@ -114,9 +114,16 @@ def wait_server_setup(api_instance, namespace, endpoint_name, replicas):
                                                                       pretty="pretty")
     except ApiException as apiException:
         return OperationStatus.TERMINATED
+    updated_replicas = api_response.status.updated_replicas
+    ready_replicas = api_response.status.ready_replicas
 
-    if api_response.status.updated_replicas != replicas:
+    if updated_replicas is None:
+        updated_replicas = 0
+    if ready_replicas is None:
+        ready_replicas = 0
+
+    if updated_replicas != replicas:
         return OperationStatus.FAILURE
-    if api_response.status.ready_replicas != api_response.status.updated_replicas:
+    if ready_replicas != updated_replicas:
         raise Exception
     return OperationStatus.SUCCESS
