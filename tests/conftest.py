@@ -74,7 +74,7 @@ def function_context(request, get_k8s_custom_obj_client, api_instance, minio_res
 
 @pytest.fixture(scope="session")
 def session_context(request, get_k8s_custom_obj_client, api_instance, minio_resource,
-                     minio_client):
+                    minio_client):
     context = Context(k8s_client=api_instance, k8s_client_custom=get_k8s_custom_obj_client,
                       minio_resource_client=minio_resource, minio_client=minio_client)
     request.addfinalizer(context.delete_all_objects)
