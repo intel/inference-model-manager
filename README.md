@@ -60,7 +60,11 @@ Delete tenant:
 curl -X DELETE "http://<management_api_address>:5000/tenants" -H "accept: application/json" \
 -H "Authorization: <jwt_token>" -H "Content-Type: application/json" -d "{\"name\": <string>}"
 ```
-
+List tenants:
+```
+curl -X GET "http://<management_api_address>:5000/tenants" -H "accept: application/json" \
+-H "Authorization: <jwt_token>" -H "Content-Type: application/json"
+```
 Cert field value is used in kubernetes secret. Because of that, cert shall be provided in Base64 encoded format.
 * example with valid certificate:
 ```

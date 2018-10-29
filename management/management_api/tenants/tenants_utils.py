@@ -5,7 +5,7 @@ from kubernetes.client.rest import ApiException
 from tenacity import retry, stop_after_attempt, wait_fixed
 from management_api.config import CERT_SECRET_NAME, PORTABLE_SECRETS_PATHS, \
     minio_client, minio_resource, RESOURCE_DOES_NOT_EXIST, \
-    NAMESPACE_BEING_DELETED, NO_SUCH_BUCKET_EXCEPTION, TERMINATION_IN_PROGRESS
+    NAMESPACE_BEING_DELETED, NO_SUCH_BUCKET_EXCEPTION, TERMINATION_IN_PROGRESS, PLATFORM_ADMIN
 from management_api.utils.cert import validate_cert
 from management_api.utils.errors_handling import TenantAlreadyExistsException, MinioCallException, \
     TenantDoesNotExistException, KubernetesCreateException, KubernetesDeleteException, \
@@ -48,11 +48,11 @@ def create_tenant(parameters):
 
 
 def create_namespace(name, quota):
+    annotations = None
     if 'maxEndpoints' in quota:
-        name_object = client.\
-            V1ObjectMeta(name=name, annotations={'maxEndpoints': str(quota.pop('maxEndpoints'))})
-    else:
-        name_object = client.V1ObjectMeta(name=name)
+        annotations = {'maxEndpoints': str(quota.pop('maxEndpoints'))}
+    name_object = client.V1ObjectMeta(name=name, annotations=annotations,
+                                      labels={'created_by': PLATFORM_ADMIN})
     namespace = client.V1Namespace(metadata=name_object)
     api_instance = get_k8s_api_client()
     try:
@@ -253,3 +253,23 @@ def create_rolebinding(name, scope_name):
 
     logger.info("Rolebinding {} created".format(name))
     return response
+
+
+def list_tenants():
+    tenants = []
+    api_instance = get_k8s_api_client()
+    label = f'created_by = {PLATFORM_ADMIN}'
+    try:
+        namespaces = api_instance.list_namespace(label_selector=label)
+    except ApiException as apiException:
+        KubernetesGetException('namespaces', apiException)
+    for item in namespaces.to_dict()['items']:
+        if item['status']['phase'] != TERMINATION_IN_PROGRESS:
+            tenants.append(item['metadata']['name'])
+    if not tenants:
+        message = "There's no tenants present on platform\n"
+        logger.info(message)
+        return message
+    message = f"Tenants present on platform: {tenants}\n"
+    logger.info(message)
+    return message

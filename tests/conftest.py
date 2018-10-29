@@ -11,7 +11,7 @@ from urllib.parse import urljoin, urlparse, parse_qs
 from management_api_tests.config import MINIO_SECRET_ACCESS_KEY, MINIO_ACCESS_KEY_ID, \
     MINIO_REGION, MINIO_ENDPOINT_ADDR, SIGNATURE_VERSION, CRD_VERSION, CRD_PLURAL, CRD_KIND, \
     CRD_GROUP, CRD_API_VERSION, TENANT_NAME, TENANT_RESOURCES, ENDPOINT_RESOURCES, \
-    AUTH_MANAGEMENT_API_URL, JANE, SESSION_TENANT_NAME
+    AUTH_MANAGEMENT_API_URL, JANE, SESSION_TENANT_NAME, PLATFORM_ADMIN
 from management_api_tests.context import Context
 from management_api_tests.reused import propagate_portable_secrets, transform_quota
 
@@ -106,7 +106,7 @@ def minio_resource():
 @pytest.fixture(scope="session")
 def session_tenant(api_instance, minio_client, session_context):
     name = SESSION_TENANT_NAME
-    name_object = client.V1ObjectMeta(name=name)
+    name_object = client.V1ObjectMeta(name=name, labels={'created_by': PLATFORM_ADMIN})
     namespace = client.V1Namespace(metadata=name_object)
     api_instance.create_namespace(namespace)
     propagate_portable_secrets(api_instance, name)

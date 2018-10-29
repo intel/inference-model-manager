@@ -16,6 +16,7 @@ CERT_SECRET_NAME = 'ca-cert-secret'
 PORTABLE_SECRETS_PATHS = ['default/minio-access-info', 'default/tls-secret']
 
 PLATFORM_DOMAIN = os.getenv('PLATFORM_DOMAIN', 'default')
+PLATFORM_ADMIN = os.getenv('PLATFORM_ADMIN', 'platform_admin')
 
 
 # AUTH CONTROLLER DEFINITIONS:

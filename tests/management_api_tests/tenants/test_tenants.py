@@ -146,7 +146,6 @@ def test_portable_secrets_propagation_succeeded(function_context, minio_client, 
 
 
 def test_delete_tenant(minio_client, api_instance):
-
     url = TENANTS_MANAGEMENT_API_URL
     new_tenant_name = TENANT_NAME + '-delete'
     data = json.dumps({
@@ -169,3 +168,11 @@ def test_delete_tenant(minio_client, api_instance):
     namespace_status = check_namespace_availability(api_instance, namespace=new_tenant_name)
     assert namespace_status == CheckResult.\
         RESOURCE_DOES_NOT_EXIST or namespace_status == CheckResult.RESOURCE_BEING_DELETED
+
+
+def test_list_tenants(session_tenant):
+    namespace, _ = session_tenant
+    url = TENANTS_MANAGEMENT_API_URL
+    response = requests.get(url, headers=ADMIN_HEADERS)
+    assert response.status_code == 200
+    assert f"Tenants present on platform: ['{namespace}']" in response.text
