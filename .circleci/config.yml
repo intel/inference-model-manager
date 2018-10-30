@@ -44,8 +44,6 @@ jobs:
             export PR_NR=`basename ${CIRCLE_PULL_REQUEST}`
             export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
             export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
-            export CLUSTER_NAME="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}"
-            export CLUSTER_ALL_VMS_NETWORK="${CLUSTER_NAME}-all-vms-net"
             echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
             curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
             sudo apt-get update && sudo apt-get install -y google-cloud-sdk
@@ -55,16 +53,35 @@ jobs:
             google-cloud-sdk-bigtable-emulator google-cloud-sdk-app-engine-python-extras google-cloud-sdk-datalab google-cloud-sdk-app-engine-java
             gcloud auth activate-service-account --key-file /tmp/gcp-key.json
             gcloud config set project "${GOOGLE_PROJECT_ID}"
-            gcloud container clusters create $CLUSTER_NAME --zone us-west1-a --num-nodes 3 --machine-type "n1-standard-2" --min-cpu-platform "Intel Skylake"
-            gcloud container clusters get-credentials $CLUSTER_NAME --zone us-west1-a --project "${GOOGLE_PROJECT_ID}"
-            # The 3 commands below are necessary to create a connection between the cluster and our LDAP and keystone instances
-            export NETWORK=`gcloud container clusters describe $CLUSTER_NAME --format=get"(network)" --zone=us-west1-a` 
-            export CIDR=`gcloud container clusters describe $CLUSTER_NAME --format=get"(clusterIpv4Cidr)" --zone=us-west1-a`
-            gcloud compute firewall-rules create $CLUSTER_ALL_VMS_NETWORK --network=$NETWORK --source-ranges=$CIDR --allow=tcp,udp,icmp,esp,ah,sctp
+            mkdir temp
+            cd temp
+            wget -O kops https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
+
+            chmod +x ./kops
+            sudo mv ./kops /usr/local/bin/
+            export PROJECT=`gcloud config get-value project`
+            export KOPS_FEATURE_FLAGS=AlphaAllowGCE
+            export PR_NR=`basename ${CIRCLE_PULL_REQUEST}`
+            export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
+            export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
+            export CLUSTER_NAME="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}.k8s.local"
+            export CLUSTER_NAME_SHORT="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}"
+            export KOPS_STATE_STORE=gs://kubernetes-clusters-inferno
+            export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp-key.json" 
+            cd ~/inferno-platform/kops
+            
+            sed -i "s/toreplacebyclustername/${CLUSTER_NAME_SHORT}/g" desiredcni.yaml
+            kops create -f desiredcni.yaml
+            kops update cluster ${CLUSTER_NAME} --yes
+            sleep 300
+            kubectl create -f https://git.io/weave-kube-1.6
+            
+            sleep 250            
             kubectl create serviceaccount --namespace kube-system tiller
             kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
             curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > get_helm.sh
             chmod 700 get_helm.sh
+            sleep 150
             ./get_helm.sh
             helm init --service-account tiller --upgrade
             sleep 20
@@ -99,14 +116,26 @@ jobs:
                echo "image already in registry - not rebuilding"
             fi
       - run:
-          name: Download dependencies and deploy platfrom
+          name: Download dependencies, deploy platfrom and create record in aws route53
           command: |
             export MGMT_TAG=$(find management/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
             export CTRL_TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
+            export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
+            export CLUSTER_NAME_SHORT="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}"
             cd ~/inferno-platform/helm-deployment/
             helm dep up .
             helm install --name inferno --set management-api-chart.tag=$MGMT_TAG --set crd-subchart.tag=$CTRL_TAG .
             sleep 150
+            
+            cd ~/inferno-platform/kops/
+            while [ -z $ING_IP ]; do sleep 10; ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}'); done
+            
+            sed -i "s/0.0.0.0/${ING_IP}/g" route_record.json
+            sed -i "s/toreplacebydomainname/${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com/g" route_record.json
+            cat route_record.json
+            # to uncomment after enabling support for openid tokens
+            # aws route53 change-resource-record-sets --hosted-zone-id Z11DOV0M5AJEBB --change-batch file://./route_record.json
+            # sleep 150
       - run:
           name: Run tests
           command: |
@@ -132,28 +161,54 @@ jobs:
           when: on_success
           command: |
             export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
-            export CLUSTER_NAME="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}"
-            export SHORT_CLUSTER_NAME=`echo ${CLUSTER_NAME} | cut -c 1-20`
-            export CLUSTER_ALL_VMS_NETWORK="${CLUSTER_NAME}-all-vms-net"
+            export PROJECT=`gcloud config get-value project`
+            export KOPS_FEATURE_FLAGS=AlphaAllowGCE
+            export PR_NR=`basename ${CIRCLE_PULL_REQUEST}`
+            export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
+            export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
+            export CLUSTER_NAME="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}.k8s.local"
+            export CLUSTER_NAME_SHORT="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}"
+            export KOPS_STATE_STORE=gs://kubernetes-clusters-inferno
+            export PROJECT=`gcloud config get-value project`
+            export KOPS_FEATURE_FLAGS=AlphaAllowGCE
+            export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp-key.json"
+            export ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}')
+            export CLUSTER_NAME_SHORT_TP=`echo ${CLUSTER_NAME_SHORT} | cut -c 1-20`
             helm --debug delete inferno
-            export RESOURCES=`gcloud compute target-pools list --format=json|grep $SHORT_CLUSTER_NAME|| true`
-            while [ -n "$RESOURCES" ]; do sleep 10; RESOURCES=`gcloud compute target-pools list --format=json|grep $SHORT_CLUSTER_NAME|| true`; done
-            echo y | gcloud compute firewall-rules delete $CLUSTER_ALL_VMS_NETWORK
-            echo y | gcloud container clusters delete $CLUSTER_NAME --zone us-west1-a
+            sleep 2m
+            kops delete cluster ${CLUSTER_NAME} --yes
+            cd ~/inferno-platform/kops
+            sed -i "s/0.0.0.0/${ING_IP}/g" route_delete.json
+            sed -i "s/toreplacebydomainname/${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com/g" route_delete.json
+            cat route_delete.json
+            # aws route53 change-resource-record-sets --hosted-zone-id Z11DOV0M5AJEBB --change-batch file://./route_delete.json
       - run:
           name: clean after failure
           when: on_fail
           command: |
             export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
-            export CLUSTER_NAME="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}"
-            export SHORT_CLUSTER_NAME=`echo ${CLUSTER_NAME} | cut -c 1-20`
-            export CLUSTER_ALL_VMS_NETWORK="${CLUSTER_NAME}-all-vms-net"
+            export PROJECT=`gcloud config get-value project`
+            export KOPS_FEATURE_FLAGS=AlphaAllowGCE
+            export PR_NR=`basename ${CIRCLE_PULL_REQUEST}`
+            export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
+            export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
+            export CLUSTER_NAME="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}.k8s.local"
+            export CLUSTER_NAME_SHORT="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}"
+            export KOPS_STATE_STORE=gs://kubernetes-clusters-inferno
+            export PROJECT=`gcloud config get-value project`
+            export KOPS_FEATURE_FLAGS=AlphaAllowGCE
+            export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp-key.json"
+            export ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}')
+            export CLUSTER_NAME_SHORT_TP=`echo ${CLUSTER_NAME_SHORT} | cut -c 1-20`
             sleep 30m
             helm --debug delete inferno
-            export RESOURCES=`gcloud compute target-pools list --format=json|grep $SHORT_CLUSTER_NAME|| true`
-            while [ -n "$RESOURCES" ]; do sleep 10; RESOURCES=`gcloud compute target-pools list --format=json|grep $SHORT_CLUSTER_NAME|| true`; done
-            echo y | gcloud compute firewall-rules delete $CLUSTER_ALL_VMS_NETWORK
-            echo y | gcloud container clusters delete $CLUSTER_NAME --zone us-west1-a
+            sleep 2m 
+            kops delete cluster ${CLUSTER_NAME} --yes
+            cd ~/inferno-platform/kops
+            sed -i "s/0.0.0.0/${ING_IP}/g" route_delete.json
+            sed -i "s/toreplacebydomainname/${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com/g" route_delete.json
+            cat route_delete.json
+            # aws route53 change-resource-record-sets --hosted-zone-id Z11DOV0M5AJEBB --change-batch file://./route_delete.json
           no_output_timeout: 32m
 workflows:
   version: 2

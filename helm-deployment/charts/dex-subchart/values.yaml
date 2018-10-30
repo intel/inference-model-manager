@@ -1,6 +1,6 @@
-issuer: "http://127.0.0.1:443/dex"
+issuer: &issuer "https://dex.test-karolina.nlpnp.adsdcsp.com:443/dex"
 config:
-  issuer: "http://127.0.0.1:443/dex"
+  issuer: *issuer
   storage:
       type: kubernetes
       config:
@@ -16,7 +16,7 @@ config:
     name: OpenLDAP
     id: ldap
     config:
-      issuer: "http://127.0.0.1:443/dex"
+      issuer: *issuer
       # No TLS for this setup.
       insecureNoSSL: true
       # This would normally be a read-only user.
@@ -46,3 +46,28 @@ config:
     - 'http://127.0.0.1:5555/callback'
     name: 'Example App'
     secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+service:
+  name: dex
+  type: LoadBalancer
+  externalPort: 443
+ingress:
+  enabled: true
+  # Used to create Ingress record (should used with service.type: ClusterIP).
+  hosts:
+    - &dexhost dex.test-karolina.nlpnp.adsdcsp.com
+  serviceName: dex
+  servicePort: 443
+  annotations:
+     kubernetes.io/ingress.class: nginx
+     nginx.ingress.kubernetes.io/proxy-body-size: 8m
+     nginx.ingress.kubernetes.io/secure-backends: "true"
+     nginx.ingress.kubernetes.io/secure-verify-ca-secret: ca-secret-dex
+     nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  tls:
+     # Secrets must be manually created in the namespace.
+     - secretName: dex-key-cert
+       hosts:
+         - *dexhost
+resources: {}
+
+

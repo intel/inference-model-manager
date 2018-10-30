@@ -39,4 +39,4 @@ spec:
       - name: https-tls
         secret:
           defaultMode: 420
-          secretName: tls-secret
+          secretName: dex-key-cert
