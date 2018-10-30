@@ -1,3 +1,6 @@
+from copy import deepcopy
+
+
 RESOURCE_REGEX = "^([+]?[0-9.]+)([eEinumkKMGTP]*[+]?[0-9]*)$"
 
 resources_dict = {
@@ -24,7 +27,7 @@ max_endpoints = {
     "minimum": 1
 }
 
-quota = resources
+quota = deepcopy(resources)
 quota["properties"]["maxEndpoints"] = max_endpoints
 
 replicas = {

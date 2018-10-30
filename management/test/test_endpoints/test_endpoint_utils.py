@@ -58,8 +58,8 @@ def test_delete_endpoint(custom_client_mock_endpoint_utils,
     create_custom_client_mock.assert_called_once()
 
 
-call_data = [(scale_endpoint, {'endpointName': 'test', 'replicas': 2}),
-             (update_endpoint, {'endpointName': 'test', 'modelName': 'test', 'modelVersion': 2})]
+call_data = [(scale_endpoint, {'replicas': 2}),
+             (update_endpoint, {'modelName': 'test', 'modelVersion': 2})]
 
 
 @pytest.mark.parametrize("method, arguments", call_data)
@@ -69,7 +69,7 @@ def test_read_endpoint_fail(custom_client_mock_endpoint_utils, api_client_mock_e
     create_custom_client_mock, custom_client = custom_client_mock_endpoint_utils
     with pytest.raises(KubernetesGetException):
         custom_client.get_namespaced_custom_object.side_effect = ApiException()
-        method(parameters=arguments, namespace="test")
+        method(parameters=arguments, namespace="test", endpoint_name="test")
     create_custom_client_mock.assert_called_once()
     custom_client.get_namespaced_custom_object.assert_called_once()
 
@@ -82,7 +82,7 @@ def test_patch_endpoint_fail(custom_client_mock_endpoint_utils,
     with pytest.raises(KubernetesUpdateException):
         custom_client.get_namespaced_custom_object.return_value = {'spec': {}}
         custom_client.patch_namespaced_custom_object.side_effect = ApiException()
-        method(parameters=arguments, namespace="test")
+        method(parameters=arguments, namespace="test", endpoint_name="test")
     create_custom_client_mock.assert_called_once()
     custom_client.get_namespaced_custom_object.assert_called_once()
     custom_client.patch_namespaced_custom_object.assert_called_once()
@@ -94,7 +94,7 @@ def test_patch_endpoint_success(custom_client_mock_endpoint_utils,
     ing_ip_mock, ing_ip_mock_return_values = url_to_service_endpoint_utils
     create_custom_client_mock, custom_client = custom_client_mock_endpoint_utils
     custom_client.get_namespaced_custom_object.return_value = {'spec': {}}
-    method(parameters=arguments, namespace="test")
+    method(parameters=arguments, namespace="test", endpoint_name="test")
     create_custom_client_mock.assert_called_once()
     custom_client.get_namespaced_custom_object.assert_called_once()
     custom_client.patch_namespaced_custom_object.assert_called_once()

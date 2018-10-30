@@ -39,16 +39,14 @@ class Endpoints(object):
 
 class EndpointPatch(object):
 
-    def patch(self, parameters, namespace):
+    def patch(self, parameters, namespace, endpoint_name):
         pass
 
     @jsonschema.validate(endpoint_patch_schema)
     def on_patch(self, req, resp, tenant_name, endpoint_name):
         namespace = get_namespace(tenant_name)
         body = req.media
-        body['endpointName'] = endpoint_name
-        endpoint_url = self.patch(parameters=body, namespace=namespace)
-        body.pop('endpointName')
+        endpoint_url = self.patch(parameters=body, namespace=namespace, endpoint_name=endpoint_name)
         message = 'Endpoint {} patched successfully. New values: {}\n'.format(endpoint_url, body)
         resp.status = falcon.HTTP_200
         resp.body = message
@@ -56,13 +54,13 @@ class EndpointPatch(object):
 
 
 class EndpointScale(EndpointPatch):
-    def patch(self, parameters, namespace):
-        return scale_endpoint(parameters, namespace)
+    def patch(self, parameters, namespace, endpoint_name):
+        return scale_endpoint(parameters, namespace, endpoint_name)
 
 
 class EndpointUpdate(EndpointPatch):
-    def patch(self, parameters, namespace):
-        return update_endpoint(parameters, namespace)
+    def patch(self, parameters, namespace, endpoint_name):
+        return update_endpoint(parameters, namespace, endpoint_name)
 
 
 class EndpointView(object):

@@ -33,6 +33,8 @@ endpoint_delete_schema = {
     }
 }
 
+resources['optional'] = True
+
 endpoint_patch_schema = {
     "type": "object",
     "title": "Endpoint PATCH Schema",
@@ -51,6 +53,7 @@ endpoint_patch_schema = {
     "properties": {
         "replicas": replicas,
         "modelName": model_name,
-        "modelVersion": model_version
+        "modelVersion": model_version,
+        "resources": resources
     }
 }
