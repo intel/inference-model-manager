@@ -2,7 +2,8 @@ from kubernetes.client.rest import ApiException
 
 from management_api.utils.errors_handling import KubernetesCreateException, \
     KubernetesDeleteException, KubernetesUpdateException, \
-    KubernetesGetException
+    KubernetesGetException, TenantDoesNotExistException, EndpointDoesNotExistException, \
+    EndpointsReachedMaximumException
 from management_api.utils.logger import get_logger
 from management_api.utils.kubernetes_resources import get_ingress_external_ip, \
     get_k8s_api_custom_client, get_k8s_api_client, get_k8s_apps_api_client,\
@@ -10,8 +11,6 @@ from management_api.utils.kubernetes_resources import get_ingress_external_ip, \
     get_endpoint_status, get_crd_subject_name_and_resources
 from management_api.config import CRD_GROUP, CRD_VERSION, CRD_PLURAL,\
     CRD_API_VERSION, CRD_KIND, PLATFORM_DOMAIN, DELETE_BODY, REPLICA_FAILURE
-from management_api.utils.errors_handling import TenantDoesNotExistException, \
-    EndpointDoesNotExistException
 from management_api.tenants.tenants_utils import tenant_exists
 
 
@@ -21,15 +20,20 @@ logger = get_logger(__name__)
 def create_endpoint(parameters: dict, namespace: str):
     if not tenant_exists(namespace):
         raise TenantDoesNotExistException(tenant_name=namespace)
+
     metadata = {"name": parameters['endpointName']}
     body = {"apiVersion": CRD_API_VERSION, "kind": CRD_KIND,
             "spec": parameters, "metadata": metadata}
-    custom_obj_api_instance = get_k8s_api_custom_client()
     api_instance = get_k8s_api_client()
     if 'resources' in parameters:
         validate_quota_compliance(api_instance, namespace=namespace,
                                   endpoint_quota=parameters['resources'])
         parameters['resources'] = transform_quota(parameters['resources'])
+
+    apps_api_instance = get_k8s_apps_api_client()
+    verify_endpoint_amount(api_instance, apps_api_instance, namespace)
+
+    custom_obj_api_instance = get_k8s_api_custom_client()
     try:
         custom_obj_api_instance.create_namespaced_custom_object(CRD_GROUP, CRD_VERSION, namespace,
                                                                 CRD_PLURAL, body)
@@ -179,3 +183,26 @@ def get_endpoints_status(conditions):
             if status == REPLICA_FAILURE:
                 message = condition['message']
     return status, message
+
+
+def get_endpoint_number(apps_api_instance, namespace):
+    try:
+        endpoints = apps_api_instance.list_namespaced_deployment(namespace)
+    except ApiException as apiException:
+        raise KubernetesGetException('endpoint', apiException)
+    endpoint_number = len(endpoints.to_dict()['items'])
+
+    return endpoint_number
+
+
+def verify_endpoint_amount(api_instance, apps_api_instance, namespace):
+    try:
+        namespace_spec = api_instance.read_namespace(namespace)
+    except ApiException as apiException:
+        raise KubernetesGetException('namespace', apiException)
+    namespace_annotations = namespace_spec.to_dict()['metadata']['annotations']
+
+    if namespace_annotations and 'maxEndpoints' in namespace_annotations:
+        endpoint_number = get_endpoint_number(apps_api_instance, namespace)
+        if endpoint_number <= int(namespace_annotations['maxEndpoints']):
+            raise EndpointsReachedMaximumException()

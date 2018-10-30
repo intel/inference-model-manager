@@ -73,8 +73,7 @@ def function_context(request, get_k8s_custom_obj_client, api_instance, minio_res
 
 
 @pytest.fixture(scope="session")
-def session_context(request, get_k8s_custom_obj_client, api_instance, minio_resource,
-                    minio_client):
+def session_context(request, get_k8s_custom_obj_client, api_instance, minio_resource, minio_client):
     context = Context(k8s_client=api_instance, k8s_client_custom=get_k8s_custom_obj_client,
                       minio_resource_client=minio_resource, minio_client=minio_client)
     request.addfinalizer(context.delete_all_objects)
@@ -103,24 +102,24 @@ def minio_resource():
                           region_name=MINIO_REGION)
 
 
-@pytest.fixture(scope="session")
-def session_tenant(api_instance, minio_client, session_context):
-    name = SESSION_TENANT_NAME
-    name_object = client.V1ObjectMeta(name=name, labels={'created_by': PLATFORM_ADMIN})
+def create_tenant(api_instance, minio_client, context, name, quota):
+    annotations = None
+    if 'maxEndpoints' in quota:
+        annotations = {'maxEndpoints': str(quota.pop('maxEndpoints'))}
+    name_object = client.V1ObjectMeta(name=name, annotations=annotations,
+                                      labels={'created_by': PLATFORM_ADMIN})
     namespace = client.V1Namespace(metadata=name_object)
     api_instance.create_namespace(namespace)
     propagate_portable_secrets(api_instance, name)
-    quota = resource_quota(api_instance, quota=TENANT_RESOURCES, namespace=name)
+    quota = resource_quota(api_instance, quota=quota, namespace=name)
     minio_client.create_bucket(Bucket=name)
-    session_context.add_object(object_type='tenant', object_to_delete={'name': name})
+    context.add_object(object_type='tenant', object_to_delete={'name': name})
     return name, quota
 
 
-@pytest.fixture(scope="function")
-def tenant_with_endpoint(function_context, session_tenant, get_k8s_custom_obj_client):
-    namespace, _ = session_tenant
-    resources = transform_quota(ENDPOINT_RESOURCES)
-    endpoint_name = 'predict'
+def create_endpoint(custom_obj_client, namespace, context, endpoint_name='predict',
+                    resources=ENDPOINT_RESOURCES):
+    endpoint_resources = transform_quota(resources)
     metadata = {"name": endpoint_name}
     model_name, model_version = 'resnet', 1
     model_path = f'{model_name}-{model_version}'
@@ -130,18 +129,43 @@ def tenant_with_endpoint(function_context, session_tenant, get_k8s_custom_obj_cl
         'endpointName': endpoint_name,
         'subjectName': 'client',
         'replicas': 1,
-        'resources': resources
+        'resources': endpoint_resources
     }
     body = {"spec": spec, 'kind': CRD_KIND, "replicas": 1,
             "apiVersion": CRD_API_VERSION, "metadata": metadata}
-    get_k8s_custom_obj_client. \
+    custom_obj_client. \
         create_namespaced_custom_object(CRD_GROUP, CRD_VERSION, namespace, CRD_PLURAL, body)
 
     endpoint_to_delete = {'name': endpoint_name, 'namespace': namespace}
     model_to_delete = {'name': model_path, 'namespace': namespace}
-    function_context.add_object(object_type='CRD', object_to_delete=endpoint_to_delete)
-    function_context.add_object(object_type='model', object_to_delete=model_to_delete)
+    context.add_object(object_type='CRD', object_to_delete=endpoint_to_delete)
+    context.add_object(object_type='model', object_to_delete=model_to_delete)
 
+    return body
+
+
+@pytest.fixture(scope="session")
+def session_tenant(api_instance, minio_client, session_context):
+    name = SESSION_TENANT_NAME
+    quota = TENANT_RESOURCES
+    return create_tenant(api_instance, minio_client, session_context, name, quota)
+
+
+@pytest.fixture(scope="function")
+def tenant_with_endpoint_parametrized_max_endpoints(
+        request, api_instance, minio_client, function_context, get_k8s_custom_obj_client):
+    name = TENANT_NAME
+    tenant_quota = TENANT_RESOURCES
+    tenant_quota["maxEndpoints"] = request.param
+    create_tenant(api_instance, minio_client, function_context, name, tenant_quota)
+    body = create_endpoint(get_k8s_custom_obj_client, name, function_context)
+    return name, body
+
+
+@pytest.fixture(scope="function")
+def tenant_with_endpoint(function_context, session_tenant, get_k8s_custom_obj_client):
+    namespace, _ = session_tenant
+    body = create_endpoint(get_k8s_custom_obj_client, namespace, function_context)
     return namespace, body
 
 

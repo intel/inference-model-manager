@@ -13,7 +13,8 @@ from management_api.utils.errors_handling import KubernetesCreateException, \
 @pytest.mark.parametrize("tenant_exception, raise_error", [(True, False), (False, True)])
 def test_create_endpoint(mocker, url_to_service_endpoint_utils,
                          custom_client_mock_endpoint_utils, tenant_exception,
-                         raise_error, api_client_mock_endpoint_utils):
+                         raise_error, api_client_mock_endpoint_utils,
+                         apps_client_mock_endpoint_utils):
     tenant_exists_mock = mocker.patch(
         'management_api.endpoints.endpoint_utils.tenant_exists')
     if tenant_exception:
@@ -22,6 +23,10 @@ def test_create_endpoint(mocker, url_to_service_endpoint_utils,
             create_endpoint(parameters={'endpointName': "test", 'resources': {}}, namespace="test")
     ing_ip_mock, ing_ip_mock_return_values = url_to_service_endpoint_utils
     create_custom_client_mock, custom_client = custom_client_mock_endpoint_utils
+    create_apps_client_mock, apps_client = apps_client_mock_endpoint_utils
+    verify_endpoint_amount_mock = mocker.patch(
+         'management_api.endpoints.endpoint_utils.verify_endpoint_amount')
+    verify_endpoint_amount_mock.return_value = None
     validate_quota_compliance_mock = mocker.patch(
         'management_api.endpoints.endpoint_utils.validate_quota_compliance')
     parameters_resources_mock = mocker.patch(

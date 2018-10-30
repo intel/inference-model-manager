@@ -103,6 +103,17 @@ class EndpointDoesNotExistException(ManagementApiException):
         raise falcon.HTTPNotFound(description=message)
 
 
+class EndpointsReachedMaximumException(ManagementApiException):
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def handler(ex, req, resp, params):
+        message = "Endpoints have reached the quantity limit"
+        logger.error(message)
+        raise falcon.HTTPConflict(description=message)
+
+
 class ModelDoesNotExistException(ManagementApiException):
     def __init__(self, model_name):
         super().__init__()
@@ -160,7 +171,8 @@ custom_errors = [ManagementApiException, KubernetesCallException, KubernetesDele
                  KubernetesCreateException, KubernetesGetException, KubernetesUpdateException,
                  MinioCallException, TenantAlreadyExistsException, TenantDoesNotExistException,
                  InvalidParamException, MissingTokenException, JsonSchemaException,
-                 EndpointDoesNotExistException, ModelDeleteException, ModelDoesNotExistException]
+                 EndpointDoesNotExistException, ModelDeleteException, ModelDoesNotExistException,
+                 EndpointsReachedMaximumException]
 
 
 def default_exception_handler(ex, req, resp, params):
