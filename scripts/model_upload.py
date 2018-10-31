@@ -52,8 +52,9 @@ def upload_model(url, params, headers, part_size):
                 part_number += 1
                 params['partNumber'] = part_number
                 upload_part(url, params, headers, data, parts)
-    except (KeyboardInterrupt, Exception):
+    except (KeyboardInterrupt, Exception) as e:
         # -- Aborting upload
+        print(f"Exception: {e}")
         print(f"Aborting upload with id: {upload_id} ...")
         data = {'modelName': model_name, 'modelVersion': model_version, 'fileName': file_name,
                 'uploadId': upload_id}

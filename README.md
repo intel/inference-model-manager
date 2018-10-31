@@ -155,4 +155,22 @@ By default, management_api runs on port 5000 and this port is used in this scrip
 ```
     python cli-scripts/webbrowser_authenticate.py --address <management_api ip> --port <management_api port>
 ```
-
+### Tool for basic requests
+```
+    scripts/api_call.sh
+```
+Usage examples:
+```
+    ./api_call.sh create tenant <tenant_name>
+    ./api_call.sh create endpoint <endpoint_name> <model_name>
+    ./api_call.sh rm tenant <tenant_name>
+    ./api_call.sh rm endpoint <endpoint_name>
+    ./api_call.sh update endpoint <endpoint_name> <new_model_name>
+    ./api_call.sh scale endpoint <endpoint_name> <replicas>
+    ./api_call.sh -a 127.0.0.1 -p 5555 login
+    ./api_call.sh logout
+    ./api_call.sh ls endpoints <tenant_name>
+    ./api_call.sh upload <model_path> <model_name> <model_version> 
+    ./api_call.sh ri <grpc_address> <grpc_port> <input_type:list/numpy> <input> <batch_size> <model_name>
+```
+More info: ``` ./api_call.sh -h ```
