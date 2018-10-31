@@ -118,6 +118,11 @@ jobs:
                echo "image already in registry - not rebuilding"
             fi
       - run:
+          name: Generate certificates
+          command: |
+            cd ~/inferno-platform/helm-deployment/charts/management-api-subchart/certs
+            ./management_api_certs.sh
+      - run:
           name: Download dependencies and deploy platfrom
           command: |
             export MGMT_TAG=$(find management/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
@@ -144,7 +149,13 @@ jobs:
             . ~/inferno-platform/.venv/bin/activate
             while [ -z $ING_IP ]; do sleep 10; ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}'); done
             export ING_DOMAIN=`kubectl get ing -o=jsonpath='{.items..spec.tls..hosts}' | sed 's/[][]//g'`
+            export MANAGEMENT_IP=`kubectl get svc -l "run=management-api" -o "jsonpath={$.items[0].status.loadBalancer.ingress[0].ip}"`
             echo "${ING_IP} ${ING_DOMAIN}" | sudo tee -a /etc/hosts
+            echo "${MANAGEMENT_IP} management-api.aipg.com" | sudo tee -a /etc/hosts
+            sudo cp ~/inferno-platform/helm-deployment/charts/management-api-subchart/certs/ca-man-api.crt /usr/local/share/ca-certificates/ca-man-api.crt
+            sudo update-ca-certificates
+            cat ~/inferno-platform/helm-deployment/charts/management-api-subchart/certs/ca-man-api.crt
+            export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
             cd ~/inferno-platform/tests
             pip install -q -r requirements.txt
             . run_test.sh

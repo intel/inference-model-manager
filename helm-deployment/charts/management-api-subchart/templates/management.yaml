@@ -18,12 +18,8 @@ spec:
       - name: management-api
         image: {{ .Values.image }}:{{ .Values.tag }}
         ports:
-        - containerPort: 5000
+        - containerPort: 443
         env:
-        - name: HOSTNAME
-          value: "0.0.0.0"
-        - name: PORT
-          value: "5000"
         - name: MINIO_ENDPOINT_ADDR
           valueFrom:
             secretKeyRef:
@@ -56,11 +52,14 @@ spec:
             secretKeyRef:
               name: dex
               key: staticClient.secret
-        command:
-        - /bin/sh
-        - -c
-        args:
-        - /management/run.sh
+        volumeMounts:
+        - mountPath: /certs/
+          name: tls-management-secret
+      volumes:
+      - secret:
+            defaultMode: 420
+            secretName: tls-management-secret
+        name: tls-management-secret
 ---
 apiVersion: v1
 kind: Service
@@ -70,8 +69,8 @@ metadata:
   name: management-api
 spec:
   ports:
-  - port: 5000
-    targetPort: 5000
+  - port: 443
+    targetPort: 443
   selector:
     app: management-api
   type: LoadBalancer

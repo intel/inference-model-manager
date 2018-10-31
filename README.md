@@ -138,6 +138,9 @@ demo-helpers, please remember about mc configuration i.e. `mc config host add lo
 
 ## scripts
 ### authenticate
+WARNING!
+If you use self-signed certificate you have to pass path to ca-cert file to scripts using ```--ca_cert``` flag.
+You can obtain that certificate from you platform admin.
 A special script for authentication has been created, it is available under the path:
 ```
     cli-scripts/webbrowser_authenticate.py

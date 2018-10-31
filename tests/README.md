@@ -25,3 +25,12 @@ $ pip install -r requirements.txt
 * pytest -v .
 
 * you can check how to get required values in get_test_envs.sh script
+
+!WARNING
+If you use self-signed certificates for platform you have to install your CA and pass to python interpreter.
+For example for Ubuntu you could do something like this:
+```
+sudo cp <path_to_ca_file> /usr/local/share/ca-certificates/<ca_file_name>
+sudo update-ca-certificates
+export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+```

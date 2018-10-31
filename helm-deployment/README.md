@@ -1,5 +1,15 @@
 # HELM DEPLOYMENT OF INFERENCE PLATFORM
 
+## Management-api certificates
+Management-api uses certificates to serve api using tls. 
+
+If you prepared certificates, you have to place certs in ```/helm-deployment/charts/management-api-subchart/certs```
+Certificates should have names ```man-api-server.crt``` and ```man-api-server.key```
+
+If you want to you can use our script which generate necessary certificates.
+Go to the directory mentioned earlier and run ```management_api_certs.sh```.
+
+## Platform deployment 
 ```
 cd helm-deployment
 helm dep up .

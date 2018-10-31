@@ -1,10 +1,11 @@
+import ssl
 import webbrowser
 import argparse
 from os.path import expanduser, join
 from os import getenv
 import sys
-import json
 import threading
+from .common_token import get_dex_auth_token, save_to_file
 try:
     # Imports for Python 3
     from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -25,8 +26,9 @@ Now you can close this web browser window and return to the console.
 code = None
 
 
-def get_dex_auth_url(address, port):
-    conn = httplib.HTTPConnection(address, port)
+def get_dex_auth_url(address, port, ca_cert_path):
+    conn = httplib.HTTPSConnection(address, port,
+                                   context=ssl.create_default_context(cafile=ca_cert_path))
     conn.request("GET", "/authenticate")
     r1 = conn.getresponse()
     dex_auth_url = r1.getheader('location')
@@ -34,20 +36,6 @@ def get_dex_auth_url(address, port):
         print("Can`t get dex url.")
         sys.exit()
     return dex_auth_url
-
-
-def get_dex_auth_token(address, port, auth_code):
-    conn = httplib.HTTPConnection(address, port)
-    headers = {"Content-type": "application/json", "Accept": "text/plain"}
-    conn.request("POST", "/authenticate/token", json.dumps({'code': auth_code}), headers)
-    response = conn.getresponse()
-    data = response.read()
-    if response.status == 200:
-        dict_data = json.loads(data.decode('utf-8'))
-        return dict_data['data']['token']
-    else:
-        print("Error occurred while trying to get token.")
-        sys.exit()
 
 
 def enable_getting_refresh_token(auth_url):
@@ -110,25 +98,23 @@ def run_server(port, auth_url):
     httpd.serve_forever()
 
 
-def save_to_file(file_path, data):
-    with open(file_path, 'w') as outfile:
-        json.dump(data, outfile)
-
-
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--address', type=str, help='management api address without port',
                         required=True)
     parser.add_argument('--port', type=int, help='management api port', required=False,
-                        default=5000)
+                        default=443)
+    parser.add_argument('--ca_cert', type=str, help='path to cert file for management api',
+                        required=False, default=None)
     args = parser.parse_args()
     return args
 
 
 def main():
     args = parse_args()
+    print(args.ca_cert)
     config_file_path = getenv('INFERNO_CONFIG_PATH', join(expanduser("~"), '.inferno'))
-    auth_url = get_dex_auth_url(address=args.address, port=args.port)
+    auth_url = get_dex_auth_url(address=args.address, port=args.port, ca_cert_path=args.ca_cert)
     auth_url_with_refresh_token = enable_getting_refresh_token(auth_url)
 
     auth_url_unparsed = urlparse(auth_url)
@@ -137,8 +123,10 @@ def main():
 
     run_server(redirect_port, auth_url_with_refresh_token)
     print('Code recieved, waiting for token.')
-    token = get_dex_auth_token(address=args.address, port=args.port, auth_code=code)
-    token.update({'management_api_address': args.address, 'management_api_port': args.port})
+    token = get_dex_auth_token(address=args.address, port=args.port, auth_code=code,
+                               ca_cert_path=args.ca_cert)
+    token.update({'management_api_address': args.address, 'management_api_port': args.port,
+                  'ca_cert_path': args.ca_cert})
     save_to_file(config_file_path, token)
     print("Your token and refresh token are available in file: {}".format(config_file_path))
 

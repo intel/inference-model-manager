@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-MANAGEMENT_IP=`kubectl get svc -l "run=management-api" -o "jsonpath={$.items[0].status.loadBalancer.ingress[0].ip}"`
-export MANAGEMENT_API_URL='http://'"${MANAGEMENT_IP}"':5000'
+export MANAGEMENT_API_URL='https://management-api.aipg.com:443'
 echo "URL FOR MANAGEMENT API: $MANAGEMENT_API_URL"
 
 DEX_SERVICE=`kubectl get svc|grep "dex   "| awk '{ print $1 }'`
