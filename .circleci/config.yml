@@ -38,12 +38,22 @@ jobs:
             cd ~/inferno-platform/
             python3 -m venv .venv
       - run:
+          name: Prepare environment variables
+          command: |
+            echo 'export PR_NR=`basename ${CIRCLE_PULL_REQUEST}`' >> $BASH_ENV
+            echo 'export KOPS_FEATURE_FLAGS=AlphaAllowGCE' >> $BASH_ENV
+            echo 'export PR_NR=`basename ${CIRCLE_PULL_REQUEST}`' >> $BASH_ENV
+            echo 'export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`' >> $BASH_ENV
+            echo 'export CLUSTER_NAME="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}.k8s.local"' >> $BASH_ENV
+            echo 'export CLUSTER_NAME_SHORT="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}"' >> $BASH_ENV
+            echo 'export KOPS_STATE_STORE=gs://kubernetes-clusters-inferno' >> $BASH_ENV
+            echo 'export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp-key.json"' >> $BASH_ENV
+            echo 'export CLUSTER_NAME_SHORT_TP=`echo ${CLUSTER_NAME_SHORT} | cut -c 1-20`' >> $BASH_ENV
+            echo 'export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"' >> $BASH_ENV
+      - run:
           name: Create k8s cluster
           command: |
             echo "${GOOGLE_INFERNO_KEY}" | base64 -d > /tmp/gcp-key.json
-            export PR_NR=`basename ${CIRCLE_PULL_REQUEST}`
-            export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
-            export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
             echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
             curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
             sudo apt-get update && sudo apt-get install -y google-cloud-sdk
@@ -60,14 +70,6 @@ jobs:
             chmod +x ./kops
             sudo mv ./kops /usr/local/bin/
             export PROJECT=`gcloud config get-value project`
-            export KOPS_FEATURE_FLAGS=AlphaAllowGCE
-            export PR_NR=`basename ${CIRCLE_PULL_REQUEST}`
-            export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
-            export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
-            export CLUSTER_NAME="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}.k8s.local"
-            export CLUSTER_NAME_SHORT="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}"
-            export KOPS_STATE_STORE=gs://kubernetes-clusters-inferno
-            export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp-key.json" 
             cd ~/inferno-platform/kops
             
             sed -i "s/toreplacebyclustername/${CLUSTER_NAME_SHORT}/g" desiredcni.yaml
@@ -116,20 +118,20 @@ jobs:
                echo "image already in registry - not rebuilding"
             fi
       - run:
-          name: Download dependencies, deploy platfrom and create record in aws route53
+          name: Download dependencies and deploy platfrom
           command: |
             export MGMT_TAG=$(find management/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
             export CTRL_TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
-            export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
-            export CLUSTER_NAME_SHORT="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}"
             cd ~/inferno-platform/helm-deployment/
             helm dep up .
             helm install --name inferno --set management-api-chart.tag=$MGMT_TAG --set crd-subchart.tag=$CTRL_TAG .
             sleep 150
-            
+      - run:
+          name: Create record in AWS Route53
+          command: |    
             cd ~/inferno-platform/kops/
             while [ -z $ING_IP ]; do sleep 10; ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}'); done
-            
+                  
             sed -i "s/0.0.0.0/${ING_IP}/g" route_record.json
             sed -i "s/toreplacebydomainname/${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com/g" route_record.json
             cat route_record.json
@@ -160,20 +162,8 @@ jobs:
           name: clean after success
           when: on_success
           command: |
-            export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
             export PROJECT=`gcloud config get-value project`
-            export KOPS_FEATURE_FLAGS=AlphaAllowGCE
-            export PR_NR=`basename ${CIRCLE_PULL_REQUEST}`
-            export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
-            export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
-            export CLUSTER_NAME="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}.k8s.local"
-            export CLUSTER_NAME_SHORT="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}"
-            export KOPS_STATE_STORE=gs://kubernetes-clusters-inferno
-            export PROJECT=`gcloud config get-value project`
-            export KOPS_FEATURE_FLAGS=AlphaAllowGCE
-            export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp-key.json"
             export ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}')
-            export CLUSTER_NAME_SHORT_TP=`echo ${CLUSTER_NAME_SHORT} | cut -c 1-20`
             helm --debug delete inferno
             sleep 2m
             kops delete cluster ${CLUSTER_NAME} --yes
@@ -186,20 +176,8 @@ jobs:
           name: clean after failure
           when: on_fail
           command: |
-            export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
             export PROJECT=`gcloud config get-value project`
-            export KOPS_FEATURE_FLAGS=AlphaAllowGCE
-            export PR_NR=`basename ${CIRCLE_PULL_REQUEST}`
-            export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
-            export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
-            export CLUSTER_NAME="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}.k8s.local"
-            export CLUSTER_NAME_SHORT="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}"
-            export KOPS_STATE_STORE=gs://kubernetes-clusters-inferno
-            export PROJECT=`gcloud config get-value project`
-            export KOPS_FEATURE_FLAGS=AlphaAllowGCE
-            export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp-key.json"
             export ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}')
-            export CLUSTER_NAME_SHORT_TP=`echo ${CLUSTER_NAME_SHORT} | cut -c 1-20`
             sleep 30m
             helm --debug delete inferno
             sleep 2m 
