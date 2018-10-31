@@ -76,17 +76,3 @@ spec:
                 key: platform.domain
           - name: SERVING_IMAGE
             value: "{{ .Values.servingImage }}"
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    run: server-controller
-  name: server-controller
-spec:
-  ports:
-  - port: 80
-    targetPort: 80
-  selector:
-    app: server-controller
-  type: LoadBalancer
