@@ -7,7 +7,7 @@ If you prepared certificates, you have to place certs in ```/helm-deployment/cha
 Certificates should have names ```man-api-server.crt``` and ```man-api-server.key```
 
 If you want to you can use our script which generate necessary certificates.
-Go to the directory mentioned earlier and run ```management_api_certs.sh```.
+Go to the directory mentioned earlier and run ```management_api_certs.sh``` and ```internal_ing_man_api_certs.sh```.
 
 ## Platform deployment 
 ```

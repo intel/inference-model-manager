@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # This script shows how to generate test keys and certs
-# If you provide different value in annotations.allowed values than "CN=client", remember to change subject name also in client key
 
 # Generate valid CA for Management api
 openssl genrsa -out ca-man-api.key 4096

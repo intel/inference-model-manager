@@ -137,6 +137,7 @@ jobs:
           command: |
             cd ~/inferno-platform/helm-deployment/charts/management-api-subchart/certs
             ./management_api_certs.sh
+            ./internal_ing_man_api_certs.sh
       - run:
           name: Download dependencies and deploy platfrom
           command: |

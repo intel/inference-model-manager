@@ -54,12 +54,12 @@ spec:
               key: staticClient.secret
         volumeMounts:
         - mountPath: /certs/
-          name: tls-management-secret
+          name: tls-ing-management-secret
       volumes:
       - secret:
             defaultMode: 420
-            secretName: tls-management-secret
-        name: tls-management-secret
+            secretName: tls-ing-management-secret
+        name: tls-ing-management-secret
 ---
 apiVersion: v1
 kind: Service
@@ -73,5 +73,5 @@ spec:
     targetPort: 443
   selector:
     app: management-api
-  type: LoadBalancer
+  type: ClusterIP
 
