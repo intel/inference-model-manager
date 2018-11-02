@@ -303,6 +303,20 @@ def test_not_create_endpoint_tenant_not_exist():
     assert "Tenant {} does not exist".format(namespace) in response.text
 
 
+@pytest.mark.parametrize('tenant_with_endpoint_parametrized_max_endpoints', [2, 3], indirect=True)
+def test_success_to_create_second_endpoint_with_max_endpoints_gt_one(
+        tenant_with_endpoint_parametrized_max_endpoints):
+    namespace, body = tenant_with_endpoint_parametrized_max_endpoints
+    endpoint_name = "predict-2"
+    body['spec']['endpointName'] = endpoint_name
+    body['spec']['resources'] = ENDPOINT_RESOURCES
+    url = ENDPOINT_MANAGEMENT_API_URL.format(tenant_name=namespace)
+    response = requests.post(url, data=json.dumps(body['spec']), headers=DEFAULT_HEADERS)
+    assert response.status_code == 200
+    assert "Endpoint created" in response.text
+    assert f"{endpoint_name}-{namespace}" in response.text
+
+
 @pytest.mark.parametrize('tenant_with_endpoint_parametrized_max_endpoints', [1], indirect=True)
 def test_fail_to_create_second_endpoint_with_max_endpoints_eq_one(
         tenant_with_endpoint_parametrized_max_endpoints):

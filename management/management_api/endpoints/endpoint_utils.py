@@ -204,5 +204,5 @@ def verify_endpoint_amount(api_instance, apps_api_instance, namespace):
 
     if namespace_annotations and 'maxEndpoints' in namespace_annotations:
         endpoint_number = get_endpoint_number(apps_api_instance, namespace)
-        if endpoint_number <= int(namespace_annotations['maxEndpoints']):
+        if endpoint_number >= int(namespace_annotations['maxEndpoints']):
             raise EndpointsReachedMaximumException()
