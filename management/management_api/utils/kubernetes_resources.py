@@ -55,10 +55,13 @@ def get_svc_external_ip_port(api_instance: client, label_selector: str, namespac
     try:
         api_response = api_instance.list_namespaced_service(namespace,
                                                             label_selector=label_selector)
+        logger.info(f"list services api response : {api_response}")
     except ApiException as e:
         raise KubernetesGetException('List services', e)
     ports = api_response.items[0].spec.ports
+    logger.info(f"Ports : {ports}")
     https = next(item for item in ports if item.name == "https")
+    logger.info(f"Load balancer: {api_response.items[0].status.load_balancer}")
     ip = api_response.items[0].status.load_balancer.ingress[0].ip
     ipaddress.ip_address(ip)
     port = int(https.port)
@@ -72,7 +75,7 @@ def get_ingress_external_ip(api_instance: client):
 
 
 def get_dex_external_ip(api_instance: client):
-    label_selector = 'app={}'.format('dex')
+    label_selector = 'app=dex'
     namespace = 'default'
     return get_svc_external_ip_port(api_instance=api_instance, namespace=namespace,
                                     label_selector=label_selector)

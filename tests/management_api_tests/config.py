@@ -223,15 +223,14 @@ WRONG_BODIES = [
 
 TENANT_RESOURCES = {'limits.cpu': '2', 'limits.memory': '2Gi', 'requests.cpu': '1',
                     'requests.memory': '1Gi'}
-ENDPOINT_RESOURCES = {'limits.cpu': '200m', 'limits.memory': '200Mi', 'requests.cpu': '100m',
-                      'requests.memory': '100Mi'}
 
-CORRECT_UPDATE_QUOTAS = [
-    {'modelName': 'new-name', 'modelVersion': 2},
-    {'modelName': 'new-name', 'modelVersion': 2, 'resources':
-        {'limits.cpu': '500m', 'limits.memory': '500Mi', 'requests.cpu': '200m',
-         'requests.memory': '200Mi'}}
-]
+SENSIBLE_ENDPOINT_RESOURCES = {'limits.cpu': '1000m', 'limits.memory': '1000Mi',
+                               'requests.cpu': '100m', 'requests.memory': '100Mi'}
+
+
+ENDPOINT_RESOURCES = {'limits.cpu': '200m', 'limits.memory': '200Mi', 'requests.cpu': '0m',
+                      'requests.memory': '0Mi'}
+
 
 RESOURCE_NOT_FOUND = 404
 NAMESPACE_BEING_DELETED = 409

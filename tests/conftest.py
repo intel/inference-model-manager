@@ -1,7 +1,6 @@
 import boto3
 import pytest
 import requests
-from tenacity import retry, stop_after_attempt, wait_fixed
 from bs4 import BeautifulSoup
 from botocore.client import Config
 from kubernetes import config, client
@@ -219,15 +218,34 @@ def fake_endpoint_with_fake_model(fake_endpoint, minio_client):
     return create_fake_model(fake_endpoint, minio_client)
 
 
-@retry(stop=stop_after_attempt(3), wait=wait_fixed(0.2))
-def get_all_pods_in_namespace(k8s_client, namespace, label_selector=''):
+def list_namespaces():
+    api_response = ""
     try:
+        k8s_client = client.CoreV1Api(client.ApiClient(config.load_kube_config()))
+        api_response = k8s_client.list_namespace()
+    except ApiException as e:
+        api_response = e
+        print("Exception when calling CoreV1Api->list_namespace: %s\n" % e)
+
+    return api_response
+
+
+def get_all_pods_in_namespace(namespace, label_selector=''):
+    api_response = ""
+    try:
+        k8s_client = client.CoreV1Api(client.ApiClient(config.load_kube_config()))
         api_response = k8s_client.list_namespaced_pod(namespace=namespace,
                                                       label_selector=label_selector)
     except ApiException as e:
+        api_response = e
         print("Exception when calling CoreV1Api->list_pod_for_all_namespaces: %s\n" % e)
 
     return api_response
+
+
+def get_logs_of_pod(namespace, pod):
+    api_instance = client.CoreV1Api(client.ApiClient(config.load_kube_config()))
+    return api_instance.read_namespaced_pod_log(pod, namespace)
 
 
 def resource_quota(api_instance, quota={}, namespace=TENANT_NAME):

@@ -1,11 +1,12 @@
 import pytest
 import requests
 import json
+import time
 
 from management_api_tests.config import DEFAULT_HEADERS, USER1_HEADERS,\
     USER2_HEADERS, ENDPOINT_MANAGEMENT_API_URL, CheckResult, \
     ENDPOINT_RESOURCES, ENDPOINT_MANAGEMENT_API_URL_SCALE, \
-    ENDPOINT_MANAGEMENT_API_URL_UPDATE, OperationStatus, CORRECT_UPDATE_QUOTAS, \
+    ENDPOINT_MANAGEMENT_API_URL_UPDATE, OperationStatus, \
     ENDPOINT_MANAGEMENT_API_URL_VIEW
 
 from management_api_tests.endpoints.endpoint_utils import check_replicas_number_matching_provided, \
@@ -160,7 +161,15 @@ def test_fail_to_scale_endpoint(auth, tenant_with_endpoint, endpoint_name, scale
     assert expected_error_msg in response.text
 
 
-@pytest.mark.parametrize("new_values", CORRECT_UPDATE_QUOTAS)
+CORRECT_UPDATE_PARAMS = [
+    {'modelName': 'new-name', 'modelVersion': 2},
+    {'modelName': 'new-name', 'modelVersion': 2, 'resources':
+        {'limits.cpu': '500m', 'limits.memory': '500Mi', 'requests.cpu': '200m',
+         'requests.memory': '200Mi'}}
+]
+
+
+@pytest.mark.parametrize("new_values", CORRECT_UPDATE_PARAMS)
 def test_update_endpoint(get_k8s_custom_obj_client, apps_api_instance,
                          tenant_with_endpoint, new_values):
     namespace, body = tenant_with_endpoint
@@ -174,6 +183,7 @@ def test_update_endpoint(get_k8s_custom_obj_client, apps_api_instance,
 
     assert response.status_code == 200
     assert "patched" in response.text
+    time.sleep(2)
     assert check_model_params_matching_provided(
         get_k8s_custom_obj_client, namespace, crd_server_name, provided_params=new_values
     ) == CheckResult.CONTENTS_MATCHING
@@ -261,6 +271,7 @@ def test_not_create_endpoint_with_incompliant_resource_quota(session_tenant, inc
                           ])
 def test_list_endpoints(request, tenant_fix, auth_headers,
                         expected_status, expected_message):
+    time.sleep(10)
     namespace, _ = request.getfixturevalue(tenant_fix)
     url = ENDPOINT_MANAGEMENT_API_URL.format(tenant_name=namespace)
     response = requests.get(url, headers=auth_headers)

@@ -14,12 +14,15 @@ sys.path.append(os.path.realpath(os.path.join(os.path.realpath(__file__), '../..
 import classes
 from endpoint_utils import prepare_certs, prepare_stub_and_request
 from model_upload import upload_model
-from e2e_tests.management_api_requests import create_endpoint, create_tenant
+
+from e2e_tests.management_api_requests import create_endpoint, create_tenant, delete_tenant
+
 from e2e_tests.config import MODEL_NAME, TENANT_NAME, \
     CERT_BAD_CLIENT, CERT_BAD_CLIENT_KEY, CERT_CLIENT, CERT_CLIENT_KEY, CERT_SERVER
 from e2e_tests.tf_serving_utils.load_numpy import IMAGES, LABELS
 from management_api_tests.authenticate import get_user_token
 from management_api_tests.config import MANAGEMENT_API_URL
+from conftest import get_all_pods_in_namespace, get_logs_of_pod, list_namespaces
 
 images = IMAGES
 image = numpy.expand_dims(images[0], axis=0)
@@ -29,16 +32,77 @@ model_input = "in"
 model_output = "out"
 
 
-def test_prediction_with_certificates(function_context, minio_client):
-    endpoint = prepare_tenant_endpoint(minio_client)
-    function_context.add_object(object_type='tenant', object_to_delete={'name': TENANT_NAME})
-    function_context.add_object(object_type='CRD',
-                                object_to_delete={'name': MODEL_NAME + 'endpoint',
-                                                  'namespace': TENANT_NAME})
-    opts, address = get_opts_address(endpoint)
+def test_create_tenant():
+    tenant_response = create_tenant()
+    assert tenant_response.text == 'Tenant {} created\n'.format(TENANT_NAME)
+    assert tenant_response.status_code == 200
 
-    logging.info('Waiting for endpoint running...')
-    time.sleep(40)
+
+def test_upload_model():
+    try:
+        response = requests.get('https://storage.googleapis.com/inference-eu/models_zoo/'
+                                'resnet_V1_50/saved_model/saved_model.pb')
+        with open('saved_model.pb', 'wb') as f:
+            f.write(response.content)
+
+        headers = {'Authorization': get_user_token()['id_token']}
+        params = {
+            'model_name': 'e2emodel',
+            'model_version': 1,
+            'file_path': os.path.abspath('saved_model.pb'),
+        }
+        url = f"{MANAGEMENT_API_URL}/tenants/{TENANT_NAME}"
+
+        upload_model(url, params, headers, 500)
+        os.remove('saved_model.pb')
+
+    except Exception as e:
+        pytest.fail(f"Unexpected error during upload test {e}")
+
+
+def filter_serving_logs(raw_log):
+    logs = ""
+    for line in raw_log.splitlines(True):
+        if "aws_logging" not in line:
+            logs += line
+    return logs
+
+
+def test_create_endpoint():
+    endpoint_response = create_endpoint()
+    assert "created" in endpoint_response.text
+    assert endpoint_response.status_code == 200
+    start_time = time.time()
+    tick = start_time
+    running = False
+    pod_name = None
+    while tick - start_time < 100:
+        tick = time.time()
+        try:
+            all_pods = get_all_pods_in_namespace(TENANT_NAME)
+            pod_name = all_pods.items[0].metadata.name
+            logging.info("Pod name :", pod_name)
+            logs = get_logs_of_pod(TENANT_NAME, pod_name)
+            logs = filter_serving_logs(logs)
+            logging.info(logs)
+            if "Running gRPC ModelServer at 0.0.0.0:9000" in logs:
+                running = True
+                break
+        except Exception as e:
+            logging.info(e)
+            time.sleep(10)
+    assert running is True
+    test_create_endpoint.endpoint_info = get_opts_address(endpoint_response)
+    test_create_endpoint.pod_name = pod_name
+    return endpoint_response
+
+
+test_create_endpoint.endpoint_info = None
+test_create_endpoint.pod_name = None
+
+
+def test_prediction_with_certificates():
+    opts, address = test_create_endpoint.endpoint_info
 
     trusted_cert, trusted_key, trusted_ca = prepare_certs(
         CERT_SERVER,
@@ -50,10 +114,16 @@ def test_prediction_with_certificates(function_context, minio_client):
 
     request.inputs[model_input].CopyFrom(
         tf.contrib.util.make_tensor_proto(image, shape=image.shape))
-    prediction_response = stub.Predict(request, 10.0)
+    prediction_response = "Failed"
+    try:
+        prediction_response = stub.Predict(request, 10.0)
+    except: # noqa
+        logging.info("Prediction failed")
+        pass
+    logs = get_logs_of_pod(TENANT_NAME, test_create_endpoint.pod_name)
+    logging.info(filter_serving_logs(logs))
 
-    assert prediction_response is not None
-
+    assert not prediction_response == "Failed"
     response = numpy.array(prediction_response.outputs[model_output].float_val)
 
     max_output = numpy.argmax(response) - 1
@@ -63,16 +133,8 @@ def test_prediction_with_certificates(function_context, minio_client):
     assert num_label == test_label
 
 
-def test_prediction_batch_with_certificates(function_context, minio_client):
-    endpoint = prepare_tenant_endpoint(minio_client)
-    function_context.add_object(object_type='tenant', object_to_delete={'name': TENANT_NAME})
-    function_context.add_object(object_type='CRD',
-                                object_to_delete={'name': MODEL_NAME + 'endpoint',
-                                                  'namespace': TENANT_NAME})
-    opts, address = get_opts_address(endpoint)
-
-    logging.info('Waiting for endpoint running...')
-    time.sleep(40)
+def test_prediction_batch_with_certificates():
+    opts, address = test_create_endpoint.endpoint_info
 
     trusted_cert, trusted_key, trusted_ca = prepare_certs(
         CERT_SERVER,
@@ -84,7 +146,15 @@ def test_prediction_batch_with_certificates(function_context, minio_client):
 
     request.inputs[model_input].CopyFrom(
         tf.contrib.util.make_tensor_proto(images, shape=images.shape))
-    prediction_response = stub.Predict(request, 10.0)
+
+    prediction_response = "Failed"
+    try:
+        prediction_response = stub.Predict(request, 10.0)
+    except: # noqa
+        logging.info("Prediction failed")
+
+    logs = get_logs_of_pod(TENANT_NAME, test_create_endpoint.pod_name)
+    logging.info(filter_serving_logs(logs))
 
     response = numpy.array(prediction_response.outputs[model_output].float_val)
 
@@ -103,16 +173,8 @@ def test_prediction_batch_with_certificates(function_context, minio_client):
         assert label == test_label
 
 
-def test_wrong_certificates(function_context, minio_client):
-    endpoint = prepare_tenant_endpoint(minio_client)
-    function_context.add_object(object_type='tenant', object_to_delete={'name': TENANT_NAME})
-    function_context.add_object(object_type='CRD',
-                                object_to_delete={'name': MODEL_NAME + 'endpoint',
-                                                  'namespace': TENANT_NAME})
-    opts, address = get_opts_address(endpoint)
-
-    logging.info('Waiting for endpoint running...')
-    time.sleep(40)
+def test_wrong_certificates():
+    opts, address = test_create_endpoint.endpoint_info
 
     trusted_cert, wrong_key, wrong_ca = prepare_certs(
         CERT_SERVER,
@@ -130,18 +192,14 @@ def test_wrong_certificates(function_context, minio_client):
     with pytest.raises(grpc.RpcError) as context:
         stub.Predict(request, 10.0)
 
+    logs = get_logs_of_pod(TENANT_NAME, test_create_endpoint.pod_name)
+    logging.info(filter_serving_logs(logs))
+
     assert context.value.details() == 'Received http2 header with status: 403'
 
 
-def test_no_certificates(function_context, minio_client):
-    endpoint = prepare_tenant_endpoint(minio_client)
-    function_context.add_object(object_type='tenant', object_to_delete={'name': TENANT_NAME})
-    function_context.add_object(object_type='CRD',
-                                object_to_delete={'name': MODEL_NAME + 'endpoint',
-                                                  'namespace': TENANT_NAME})
-    opts, address = get_opts_address(endpoint)
-
-    time.sleep(40)
+def test_no_certificates():
+    opts, address = test_create_endpoint.endpoint_info
 
     trusted_cert, _, _ = prepare_certs(CERT_SERVER)
     creds = grpc.ssl_channel_credentials(root_certificates=trusted_cert)
@@ -155,32 +213,31 @@ def test_no_certificates(function_context, minio_client):
     with pytest.raises(grpc.RpcError) as context:
         stub.Predict(request, 10.0)
 
+    logs = get_logs_of_pod(TENANT_NAME, test_create_endpoint.pod_name)
+    logging.info(filter_serving_logs(logs))
+
     assert context.value.details() == 'Received http2 header with status: 400'
 
 
-def prepare_tenant_endpoint(minio_client):
-    tenant_response = create_tenant()
-    assert tenant_response.text == 'Tenant {} created\n'.format(TENANT_NAME)
-    assert tenant_response.status_code == 200
-    response = requests.get('https://storage.googleapis.com/inference-eu/models_zoo/'
-                            'resnet_V1_50/saved_model/saved_model.pb')
-    with open('saved_model.pb', 'wb') as f:
-        f.write(response.content)
-
-    headers = {'Authorization': get_user_token()['id_token']}
-    params = {
-        'model_name': 'e2emodel',
-        'model_version': 1,
-        'file_path': os.path.abspath('saved_model.pb'),
-    }
-    url = f"{MANAGEMENT_API_URL}/tenants/test"
-
-    upload_model(url, params, headers, 500)
-    os.remove('saved_model.pb')
-    endpoint_response = create_endpoint()
-    assert endpoint_response.status_code == 200
-    assert "created" in endpoint_response.text
-    return endpoint_response
+def test_remove_tenant():
+    assert delete_tenant().status_code == 200
+    start_action = time.time()
+    tick = start_action
+    ns_exists = None
+    while tick - start_action < 100:
+        ns_exists = False
+        tick = time.time()
+        namespaces = list_namespaces()
+        logging.info("Listing namespaces")
+        for ns in namespaces.items:
+            logging.info("Namespace :", ns.metadata.name)
+            if TENANT_NAME == ns.metadata.name:
+                ns_exists = True
+        if not ns_exists:
+            break
+        logging.info("Waiting 10 sec")
+        time.sleep(10)
+    assert not ns_exists
 
 
 def get_opts_address(endpoint_response):

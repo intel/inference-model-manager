@@ -2,7 +2,8 @@ import requests
 import json
 
 from management_api_tests.config import DEFAULT_HEADERS, ADMIN_HEADERS, SCOPE_NAME, \
-    TENANT_RESOURCES, TENANTS_MANAGEMENT_API_URL, ENDPOINT_MANAGEMENT_API_URL
+    TENANT_RESOURCES, SENSIBLE_ENDPOINT_RESOURCES, TENANTS_MANAGEMENT_API_URL, \
+    ENDPOINT_MANAGEMENT_API_URL
 from e2e_tests.config import TENANT_NAME, MODEL_NAME, CERT
 
 
@@ -20,6 +21,15 @@ def create_tenant():
     return response
 
 
+def delete_tenant():
+    url = TENANTS_MANAGEMENT_API_URL
+    data = json.dumps({
+        'name': TENANT_NAME,
+    })
+    response = requests.delete(url, data=data, headers=ADMIN_HEADERS)
+    return response
+
+
 def create_endpoint():
     headers = DEFAULT_HEADERS
     data = json.dumps({
@@ -27,7 +37,7 @@ def create_endpoint():
         'modelVersion': 1,
         'endpointName': MODEL_NAME+'endpoint',
         'subjectName': 'client',
-        'resources': TENANT_RESOURCES,
+        'resources': SENSIBLE_ENDPOINT_RESOURCES,
     })
     url = ENDPOINT_MANAGEMENT_API_URL.format(tenant_name=TENANT_NAME)
 

@@ -24,7 +24,7 @@ spec:
       containers:
       - name: tf-serving
         image: "{{ GlobalTemplateValue "servingImage" }}"
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         command:
         - /bin/sh
         - -c
