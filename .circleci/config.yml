@@ -38,6 +38,21 @@ jobs:
             cd ~/inferno-platform/
             python3 -m venv .venv
       - run:
+          name: Choose region
+          command: |
+            cd ~/inferno-platform/kops
+            export BRANCH=$(git symbolic-ref --short HEAD)
+            echo $REGION_JSON
+            if [ "$BRANCH" != "master" ]
+            then
+               sudo apt-get install jq
+               export GCE_REGION=`jq --arg namearg "$CIRCLE_USERNAME" '.[$namearg]' <<< "$REGION_JSON" | tr -d '"'`
+               if [ "GCE_REGION" != "null" ]
+               then
+                 sed -i "s/us-west1/${GCE_REGION}/g" desiredcni.yaml
+               fi
+            fi
+      - run:
           name: Prepare environment variables
           command: |
             echo 'export PR_NR=`basename ${CIRCLE_PULL_REQUEST}`' >> $BASH_ENV
