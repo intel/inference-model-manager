@@ -53,7 +53,7 @@ def test_upload_model():
         }
         url = f"{MANAGEMENT_API_URL}/tenants/{TENANT_NAME}"
 
-        upload_model(url, params, headers, 500)
+        upload_model(url, params, headers, 30)
         os.remove('saved_model.pb')
 
     except Exception as e:

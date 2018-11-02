@@ -44,7 +44,7 @@ def main():
                         help='Tenant which is uploading model')
     parser.add_argument('--part', type=part_size_t, default=500,
                         help='Size of data chunk in MB sent in a single upload request '
-                             '(acceptable values: 5-5000, default: 500)')
+                             '(acceptable values: 5-5000, default: 30)')
 
     config = read_config()
     headers = {'Authorization': config['id_token']}
