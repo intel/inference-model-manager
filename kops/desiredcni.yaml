@@ -26,35 +26,7 @@ spec:
     legacy: false
   fileAssets:
   - content: |
-      -----BEGIN CERTIFICATE-----
-      MIIFBTCCAu2gAwIBAgIJAKb8O0qDuJUvMA0GCSqGSIb3DQEBCwUAMBkxFzAVBgNV
-      BAMMDnN1cGVyLWhpcGVyLWNhMB4XDTE4MDczMDA5MzExMVoXDTE5MDczMDA5MzEx
-      MVowGTEXMBUGA1UEAwwOc3VwZXItaGlwZXItY2EwggIiMA0GCSqGSIb3DQEBAQUA
-      A4ICDwAwggIKAoICAQC817QjBInY3vCgFSCcyCoWRc70LRqcoC4pXKHZyB7OIfDb
-      sQbkabOZp1jtzwFCuUDiJ6ZQVcU1H3PugQBB61/tgBVOC6gKDQbmEfq63AwhyJ2O
-      +q9b+pS1XJKeWbnbzDDBr7rtVyRiCsCWVTI8a8IrBjCyiGSPz+fwI4TJSdxfgRs6
-      eY9zQHTDXgLPWPkTfoTHbtUk9B18FTBO4bGUh6KsBSgwFO7YMyP5F9qZdPcA6/1q
-      Lz4X+OqDYRnWU/+EAhurwWgcskao4h5JNFufkwwL8sVhT4wFXyznIe6wdsTUk1C/
-      6OjX7Z12YBinLV+EtF0rbPNUfvmJ8cu2itsctNetp/0QAjbSu/QuViy/N8QUt1uC
-      mMTsSVgmYpsgtaZ/Yr4tRFa8zrIw5tWMlZLjgWS3BOucA62zkcB4tzFbrQL/lXny
-      hCwQZV3vfO5UE4VM7vxXCBS/W5utN/RakGGwp83LrwT8APAaB5HSUAMsJQsjIuWm
-      FP+RIFQfRhpqaEvG+mkrO9UqdcOgt/7veRbO89iTVMDfyfyvsrPAxKkjbYJhniLb
-      oR9ZbwjRZoWVXEev4pzNdw2qf1fHrlBZZFp6ezyAuLMLSu+NYx6vo+kF+Duddc3d
-      kHCLc2J1zAEkpNQXBOvWj2xrh95LnnudzPbVCjIGhT4s2FBbAGzdlaPxXX2kmQID
-      AQABo1AwTjAdBgNVHQ4EFgQURJckJ7g8cgU5e9vXGZ2ofq0IJnUwHwYDVR0jBBgw
-      FoAURJckJ7g8cgU5e9vXGZ2ofq0IJnUwDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0B
-      AQsFAAOCAgEAgFp8N2XCoZdiYbYCquoNfyyxHUiFEKUDsq+ZijCSCDB/iuie661M
-      x6jfPjGE2jFnSZSSzzEEY2AuDaLm0AlPhQqthUb+VKNsbKTWajQZDy31+h3WfJT/
-      0ln0LV9khPjOuy/xqC/pMakF2Rd8pup2cuyk6iJlnd5bvu5JeimuhYRgnJl8OrXr
-      r9NQJnmiLXnfrJeVAXrQK+5r0v/BSar8tIILSOOknEmWjqOXoa5VMctm9fX/rkHM
-      9slENrM4GTLDRJApcolx7arS6qaCCmS3bU7PtRWnkbRxRlWEUJ/O/3GpchszoYax
-      d3dqMSdQ6tG2XWxt3RNnAMsHWWqfrk5JeW9P+0x52UGSkkXCg9ARTj+4TF9XIlfN
-      /aHwTTzWzT1X4qBnmVxjb226l0dhwyRlj1uDB3x0VHC1tOnRc2GxQ2mf9T4BOX4b
-      +U7ivpDbk/qzM6A/gJ+xQQAQOafd6b4Fjml6sQjVAzv4d6CN+6OaV2PEOMfuIvgX
-      0q7UgVIl6OR6xgMv+QJ0G0QNEAvep8dyvZg+5kgsTZA2yMAebI/hMZmNSTxFl8dH
-      HujMvoOKC3ykNbeOcOf/338syBufopGVTekGcV4oYUTRweM3sMHG0jyYF9G7+VIJ
-      uRXOYQMO7PC/hFfSGjIeoZxxR97DNbvmkElC3tTXZoITzdVy9UOODpU=
-      -----END CERTIFICATE-----
+replace_by_certificate
     name: paste-cert
     path: /etc/srv/kubernetes/ca.pem
     roles:

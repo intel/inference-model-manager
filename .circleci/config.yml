@@ -88,6 +88,9 @@ jobs:
             cd ~/inferno-platform/kops
             
             sed -i "s/toreplacebyclustername/${CLUSTER_NAME_SHORT}/g" desiredcni.yaml
+            cp ~/inferno-platform/helm-deployment/charts/dex-subchart/certs/dex-ca.crt .
+            sed -i 's/^/      /' dex-ca.crt
+            sed -i -e '/replace_by_certificate/{r dex-ca.crt' -e 'd}' desiredcni.yaml
             kops create -f desiredcni.yaml
             kops update cluster ${CLUSTER_NAME} --yes
             sleep 300
