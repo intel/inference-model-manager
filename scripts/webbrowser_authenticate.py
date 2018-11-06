@@ -48,7 +48,7 @@ def enable_getting_refresh_token(auth_url):
 
 
 def open_webbrowser(address):
-    print("Your browser has been opened to visit:\n{}".format(address))
+    print("Your browser has been opened to visit")
     try:
         webbrowser.open(url=address, new=1)
     except webbrowser.Error as e:

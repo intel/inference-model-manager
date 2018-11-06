@@ -5,17 +5,21 @@ from urllib.parse import urljoin, urlparse, parse_qs
 from bs4 import BeautifulSoup
 from requests_oauthlib import OAuth2Session
 
+
 dex_baseurl = os.environ.get('DEX_URL', 'http://127.0.0.1:8080')
-
-admin_username = 'jimihendrix@example.com'
-admin_password = 'guitar'
-
-user_username = 'janedoe@example.com'
-user_password = 'foo'
 
 redirect_uri = 'http://127.0.0.1:5555/callback'
 client_id = 'example-app'
 client_secret = 'ZXhhbXBsZS1hcHAtc2VjcmV0'
+
+# Credentials for admin
+ADMIN = {'login': "admin@example.com", 'password': "admin"}
+
+# Credentials for Jane which belongs to default and test group
+JANE = {'login': "janedoe@example.com", 'password': "foo"}
+
+# Credentials for Joe which belongs in default group
+JOE = {'login': "johndoe@example.com", 'password': "bar"}
 
 
 # Requests authentication form provided by dex.
@@ -74,14 +78,14 @@ admin_token = None
 def get_user_token():
     global user_token
     if not user_token:
-        user_token = authenticate(user_username, user_password)
+        user_token = authenticate(JANE['login'], JANE['password'])
     return user_token
 
 
 def get_admin_token():
     global admin_token
     if not admin_token:
-        admin_token = authenticate(admin_username, admin_password)
+        admin_token = authenticate(ADMIN['login'], ADMIN['password'])
     return admin_token
 
 

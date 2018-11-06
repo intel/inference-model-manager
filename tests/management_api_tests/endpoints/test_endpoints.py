@@ -296,7 +296,7 @@ def test_view_endpoint(request, endpoint_fix, endpoint_name, expected_status, ex
 def test_not_create_endpoint_tenant_not_exist():
     headers = USER2_HEADERS
     crd_server_name = 'predict'
-    namespace = 'janusz'
+    namespace = 'tenant-not-exist'
     replicas = 1
     data = json.dumps({
         'modelName': 'resnet',

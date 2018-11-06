@@ -43,9 +43,8 @@ def check_namespace_availability(api_instance, namespace):
 
 
 def check_namespaced_secret_existence(api_instance, secret_name, secret_namespace):
-    response = None
     try:
-        response = api_instance.read_namespaced_secret(secret_name, secret_namespace)
+        api_instance.read_namespaced_secret(secret_name, secret_namespace)
 
     except ApiException as apiException:
         if apiException.status == RESOURCE_NOT_FOUND:
@@ -55,8 +54,6 @@ def check_namespaced_secret_existence(api_instance, secret_name, secret_namespac
     except Exception as e:
         logging.error(e)
         return CheckResult.ERROR
-
-    logging.info(response)
     return CheckResult.RESOURCE_AVAILABLE
 
 

@@ -2,8 +2,8 @@ import requests
 import pytest
 import json
 
-from management_api_tests.config import AUTH_MANAGEMENT_API_URL, TOKEN_MANAGEMENT_API_URL, JOE
-from management_api_tests.authenticate import authenticate
+from management_api_tests.config import AUTH_MANAGEMENT_API_URL, TOKEN_MANAGEMENT_API_URL
+from management_api_tests.authenticate import authenticate, JOE
 
 
 def test_get_auth_redirection():

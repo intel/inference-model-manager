@@ -10,9 +10,10 @@ from urllib.parse import urljoin, urlparse, parse_qs
 from management_api_tests.config import MINIO_SECRET_ACCESS_KEY, MINIO_ACCESS_KEY_ID, \
     MINIO_REGION, MINIO_ENDPOINT_ADDR, SIGNATURE_VERSION, CRD_VERSION, CRD_PLURAL, CRD_KIND, \
     CRD_GROUP, CRD_API_VERSION, TENANT_NAME, TENANT_RESOURCES, ENDPOINT_RESOURCES, \
-    AUTH_MANAGEMENT_API_URL, JANE, SESSION_TENANT_NAME, PLATFORM_ADMIN
+    AUTH_MANAGEMENT_API_URL, GENERAL_TENANT_NAME, PLATFORM_ADMIN
 from management_api_tests.context import Context
 from management_api_tests.reused import propagate_portable_secrets, transform_quota
+from management_api_tests.authenticate import JANE
 
 
 @pytest.fixture(scope="session")
@@ -145,7 +146,7 @@ def create_endpoint(custom_obj_client, namespace, context, endpoint_name='predic
 
 @pytest.fixture(scope="session")
 def session_tenant(api_instance, minio_client, session_context):
-    name = SESSION_TENANT_NAME
+    name = GENERAL_TENANT_NAME
     quota = TENANT_RESOURCES
     return create_tenant(api_instance, minio_client, session_context, name, quota)
 
@@ -170,7 +171,7 @@ def tenant_with_endpoint(function_context, session_tenant, get_k8s_custom_obj_cl
 
 @pytest.fixture(scope="session")
 def fake_tenant():
-    name = "andrzej"  # USER1_HEADERS contain token for andrzej user with scope andrzej
+    name = "tenant-fake"
     quota = {}
     return name, quota
 
