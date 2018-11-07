@@ -6,9 +6,9 @@ from jwt import jwk_from_dict
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 
 
-from management_api.config import AuthParameters
-from management_api.utils.kubernetes_resources import get_dex_external_ip
-from management_api.utils.kubernetes_resources import get_k8s_api_client
+from management_api.config import AuthParameters, DEX_URL
+from management_api.utils.kubernetes_resources import get_dex_external_host
+from management_api.utils.kubernetes_resources import get_k8s_extensions_api_client
 from management_api.utils.errors_handling import MissingTokenException
 from management_api.utils.logger import get_logger
 
@@ -16,9 +16,9 @@ logger = get_logger(__name__)
 
 
 def get_auth_controller_url():
-    api_instance = get_k8s_api_client()
-    ip, port = get_dex_external_ip(api_instance)
-    auth_controller_url = f'https://{ip}:{port}'
+    api_instance = get_k8s_extensions_api_client()
+    host, port = get_dex_external_host(api_instance)
+    auth_controller_url = f'https://{host}:{port}'
     params = {'client_id': AuthParameters.CLIENT_ID, 'redirect_uri': AuthParameters.REDIRECT_URL,
               'response_type': AuthParameters.RESPONSE_TYPE, 'scope': AuthParameters.SCOPE}
     url = urljoin(auth_controller_url, AuthParameters.AUTH_PATH)
@@ -32,17 +32,16 @@ def get_auth_controller_url():
 
 def get_token(parameters: dict):
     oauth = OAuth2Session(AuthParameters.CLIENT_ID, redirect_uri=AuthParameters.REDIRECT_URL)
-    auth_controller_url = get_address_of_dex()
     try:
         if 'code' in parameters:
-            token = oauth.fetch_token(urljoin(auth_controller_url, AuthParameters.TOKEN_PATH),
-                                      code=parameters['code'], verify=False,
+            token = oauth.fetch_token(urljoin(DEX_URL, AuthParameters.TOKEN_PATH),
+                                      code=parameters['code'],
                                       client_secret=AuthParameters.CLIENT_SECRET)
         elif 'refresh_token' in parameters:
             extra = {'client_id': AuthParameters.CLIENT_ID,
                      'client_secret': AuthParameters.CLIENT_SECRET}
-            token = oauth.refresh_token(urljoin(auth_controller_url, AuthParameters.TOKEN_PATH),
-                                        refresh_token=parameters['refresh_token'], verify=False,
+            token = oauth.refresh_token(urljoin(DEX_URL, AuthParameters.TOKEN_PATH),
+                                        refresh_token=parameters['refresh_token'],
                                         **extra)
 
     except Exception as e:
@@ -52,8 +51,7 @@ def get_token(parameters: dict):
 
 
 def _get_keys_from_dex():
-    auth_controller_url = get_address_of_dex()
-    resp = requests.get(urljoin(auth_controller_url, "/dex/keys"), params=None, verify=False)
+    resp = requests.get(urljoin(DEX_URL, "/dex/keys"), params=None)
     data = json.loads(resp.text)
     keys = []
     for k in data['keys']:
@@ -69,10 +67,3 @@ def _get_keys_from_dex():
 
 def get_keys_from_dex():
     return _get_keys_from_dex()
-
-
-def get_address_of_dex():
-    api_instance = get_k8s_api_client()
-    ip, port = get_dex_external_ip(api_instance)
-    auth_controller_url = f'https://{ip}:{port}'
-    return auth_controller_url

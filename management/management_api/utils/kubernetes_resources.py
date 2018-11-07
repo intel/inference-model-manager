@@ -68,17 +68,28 @@ def get_svc_external_ip_port(api_instance: client, label_selector: str, namespac
     return ip, port
 
 
+def get_ing_host_path(api_instance: client, ing_name: str, namespace: str):
+    try:
+        api_response = api_instance.read_namespaced_ingress(ing_name, namespace)
+        logger.info(f"get ingress api response : {api_response}")
+        host_path = api_response.spec.rules[0].host
+        host_ip = api_response.spec.rules[0].http.paths[0].backend.service_port
+    except ApiException as e:
+        raise KubernetesGetException('Get ingress', e)
+    return host_path, host_ip
+
+
 def get_ingress_external_ip(api_instance: client):
     label_selector = 'app={}'.format(ING_NAME)
     return get_svc_external_ip_port(api_instance=api_instance, namespace=ING_NAMESPACE,
                                     label_selector=label_selector)
 
 
-def get_dex_external_ip(api_instance: client):
-    label_selector = 'app=dex'
+def get_dex_external_host(api_instance: client):
+    ing_name = 'dex'
     namespace = 'default'
-    return get_svc_external_ip_port(api_instance=api_instance, namespace=namespace,
-                                    label_selector=label_selector)
+    return get_ing_host_path(api_instance=api_instance, namespace=namespace,
+                             ing_name=ing_name)
 
 
 @lru_cache(maxsize=None)
@@ -111,6 +122,12 @@ def get_k8s_rbac_api_client():
 @lru_cache(maxsize=None)
 def get_k8s_apps_api_client():
     apps_api_client = client.AppsV1Api(client.ApiClient(get_k8s_configuration()))
+    return apps_api_client
+
+
+@lru_cache(maxsize=None)
+def get_k8s_extensions_api_client():
+    apps_api_client = client.ExtensionsV1beta1Api(client.ApiClient(get_k8s_configuration()))
     return apps_api_client
 
 

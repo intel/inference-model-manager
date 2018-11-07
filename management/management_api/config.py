@@ -18,6 +18,8 @@ PORTABLE_SECRETS_PATHS = ['default/minio-access-info', 'default/tls-secret']
 PLATFORM_DOMAIN = os.getenv('PLATFORM_DOMAIN', 'default')
 PLATFORM_ADMIN = os.getenv('PLATFORM_ADMIN', 'platform_admin')
 
+DEX_URL = os.getenv('DEX_URL', 'https://dex:443')
+
 
 # AUTH CONTROLLER DEFINITIONS:
 class AuthParameters:

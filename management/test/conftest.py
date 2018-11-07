@@ -57,8 +57,8 @@ def apps_client_mock_endpoint_utils(mocker):
 @pytest.fixture(scope='function')
 def external_svc_auth_controller(mocker):
     create_custom_client_mock = mocker.patch('management_api.authenticate.auth_controller.'
-                                             'get_k8s_api_client')
+                                             'get_k8s_extensions_api_client')
     external_ip_port_mock = mocker.patch('management_api.authenticate.auth_controller.'
-                                         'get_dex_external_ip')
+                                         'get_dex_external_host')
 
     return create_custom_client_mock, external_ip_port_mock

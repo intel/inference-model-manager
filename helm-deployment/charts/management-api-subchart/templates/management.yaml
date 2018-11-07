@@ -55,11 +55,17 @@ spec:
         volumeMounts:
         - mountPath: /certs/
           name: tls-ing-management-secret
+        - mountPath: /dex-CA/
+          name: ca-secret-dex
       volumes:
       - secret:
             defaultMode: 420
             secretName: tls-ing-management-secret
         name: tls-ing-management-secret
+      - secret:
+            defaultMode: 420
+            secretName: ca-secret-dex
+        name: ca-secret-dex
 ---
 apiVersion: v1
 kind: Service

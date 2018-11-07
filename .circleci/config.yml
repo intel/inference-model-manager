@@ -66,6 +66,15 @@ jobs:
             echo 'export CLUSTER_NAME_SHORT_TP=`echo ${CLUSTER_NAME_SHORT} | cut -c 1-20`' >> $BASH_ENV
             echo 'export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"' >> $BASH_ENV
       - run:
+          name: Generate certificates
+          command: |
+            cd ~/inferno-platform/helm-deployment/charts/management-api-subchart/certs
+            ./management_api_certs.sh
+            ./internal_ing_man_api_certs.sh
+            cd ~/inferno-platform/helm-deployment/charts/dex-subchart/certs
+            ./dex_certs.sh
+            ./internal_ing_dex_certs.sh
+      - run:
           name: Create k8s cluster
           command: |
             echo "${GOOGLE_INFERNO_KEY}" | base64 -d > /tmp/gcp-key.json
@@ -136,12 +145,6 @@ jobs:
                echo "image already in registry - not rebuilding"
             fi
       - run:
-          name: Generate certificates
-          command: |
-            cd ~/inferno-platform/helm-deployment/charts/management-api-subchart/certs
-            ./management_api_certs.sh
-            ./internal_ing_man_api_certs.sh
-      - run:
           name: Download dependencies and deploy platfrom
           command: |
             export MGMT_TAG=$(find management/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
@@ -163,6 +166,17 @@ jobs:
             # aws route53 change-resource-record-sets --hosted-zone-id Z11DOV0M5AJEBB --change-batch file://./route_record.json
             # sleep 150
       - run:
+          name: Install Certificates
+          command: |
+            sudo cp ~/inferno-platform/helm-deployment/charts/management-api-subchart/certs/ca-man-api.crt /usr/local/share/ca-certificates/ca-man-api.crt
+            sudo cp ~/inferno-platform/helm-deployment/charts/dex-subchart/certs/dex-ca.crt /usr/local/share/ca-certificates/dex-ca.crt
+            sudo update-ca-certificates
+            # Commands below are necessary to enable developers debug their builds
+            echo "MANAGEMENT API CA"
+            cat ~/inferno-platform/helm-deployment/charts/management-api-subchart/certs/ca-man-api.crt
+            echo "DEX CA"
+            cat ~/inferno-platform/helm-deployment/charts/dex-subchart/certs/dex-ca.crt
+      - run:
           name: Run tests
           command: |
             . ~/inferno-platform/.venv/bin/activate
@@ -171,9 +185,6 @@ jobs:
             export MANAGEMENT_IP=`kubectl get svc -l "run=management-api" -o "jsonpath={$.items[0].status.loadBalancer.ingress[0].ip}"`
             echo "${ING_IP} ${ING_DOMAIN}" | sudo tee -a /etc/hosts
             echo "${MANAGEMENT_IP} management-api.aipg.com" | sudo tee -a /etc/hosts
-            sudo cp ~/inferno-platform/helm-deployment/charts/management-api-subchart/certs/ca-man-api.crt /usr/local/share/ca-certificates/ca-man-api.crt
-            sudo update-ca-certificates
-            cat ~/inferno-platform/helm-deployment/charts/management-api-subchart/certs/ca-man-api.crt
             export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
             cd ~/inferno-platform/tests
             pip install -q -r requirements.txt

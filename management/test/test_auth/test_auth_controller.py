@@ -15,14 +15,12 @@ def test_get_auth_controller_url(external_svc_auth_controller):
 
 @pytest.mark.parametrize("case", [('fetch_token'), ('fetch_token_exc'), ('refresh_token'),
                                   ('refresh_token_exc')])
-def test_get_token(mocker, external_svc_auth_controller, case):
+def test_get_token(mocker, case):
     oauth_session = Mock()
     create_custom_client_mock = mocker.patch('management_api.authenticate.auth_controller.'
                                              'OAuth2Session')
     create_custom_client_mock.return_value = oauth_session
 
-    create_custom_client_mock, external_ip_port_mock = external_svc_auth_controller
-    external_ip_port_mock.return_value = ['127.0.0.1', 1234]
     if case == 'fetch_token_exc':
         oauth_session.fetch_token.side_effect = Exception()
         with pytest.raises(Exception):
@@ -47,5 +45,4 @@ def test_get_token(mocker, external_svc_auth_controller, case):
     else:
         oauth_session.fetch_token.assert_called_once()
     create_custom_client_mock.assert_called_once()
-    external_ip_port_mock.assert_called_once()
     create_custom_client_mock.assert_called_once()
