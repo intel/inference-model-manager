@@ -1,7 +1,7 @@
 import json
 from os import getenv
 from os.path import expanduser, join
-from .common_token import get_dex_auth_token, save_to_file
+from common_token import get_dex_auth_token, save_to_file
 
 
 def check_cert(cert_path):

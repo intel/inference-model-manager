@@ -5,7 +5,7 @@ from os.path import expanduser, join
 from os import getenv
 import sys
 import threading
-from .common_token import get_dex_auth_token, save_to_file
+from common_token import get_dex_auth_token, save_to_file
 try:
     # Imports for Python 3
     from http.server import BaseHTTPRequestHandler, HTTPServer

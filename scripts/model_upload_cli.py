@@ -42,7 +42,7 @@ def main():
                         help='Version of uploaded model')
     parser.add_argument('tenant', type=str,
                         help='Tenant which is uploading model')
-    parser.add_argument('--part', type=part_size_t, default=500,
+    parser.add_argument('--part', type=part_size_t, default=30,
                         help='Size of data chunk in MB sent in a single upload request '
                              '(acceptable values: 5-5000, default: 30)')
 
