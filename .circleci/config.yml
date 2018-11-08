@@ -65,6 +65,8 @@ jobs:
             echo 'export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp-key.json"' >> $BASH_ENV
             echo 'export CLUSTER_NAME_SHORT_TP=`echo ${CLUSTER_NAME_SHORT} | cut -c 1-20`' >> $BASH_ENV
             echo 'export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"' >> $BASH_ENV
+            echo 'export DOMAIN_NAME="dex.${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com"' >> $BASH_ENV
+            echo 'export ISSUER="https://dex.${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com:443/dex"' >> $BASH_ENV
       - run:
           name: Generate certificates
           command: |
@@ -72,8 +74,11 @@ jobs:
             ./management_api_certs.sh
             ./internal_ing_man_api_certs.sh
             cd ~/inferno-platform/helm-deployment/charts/dex-subchart/certs
-            ./dex_certs.sh
             ./internal_ing_dex_certs.sh
+            ./generate-dex-certs.sh
+            cd ~/inferno-platform/helm-deployment/certs
+            ./scriptcert.sh
+            ./script-wrong-certs.sh
       - run:
           name: Create k8s cluster
           command: |
@@ -149,9 +154,11 @@ jobs:
           command: |
             export MGMT_TAG=$(find management/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
             export CTRL_TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
+            cd ~/inferno-platform/helm-deployment/charts/dex-subchart
+            sed -i "s@toreplacedbyissuer@${ISSUER}@g" values.yaml
             cd ~/inferno-platform/helm-deployment/
             helm dep up .
-            helm install --name inferno --set management-api-chart.tag=$MGMT_TAG --set crd-subchart.tag=$CTRL_TAG .
+            helm install --name inferno --set management-api-chart.tag=$MGMT_TAG --set crd-subchart.tag=$CTRL_TAG --set dex-subchart.issuer=${ISSUER} --set dex-subchart.config.issuer=${ISSUER} --set dex-subchart.ingress.hosts=${DOMAIN_NAME} --set dex-subchart.ingress.tls.hosts=${DOMAIN_NAME} .
             sleep 150
       - run:
           name: Create record in AWS Route53
@@ -180,6 +187,8 @@ jobs:
           name: Run tests
           command: |
             . ~/inferno-platform/.venv/bin/activate
+            cd ~/inferno-platform/helm-deployment/certs
+            export CERT=`cat ca-cert-tf.crt | base64 -w0`
             while [ -z $ING_IP ]; do sleep 10; ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}'); done
             export ING_DOMAIN=`kubectl get ing -o=jsonpath='{.items..spec.tls..hosts}' | sed 's/[][]//g'`
             export MANAGEMENT_IP=`kubectl get svc -l "run=management-api" -o "jsonpath={$.items[0].status.loadBalancer.ingress[0].ip}"`

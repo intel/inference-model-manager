@@ -57,11 +57,11 @@ Add revoked certificate to CRL
 
 Above command will update existing root.crl.pem file.
 
-In order to add CRL support to ingress-nginx append content of root.crl.pem to ca-cert-secret.crt file
+In order to add CRL support to ingress-nginx append content of root.crl.pem to ca-cert-tf.crt file
 
-Remove old CRL appended to ca-cert-secret.crt if exists, and append new one with following command:
+Remove old CRL appended to ca-cert-tf.crt if exists, and append new one with following command:
 
-`cat ca-cert-secret.crt root.crl.pem >> temporary`
+`cat ca-cert-tf.crt root.crl.pem >> temporary`
 
 Encode with base64 `cat temporary | base64 -w0`
 and copy paste to kubernetes secret `kubectl edit secret ca-cert-secret` in place of ca.crt.
