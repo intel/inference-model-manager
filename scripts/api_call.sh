@@ -15,7 +15,7 @@ Examples:
 	.${0##*/} create e myendpoint mymodel
 	.${0##*/} -a 127.0.0.1 login
 	.${0##*/} logout
-	.${0##*/} run-inference 127.0.0.1 9000 numpy imgs.npy 10 mymodel
+	.${0##*/} run-inference 127.0.0.1 443 numpy imgs.npy 10 mymodel server.crt client.crt client.key
 Operations:
 	create (c), remove (rm), update (up), scale (s), list (ls), login, logout, upload (u), run-inference (ri)
 Resources:
@@ -198,13 +198,16 @@ case "$OPERATION" in
 		;;
 	run-inference | ri)
 		echo "Running inference"
-		[[ -z ${RESOURCE} ]] && read -p "Please provide endpoint ip (grpc address) " RESOURCE
-		[[ -z ${PARAM_1} ]] && read -p "Please provide grpc port "  PARAM_1
-		[[ -z ${PARAM_2} ]] && read -p "Please specify input type: list/numpy " PARAM_2
-		[[ -z ${PARAM_3} ]] && read -p "Please provide images (type: ${PARAM_2}) " PARAM_3
-		[[ -z ${PARAM_4} ]] && read -p "Please provide size of batches " PARAM_4
-		[[ -z ${PARAM_5} ]] && read -p "Please provide model name " PARAM_5
-		case "${PARAM_2}" in
+		[[ -z ${RESOURCE} ]] && read -p "Please provide endpoint ip with port (grpc address) " RESOURCE
+		[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
+		[[ -z ${PARAM_2} ]] && read -p "Please provide model name " PARAM_2
+		[[ -z ${PARAM_3} ]] && read -p "Please specify input type: list/numpy " PARAM_3
+		[[ -z ${PARAM_4} ]] && read -p "Please provide images (type: ${PARAM_3}) " PARAM_4
+		[[ -z ${PARAM_5} ]] && read -p "Please provide batch size " PARAM_5
+		[[ -z ${PARAM_6} ]] && read -p "Please provide path to server cert " PARAM_6
+		[[ -z ${PARAM_7} ]] && read -p "Please provide path to client cert " PARAM_7
+		[[ -z ${PARAM_8} ]] && read -p "Please provide path to client key  " PARAM_8
+		case "${PARAM_3}" in
 				list)   INPUT_TYPE="--images_list"
 					;;
 				numpy)  INPUT_TYPE="--images_numpy_path"
@@ -213,7 +216,9 @@ case "$OPERATION" in
 					exit 0
 					;;
 		esac
-		python ../examples/grpc_client/grpc_client.py --grpc_address ${RESOURCE} --grpc_port ${PARAM_1} ${INPUT_TYPE} ${PARAM_3} --model_name ${PARAM_5} --batch_size ${PARAM_4} 
+		python ../examples/grpc_client/grpc_client.py --grpc_address ${RESOURCE} --endpoint_name ${PARAM_1} \
+		--model_name ${PARAM_2} ${INPUT_TYPE} ${PARAM_4} --batch_size ${PARAM_5} --server_cert ${PARAM_6} \
+		--client_cert ${PARAM_7} --client_key ${PARAM_8}
 		;;
 	*)	show_help
 		exit 0

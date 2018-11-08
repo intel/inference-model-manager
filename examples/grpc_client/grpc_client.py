@@ -14,38 +14,39 @@ from endpoint_utils import prepare_certs, prepare_stub_and_request
 from images_2_numpy import load_images_from_list
 
 
-def get_stub_and_request(ssl_flag, endpoint_address, model_name):
-    if ssl_flag:
-        server_ca_cert_path = './certs/server.crt'
-        client_key_path = './certs/client.key'
-        client_crt_path = './certs/client.crt'
-        server_ca_cert, client_key, client_crt = prepare_certs(server_cert=server_ca_cert_path,
-                                                               client_key=client_key_path,
-                                                               client_ca=client_crt_path)
+def get_stub_and_request(endpoint_address, endpoint_name, model_name, certs, ssl):
+    if ssl:
+        server_ca_cert, client_key, client_cert = prepare_certs(server_cert=certs['server_cert'],
+                                                               client_key=certs['client_key'],
+                                                               client_ca=certs['client_cert'])
         creds = grpc.ssl_channel_credentials(root_certificates=server_ca_cert,
-                                         private_key=client_key, certificate_chain=client_crt)
-        stub, request = prepare_stub_and_request(endpoint_address, model_name, creds)
+                                             private_key=client_key, certificate_chain=client_cert)
+        stub, request = prepare_stub_and_request(address=endpoint_address, model_name=model_name,
+                                                 creds=creds, opts=endpoint_name)
     else:
-        stub, request = prepare_stub_and_request(endpoint_address, model_name)
+        stub, request = prepare_stub_and_request(address=endpoint_address, model_name=model_name,
+                                                creds=None, opts=endpoint_name)
     return stub, request
 
 
-def prepare_images(args):
-    if args['images_numpy_path']:
-        imgs = np.load(args['images_numpy_path'], mmap_mode='r', allow_pickle=False)
-    if args['images_list']:
-        images = args['images_list'].split(',')
-        imgs = load_images_from_list(images, args['image_size'], len(images))
+def prepare_images(kwargs):
+    if kwargs['images_numpy_path']:
+        imgs = np.load(kwargs['images_numpy_path'])
+        if kwargs['images_number']:
+            imgs = imgs[:int(kwargs['images_number'])]
+    if kwargs['images_list']:
+        images = kwargs['images_list'].split(',')
+        imgs = load_images_from_list(images, kwargs['image_size'], len(images))
     return imgs
 
-def inference(model_spec, request_spec, endpoint_address, imgs):
-    print(f'Start processing:')
-    print(f'\tModel name: {model_spec["model_name"]}')
-    print(f'\tImages in shape: {imgs.shape}\n')
-    stub, request = get_stub_and_request(request_spec['ssl'], endpoint_address,
-                                         model_spec['model_name'])
+
+def inference(stub, request, imgs, kwargs):
+    print("Start processing:")
+    print(f"\tModel name: {kwargs['model_name']}")
+    print(f"\tImages in shape: {imgs.shape}\n")
+
     processing_times = np.zeros((0), int)
-    batch_size = int(request_spec['batch_size'])
+    batch_size = int(kwargs['batch_size'])
     iteration = 0
     for x in range(0, imgs.shape[0], batch_size):
         iteration += 1
@@ -53,27 +54,33 @@ def inference(model_spec, request_spec, endpoint_address, imgs):
         end_batch = x + batch_size
         if end_batch > imgs.shape[0]: end_batch = imgs.shape[0]
         batch = imgs[x:end_batch]
-        request.inputs[model_spec['input_name']].CopyFrom(
+        request.inputs[kwargs['input_name']].CopyFrom(
             tf_contrib_util.make_tensor_proto(batch, shape=(batch.shape)))
         start_time = datetime.datetime.now()
         result = stub.Predict(request, 10.0) # result includes a dictionary with all model outputs
         end_time = datetime.datetime.now()
         duration = (end_time - start_time).total_seconds() * 1000
         processing_times = np.append(processing_times ,np.array([int(duration)]))
-        output = tf_contrib_util.make_ndarray(result.outputs[model_spec['output_name']])
+        output = tf_contrib_util.make_ndarray(result.outputs[kwargs['output_name']])
 
         print(f'Iteration {iteration}; '
               f'Processing time: {round(np.average(duration), 2):.2f} ms; '
               f'speed {round(1000 * batch_size / np.average(duration), 2):.2f} fps')
 
-        if request_spec['imagenet'] == "True":
-            print(f'\tImagenet top results in a single batch:')
-            for i in range(output.shape[0]):
-                single_result = output[[i],...]
-                max_class = np.argmax(single_result)
-                print(f'\t\t {i+1} image in batch: {classes.imagenet_classes[max_class]}')
+        if kwargs['no_imagenet']:
+            continue
 
-    return output, processing_times, batch_size
+        print(f'\tImagenet top results in a single batch:')
+        for i in range(output.shape[0]):
+            single_result = output[[i],...]
+            max_class = np.argmax(single_result)
+            print(f'\t\t {i+1} image in batch: {classes.imagenet_classes[max_class]}')
+
+
+    if kwargs['performance']:
+        get_processing_performance(processing_times, batch_size)
+
+    return output
 
 
 def get_processing_performance(processing_times, batch_size):
@@ -96,60 +103,67 @@ def get_processing_performance(processing_times, batch_size):
     print(f'Time variance: {round(np.var(processing_times), 2):.2f}')
 
 
-def main():
+def main(**kwargs):
+    endpoint_address = f'{kwargs["grpc_address"]}'
+
+    certs = dict()
+    certs['server_cert'] = kwargs['server_cert']
+    certs['client_cert'] = kwargs['client_cert']
+    certs['client_key'] = kwargs['client_key']
+
+    ssl = False if kwargs['no_ssl'] else True
+    stub, request = get_stub_and_request(
+        endpoint_address, kwargs['endpoint_name'], kwargs['model_name'], certs, ssl)
+
+    imgs = prepare_images(kwargs)
+
+    if kwargs['transpose_input']:
+        imgs = imgs.transpose((0, 2, 3, 1))
+
+    output = inference(stub, request, imgs, kwargs)
+
+    return output
+
+def run_inference():
     parser = argparse.ArgumentParser(
-        description='Do requests to Tensorflow Serving using images or images in numpy format')
-    parser.add_argument('--grpc_address', required=False, default='localhost',
-                        help='Specify url to grpc service. Default: localhost')
-    parser.add_argument('--grpc_port', required=False, default=9000,
-                        help='Specify port to grpc service. Default: 9000')
-    parser.add_argument('--input_name', required=False, default='import/input_tensor',
-                        help='Specify input tensor name. Default: import/input_tensor')
-    parser.add_argument('--output_name', required=False, default='import/softmax_tensor',
-                        help='Specify output name. Default: import/softmax_tensor')
-    parser.add_argument('--transpose_input', choices=["True", "False"], default="False",
-                        help='Set to True to make NHWC->NCHW input transposing. Default: False',
-                        dest='transpose_input')
-    parser.add_argument('--batch_size', default=1,
-                        help='Number of images in a single request. Default: 1',
-                        dest='batch_size')
-    parser.add_argument('--model_name', default='resnet',
-                        help='Define model name, must be same as is in service. Default: resnet',
-                        dest='model_name')
-    parser.add_argument('--ssl', action='store_true', help="Enable SSL traffic")
+        description='Do requests to Tensorflow Serving using jpg images or images in numpy format')
+
+    parser.add_argument('--grpc_address', required=True, help='Specify url:port to gRPC service')
+    parser.add_argument('--endpoint_name', required=True,
+                        help='Specify endpoint name in manner: endpoint-name.domain-name')
+
+    parser.add_argument('--server_cert', help='Path to server certificate')
+    parser.add_argument('--client_cert', help='Path to client certificate')
+    parser.add_argument('--client_key', help='Path to client key')
+
+    parser.add_argument('--model_name', required=True,
+                        help='Specify model name, must be same as is in service')
+    parser.add_argument('--input_name', required=False, default='in', help='Input tensor of model')
+    parser.add_argument('--output_name', required=False, default='out',
+                        help='Output tensor of model')
+
+    files = parser.add_mutually_exclusive_group(required=True)
+    files.add_argument('--images_numpy_path', help='Numpy in shape [n,w,h,c]')
+    files.add_argument('--images_list', help='Images in .jpg format')
+
+    parser.add_argument('--image_size', required=False, default=224,
+                        help='Size of images. Default: 224')
+    parser.add_argument('--images_number', required=False,
+                        help='Define number of images to inference. '
+                             'Specify if you want to use only part of numpy array')
+    parser.add_argument('--batch_size', required=False, default=1,
+                        help='Number of images in a single request. Default: 1')
+
+    parser.add_argument('--no-ssl', action='store_true', help='Set for non-SSL calls')
+    parser.add_argument('--transpose_input', action='store_true',
+                        help='Set to make NCHW->NHWC input transposing')
     parser.add_argument('--performance', action='store_true',
                         help='Enable processing performance info')
-    files = parser.add_mutually_exclusive_group(required=True)
-    files.add_argument('--images_numpy_path', help='numpy in shape [n,w,h,c]')
-    files.add_argument('--images_list', help='List of images in .jpg format')
-    parser.add_argument('--image_size', default=224, help='Size of images. Default: 224')
-    parser.add_argument('--imagenet', choices=["True", "False"], default="True",
-                        help='Set to false for non-Imagenet datasets. Default: True')
-    args = vars(parser.parse_args())
+    parser.add_argument('--no_imagenet', action='store_true', help='Set for non-Imagenet datasets')
 
-    endpoint_address = f'{args["grpc_address"]}:{args["grpc_port"]}'
-    model_spec = dict()
-    model_spec['model_name'] = args['model_name']
-    model_spec['input_name'] = args['input_name']
-    model_spec['output_name'] = args['output_name']
-    request_spec = dict()
-    request_spec['batch_size'] = args['batch_size']
-    request_spec['transpose_input'] = args['transpose_input']
-    request_spec['imagenet'] = args['imagenet']
-    request_spec['performance'] = args['performance']
-    request_spec['ssl'] = args['ssl']
-
-    imgs = prepare_images(args)
-
-    if request_spec['transpose_input'] == "True":
-        imgs = imgs.transpose((0, 3, 1, 2))
-
-    output, processing_times, batch_size = inference(
-        model_spec, request_spec, endpoint_address, imgs)
-
-    if request_spec['performance'] == "True":
-        get_processing_performance(processing_times, batch_size)
+    kwargs = vars(parser.parse_args())
+    main(**kwargs)
 
 
-if __name__ == "__main__":
-    main()
+if __name__=="__main__":
+    run_inference()

@@ -3,10 +3,6 @@ import os
 TENANT_NAME = os.environ.get('E2E_TENANT_NAME', 'test')
 MODEL_NAME = os.environ.get('E2E_MODEL_NAME', 'e2emodel')
 
-RESNET_BUCKET = os.environ.get('E2E_RESNET_BUCKET', 'bucket-model')
-RESNET_KEY = os.environ.get('E2E_RESNET_KEY', 'resnet/0/saved_model.pb')
-DEST_KEY = os.environ.get('E2E_DEST_KEY', MODEL_NAME + '-1/0/saved_model.pb')
-
 CERT_BAD_CLIENT = "../helm-deployment/certs/bad-client.crt"
 CERT_BAD_CLIENT_KEY = "../helm-deployment/certs/bad-client.key"
 CERT_CLIENT = "../helm-deployment/certs/client.crt"

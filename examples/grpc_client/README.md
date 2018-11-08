@@ -21,26 +21,18 @@ pip install -r requirements.txt
 ### About
 
 `grpc_client.py` allows to make requests to endpoint which contains served Resnet model. To use it, 
-you need some images in .jpg format or numpy array in .npy format.
+you need some images in .jpg format or numpy array in .npy format.  
+Default setting is to use certificate validation. You can change this behaviour by specifying `--no-ssl` flag.  
 
-#### Example commands
+#### Example command
 ```
-python grpc_client.py --grpc_address <endpoint_ip> --grpc_port 9000 --images_list image.jpg 
-```
-```
-python grpc_client.py --grpc_address <endpoint_ip> --grpc_port 9000 --images_list image.jpg,image2.jpg
-```
-```
-python grpc_client.py --grpc_address <endpoint_ip> --grpc_port 9000 --images_numpy_path imgs.npy
+python grpc_client.py --grpc_address <endpoint_address> --grpc_port 443 --endpoint_name <endpoint_name> --images_list <image.jpg> --model_name model-name --server_cert <path_to_server_cert> --client_cert <path_to_client_cert> --client_key <path_to_client_key>
 ```
 
 Run help for more information about additional flags:
 ```
 python grpc_client.py --help
 ```
-
-#### Certificate validation
-With `--ssl` flag enable certificate validation. It is assumed that certificates are under `./certs`.
 
 #### Performance information
 With `--performance` flag enable perfomance information.

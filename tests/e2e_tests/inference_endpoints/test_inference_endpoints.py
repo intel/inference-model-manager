@@ -1,16 +1,19 @@
 import os
 import sys
-import requests
 import logging
 import numpy
 import pytest
+import requests
 import tensorflow as tf
-import json
 import time
 import grpc
+import json
 
 sys.path.append(os.path.realpath(os.path.join(os.path.realpath(__file__), '../../../../common')))  # noqa
 sys.path.append(os.path.realpath(os.path.join(os.path.realpath(__file__), '../../../../scripts')))  # noqa
+sys.path.append(os.path.realpath(os.path.join(os.path.realpath(__file__), '../../../../examples/grpc_client')))  # noqa
+
+from grpc_client import main
 import classes
 from endpoint_utils import prepare_certs, prepare_stub_and_request
 from model_upload import upload_model
@@ -23,6 +26,7 @@ from e2e_tests.tf_serving_utils.load_numpy import IMAGES, LABELS
 from management_api_tests.authenticate import get_user_token
 from management_api_tests.config import MANAGEMENT_API_URL
 from conftest import get_all_pods_in_namespace, get_logs_of_pod, list_namespaces
+
 
 images = IMAGES
 image = numpy.expand_dims(images[0], axis=0)
@@ -47,7 +51,7 @@ def test_upload_model():
 
         headers = {'Authorization': get_user_token()['id_token']}
         params = {
-            'model_name': 'e2emodel',
+            'model_name': MODEL_NAME,
             'model_version': 1,
             'file_path': os.path.abspath('saved_model.pb'),
         }
@@ -217,6 +221,31 @@ def test_no_certificates():
     logging.info(filter_serving_logs(logs))
 
     assert context.value.details() == 'Received http2 header with status: 400'
+
+
+def test_grpc_client():
+    opts, address = test_create_endpoint.endpoint_info
+
+    output = main(grpc_address=address,
+                  endpoint_name=opts,
+                  server_cert=CERT_SERVER,
+                  client_cert=CERT_CLIENT,
+                  client_key=CERT_CLIENT_KEY,
+                  model_name=MODEL_NAME,
+                  input_name='in',
+                  output_name='out',
+                  images_list=None,
+                  images_numpy_path='e2e_tests/tf_serving_utils/images.npy',
+                  image_size=224,
+                  images_number=2,
+                  batch_size=2,
+                  no_ssl=None,
+                  transpose_input=None,
+                  performance='',
+                  no_imagenet=None)
+
+    assert output is not None
+    assert isinstance(output, numpy.ndarray)
 
 
 def test_remove_tenant():
