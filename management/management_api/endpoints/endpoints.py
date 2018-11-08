@@ -37,35 +37,31 @@ class Endpoints(object):
         resp.body = 'Endpoint {} deleted\n'.format(endpoint_url)
 
 
-class EndpointPatch(object):
-
-    def patch(self, parameters, namespace, endpoint_name):
-        pass
-
+class EndpointScale(object):
     @jsonschema.validate(endpoint_patch_schema)
     def on_patch(self, req, resp, tenant_name, endpoint_name):
         namespace = get_namespace(tenant_name)
         body = req.media
-        endpoint_url = self.patch(parameters=body, namespace=namespace, endpoint_name=endpoint_name)
+        endpoint_url = scale_endpoint(body, namespace, endpoint_name)
         message = 'Endpoint {} patched successfully. New values: {}\n'.format(endpoint_url, body)
         resp.status = falcon.HTTP_200
         resp.body = message
         logger.info(message)
 
 
-class EndpointScale(EndpointPatch):
-    def patch(self, parameters, namespace, endpoint_name):
-        return scale_endpoint(parameters, namespace, endpoint_name)
-
-
-class EndpointUpdate(EndpointPatch):
-    def patch(self, parameters, namespace, endpoint_name):
-        return update_endpoint(parameters, namespace, endpoint_name)
-
-
-class EndpointView(object):
+class Endpoint(object):
     def on_get(self, req, resp, tenant_name, endpoint_name):
         namespace = get_namespace(tenant_name)
         endpoint = view_endpoint(endpoint_name=endpoint_name, namespace=namespace)
         resp.status = falcon.HTTP_200
         resp.body = endpoint
+
+    @jsonschema.validate(endpoint_patch_schema)
+    def on_patch(self, req, resp, tenant_name, endpoint_name):
+        namespace = get_namespace(tenant_name)
+        body = req.media
+        endpoint_url = update_endpoint(body, namespace, endpoint_name)
+        message = 'Endpoint {} patched successfully. New values: {}\n'.format(endpoint_url, body)
+        resp.status = falcon.HTTP_200
+        resp.body = message
+        logger.info(message)

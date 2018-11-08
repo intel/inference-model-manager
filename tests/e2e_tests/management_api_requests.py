@@ -3,7 +3,7 @@ import json
 
 from management_api_tests.config import DEFAULT_HEADERS, ADMIN_HEADERS, SCOPE_NAME, \
     TENANT_RESOURCES, SENSIBLE_ENDPOINT_RESOURCES, TENANTS_MANAGEMENT_API_URL, \
-    ENDPOINT_MANAGEMENT_API_URL
+    ENDPOINTS_MANAGEMENT_API_URL
 from e2e_tests.config import TENANT_NAME, MODEL_NAME, CERT
 
 
@@ -39,7 +39,7 @@ def create_endpoint():
         'subjectName': 'client',
         'resources': SENSIBLE_ENDPOINT_RESOURCES,
     })
-    url = ENDPOINT_MANAGEMENT_API_URL.format(tenant_name=TENANT_NAME)
+    url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=TENANT_NAME)
 
     response = requests.post(url, data=data, headers=headers)
     return response

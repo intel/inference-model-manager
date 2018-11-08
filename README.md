@@ -86,21 +86,21 @@ application/json" \
 
 Scale endpoint
 ```
-curl -X PATCH "http://<management_api_address>:5000/tenants/<namespace>/endpoints/<endpoint-name>/scaling" \
+curl -X PATCH "http://<management_api_address>:5000/tenants/<namespace>/endpoints/<endpoint-name>/replicas" \
 -H "accept: application/json" -H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
 -d "{\"replicas\": <int>}"
 ```
 
 Update endpoint
 ```
-curl -X PATCH "http://<management_api_address>:5000/tenants/<namespace>/endpoints/<endpoint-name>/updating" \
+curl -X PATCH "http://<management_api_address>:5000/tenants/<namespace>/endpoints/<endpoint-name>" \
 -H "accept: application/json" -H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
 -d "{\"modelName\": <string>, \"modelVersion\": <int>}"
 ```
 
 View endpoint
 ```
-curl -X GET "http://<management_api_address>:5000/tenants/<namespace>/endpoints/<endpoint-name>/viewing" \
+curl -X GET "http://<management_api_address>:5000/tenants/<namespace>/endpoints/<endpoint-name>" \
 -H "accept: application/json" -H "Authorization: <jwt_token>" -H "Content-Type: application/json"
 
 ```

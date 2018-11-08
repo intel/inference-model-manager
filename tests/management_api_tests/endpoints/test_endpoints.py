@@ -4,10 +4,8 @@ import json
 import time
 
 from management_api_tests.config import DEFAULT_HEADERS, USER1_HEADERS,\
-    USER2_HEADERS, ENDPOINT_MANAGEMENT_API_URL, CheckResult, \
-    ENDPOINT_RESOURCES, ENDPOINT_MANAGEMENT_API_URL_SCALE, \
-    ENDPOINT_MANAGEMENT_API_URL_UPDATE, OperationStatus, \
-    ENDPOINT_MANAGEMENT_API_URL_VIEW
+    USER2_HEADERS, ENDPOINT_MANAGEMENT_API_URL, ENDPOINTS_MANAGEMENT_API_URL, CheckResult, \
+    ENDPOINT_RESOURCES, ENDPOINT_MANAGEMENT_API_URL_SCALE, OperationStatus
 
 from management_api_tests.endpoints.endpoint_utils import check_replicas_number_matching_provided, \
     check_model_params_matching_provided, wait_server_setup, check_server_existence, \
@@ -27,7 +25,7 @@ def test_create_endpoint(function_context, apps_api_instance, get_k8s_custom_obj
         'replicas': replicas,
         'resources': ENDPOINT_RESOURCES
     })
-    url = ENDPOINT_MANAGEMENT_API_URL.format(tenant_name=namespace)
+    url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=namespace)
 
     response = requests.post(url, data=data, headers=DEFAULT_HEADERS)
 
@@ -49,7 +47,7 @@ def test_delete_endpoint(apps_api_instance, get_k8s_custom_obj_client,
         'endpointName': body['spec']['endpointName'],
     })
 
-    url = ENDPOINT_MANAGEMENT_API_URL.format(tenant_name=namespace)
+    url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=namespace)
     response = requests.delete(url, data=data, headers=DEFAULT_HEADERS)
     assert response.status_code == 200
     assert "deleted" in response.text
@@ -64,7 +62,7 @@ def test_try_create_the_same_endpoint(tenant_with_endpoint):
     body['spec']['resources'] = ENDPOINT_RESOURCES
     data = json.dumps(body['spec'])
 
-    url = ENDPOINT_MANAGEMENT_API_URL.format(tenant_name=namespace)
+    url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=namespace)
 
     response = requests.post(url, data=data, headers=DEFAULT_HEADERS)
     assert response.status_code == 400
@@ -87,7 +85,7 @@ def test_create_endpoint_with_2_replicas(get_k8s_custom_obj_client, apps_api_ins
         'resources': ENDPOINT_RESOURCES
     })
 
-    url = ENDPOINT_MANAGEMENT_API_URL.format(tenant_name=namespace)
+    url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=namespace)
 
     response = requests.post(url, data=data, headers=DEFAULT_HEADERS)
 
@@ -176,8 +174,7 @@ def test_update_endpoint(get_k8s_custom_obj_client, apps_api_instance,
     crd_server_name = body['spec']['endpointName']
     data = json.dumps(new_values)
 
-    url = ENDPOINT_MANAGEMENT_API_URL_UPDATE.format(endpoint_name=crd_server_name,
-                                                    tenant_name=namespace)
+    url = ENDPOINT_MANAGEMENT_API_URL.format(endpoint_name=crd_server_name, tenant_name=namespace)
 
     response = requests.patch(url, data=data, headers=DEFAULT_HEADERS)
 
@@ -216,8 +213,7 @@ def test_fail_to_update_endpoint(get_k8s_custom_obj_client,
 
     data = json.dumps(update_params)
 
-    url = ENDPOINT_MANAGEMENT_API_URL_UPDATE.format(endpoint_name=endpoint_name,
-                                                    tenant_name=namespace)
+    url = ENDPOINT_MANAGEMENT_API_URL.format(endpoint_name=endpoint_name, tenant_name=namespace)
 
     response = requests.patch(url, data=data, headers=auth)
 
@@ -253,7 +249,7 @@ def test_not_create_endpoint_with_incompliant_resource_quota(session_tenant, inc
         'resources': incompliant_quota
     })
 
-    url = ENDPOINT_MANAGEMENT_API_URL.format(tenant_name=namespace)
+    url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=namespace)
 
     headers = DEFAULT_HEADERS
     response = requests.post(url, data=data, headers=headers)
@@ -273,7 +269,7 @@ def test_list_endpoints(request, tenant_fix, auth_headers,
                         expected_status, expected_message):
     time.sleep(10)
     namespace, _ = request.getfixturevalue(tenant_fix)
-    url = ENDPOINT_MANAGEMENT_API_URL.format(tenant_name=namespace)
+    url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=namespace)
     response = requests.get(url, headers=auth_headers)
 
     assert expected_status == response.status_code
@@ -285,8 +281,7 @@ def test_list_endpoints(request, tenant_fix, auth_headers,
                           ('tenant_with_endpoint', 'not_exist', 404, 'Endpoint {} does not exist')])
 def test_view_endpoint(request, endpoint_fix, endpoint_name, expected_status, expected_message):
     namespace, _ = request.getfixturevalue(endpoint_fix)
-    url = ENDPOINT_MANAGEMENT_API_URL_VIEW.format(endpoint_name=endpoint_name,
-                                                  tenant_name=namespace)
+    url = ENDPOINT_MANAGEMENT_API_URL.format(endpoint_name=endpoint_name, tenant_name=namespace)
     response = requests.get(url, headers=DEFAULT_HEADERS)
 
     assert expected_status == response.status_code
@@ -306,7 +301,7 @@ def test_not_create_endpoint_tenant_not_exist():
         'replicas': replicas,
         'resources': ENDPOINT_RESOURCES
     })
-    url = ENDPOINT_MANAGEMENT_API_URL.format(tenant_name=namespace)
+    url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=namespace)
 
     response = requests.post(url, data=data, headers=headers)
 
@@ -321,7 +316,7 @@ def test_success_to_create_second_endpoint_with_max_endpoints_gt_one(
     endpoint_name = "predict-2"
     body['spec']['endpointName'] = endpoint_name
     body['spec']['resources'] = ENDPOINT_RESOURCES
-    url = ENDPOINT_MANAGEMENT_API_URL.format(tenant_name=namespace)
+    url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=namespace)
     response = requests.post(url, data=json.dumps(body['spec']), headers=DEFAULT_HEADERS)
     assert response.status_code == 200
     assert "Endpoint created" in response.text
@@ -334,7 +329,7 @@ def test_fail_to_create_second_endpoint_with_max_endpoints_eq_one(
     namespace, body = tenant_with_endpoint_parametrized_max_endpoints
     body['spec']['endpointName'] = "predict-2"
     body['spec']['resources'] = ENDPOINT_RESOURCES
-    url = ENDPOINT_MANAGEMENT_API_URL.format(tenant_name=namespace)
+    url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=namespace)
     response = requests.post(url, data=json.dumps(body['spec']), headers=DEFAULT_HEADERS)
     assert response.status_code == 409
     assert "Endpoints have reached the quantity limit" in response.text

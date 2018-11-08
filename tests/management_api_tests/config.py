@@ -45,11 +45,10 @@ CRD_KIND = 'Server'
 
 MANAGEMENT_API_URL = os.environ.get('MANAGEMENT_API_URL', 'http://127.0.0.1:5000')
 TENANTS_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants')
-ENDPOINT_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants/' +
-                                                                       '{tenant_name}/endpoints')
-ENDPOINT_MANAGEMENT_API_URL_SCALE = ENDPOINT_MANAGEMENT_API_URL + "/{endpoint_name}/scaling"
-ENDPOINT_MANAGEMENT_API_URL_UPDATE = ENDPOINT_MANAGEMENT_API_URL + "/{endpoint_name}/updating"
-ENDPOINT_MANAGEMENT_API_URL_VIEW = ENDPOINT_MANAGEMENT_API_URL + "/{endpoint_name}/viewing"
+ENDPOINTS_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants/' +
+                                                                        '{tenant_name}/endpoints')
+ENDPOINT_MANAGEMENT_API_URL_SCALE = ENDPOINTS_MANAGEMENT_API_URL + "/{endpoint_name}/replicas"
+ENDPOINT_MANAGEMENT_API_URL = ENDPOINTS_MANAGEMENT_API_URL + "/{endpoint_name}"
 START_MULTIPART_UPLOAD_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants/' +
                                                                           '{tenant_name}/' +
                                                                           'upload/start')

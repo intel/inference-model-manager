@@ -33,8 +33,8 @@ def test_endpoints_delete(mocker, client):
 
 
 @pytest.mark.parametrize("functionality, method_name, body, expected_status",
-                         [("scaling", "scale_endpoint", {'replicas': 3}, falcon.HTTP_OK),
-                          ("updating", "update_endpoint", {'modelName': 'test', 'modelVersion': 3},
+                         [("replicas", "scale_endpoint", {'replicas': 3}, falcon.HTTP_OK),
+                          ("", "update_endpoint", {'modelName': 'test', 'modelVersion': 3},
                            falcon.HTTP_OK)])
 def test_endpoints_patch(mocker, client, functionality, method_name, body, expected_status):
     method_mock = mocker.patch('management_api.endpoints.endpoints.' + method_name)
@@ -52,7 +52,7 @@ def test_endpoints_patch(mocker, client, functionality, method_name, body, expec
 @pytest.mark.parametrize("functionality, method_name, expected_status, expected_message",
                          [("", "list_endpoints", falcon.HTTP_OK,
                            "There's no endpoints presented in {0} tenant"),
-                          ("/predict/viewing", "view_endpoint", falcon.HTTP_OK,
+                          ("/predict", "view_endpoint", falcon.HTTP_OK,
                            "Endpoint {1} in {0} tenant")])
 def test_endpoints_get(mocker, client, functionality, method_name,
                        expected_status, expected_message):

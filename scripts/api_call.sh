@@ -132,7 +132,7 @@ case "$OPERATION" in
 				[[ -z ${PARAM_3} ]] && read -p "Please provide model version " PARAM_3
 				[[ -z ${PARAM_4} ]] && read -p "Please provide tenant name " PARAM_4
 				curl -X PATCH  ${verbose_dict[$VERBOSE]}  \
-				"http://${MANAGEMENT_API_IP}:${MANAGEMENT_API_PORT}/tenants/${PARAM_4}/endpoints/${PARAM_1}/updating" -H "accept: application/json" \
+				"http://${MANAGEMENT_API_IP}:${MANAGEMENT_API_PORT}/tenants/${PARAM_4}/endpoints/${PARAM_1}" -H "accept: application/json" \
 					-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" -d "{\"modelName\": ${PARAM_2}, \"modelVersion\":${PARAM_3}}"
 				;;
 		esac
@@ -144,7 +144,7 @@ case "$OPERATION" in
 				[[ -z ${PARAM_2} ]] && read -p "Please provide number of replicas " PARAM_2
 				[[ -z ${PARAM_3} ]] && read -p "Please provide tenant name " PARAM_3
 				curl -X PATCH  ${verbose_dict[$VERBOSE]}  \
-				"http://${MANAGEMENT_API_IP}:${MANAGEMENT_API_PORT}/tenants/${PARAM_3}/endpoints/${PARAM_1}/scaling" -H "accept: application/json" \
+				"http://${MANAGEMENT_API_IP}:${MANAGEMENT_API_PORT}/tenants/${PARAM_3}/endpoints/${PARAM_1}/replicas" -H "accept: application/json" \
 					-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" -d "{\"replicas\": ${PARAM_2}}"
 				;;
 		esac
