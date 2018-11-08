@@ -48,15 +48,14 @@ def auth_code_for_jane():
     parsed_url = urlparse(auth_dex_url)
     dex_base_url = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_url)
 
-    resp = requests.get(auth_dex_url, verify=False)
+    resp = requests.get(auth_dex_url)
     soup = BeautifulSoup(resp.text, 'html.parser')
     login_form_action = urljoin(dex_base_url, soup.form['action'])
 
     data = JANE
-    resp = requests.post(login_form_action, data=data, allow_redirects=False, verify=False)
+    resp = requests.post(login_form_action, data=data, allow_redirects=False)
 
-    resp = requests.get(urljoin(dex_base_url, resp.headers['Location']), allow_redirects=False,
-                        verify=False)
+    resp = requests.get(urljoin(dex_base_url, resp.headers['Location']), allow_redirects=False)
     query = urlparse(resp.headers['Location']).query
     auth_code = parse_qs(query)['code'][0]
 
