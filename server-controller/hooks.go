@@ -9,9 +9,9 @@ import (
 	"text/template"
 
 	crv1 "github.com/NervanaSystems/inferno-platform/server-controller/apis/cr/v1"
-	"github.com/NervanaSystems/kube-controllers-go/pkg/crd"
-	"github.com/NervanaSystems/kube-controllers-go/pkg/resource"
-	"github.com/NervanaSystems/kube-controllers-go/pkg/states"
+	"github.com/intel/crd-reconciler-for-kubernetes/pkg/crd"
+	"github.com/intel/crd-reconciler-for-kubernetes/pkg/resource"
+	"github.com/intel/crd-reconciler-for-kubernetes/pkg/states"
 )
 
 // serverHooks implements controller.Hooks.

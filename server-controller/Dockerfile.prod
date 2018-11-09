@@ -1,7 +1,6 @@
 FROM golang:1.11 as first
 
 RUN go get -u github.com/golang/dep/cmd/dep
-ADD .netrc /root/.netrc
 ADD . /go/src/github.com/NervanaSystems/inferno-platform/server-controller
 WORKDIR /go/src/github.com/NervanaSystems/inferno-platform/server-controller
 RUN dep ensure -v

@@ -17,10 +17,6 @@ cd server-controller/
 dep ensure -v
 ```
 
-Note: dep tool will need to download dependencies from private repos.
-In order to support private repos introduce ~/.netrc file with your token.
-Instructions on how to do it correctly can be found [here](https://github.com/golang/dep/blob/master/docs/FAQ.md#how-do-i-get-dep-to-consume-private-git-repos-using-a-github-token).
-
 ### Building
 In order to build server-controller locally please use following command
 ```go build -v -i .```

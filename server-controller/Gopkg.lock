@@ -8,7 +8,7 @@
   version = "v0.25.0"
 
 [[projects]]
-  name = "github.com/NervanaSystems/kube-controllers-go"
+  name = "github.com/intel/crd-reconciler-for-kubernetes"
   packages = [
     "pkg/controller",
     "pkg/crd",
@@ -17,7 +17,7 @@
     "pkg/states",
     "pkg/util"
   ]
-  revision = "96cff2ce7887101654396b203b4f1a48d488e8d6"
+  revision = "48b3f03171d0a1567f1a27d99526489c060274bd"
 
 [[projects]]
   name = "github.com/PuerkitoBio/purell"

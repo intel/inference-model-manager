@@ -143,9 +143,7 @@ jobs:
             echo $TAG_EXISTS
             cd ~/inferno-platform/server-controller/
             if [ -z "$TAG_EXISTS" ]; then
-               printf "machine github.com\n        login $GITHUB_LOGIN\n        password $GITHUB_TOKEN\n" > .netrc
                make circleci
-               git checkout -- .netrc
             else
                echo "image already in registry - not rebuilding"
             fi

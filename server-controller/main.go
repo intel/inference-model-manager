@@ -35,11 +35,11 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
 	crv1 "github.com/NervanaSystems/inferno-platform/server-controller/apis/cr/v1"
-	"github.com/NervanaSystems/kube-controllers-go/pkg/controller"
-	"github.com/NervanaSystems/kube-controllers-go/pkg/crd"
-	"github.com/NervanaSystems/kube-controllers-go/pkg/resource"
-	"github.com/NervanaSystems/kube-controllers-go/pkg/states"
-	"github.com/NervanaSystems/kube-controllers-go/pkg/util"
+	"github.com/intel/crd-reconciler-for-kubernetes/pkg/controller"
+	"github.com/intel/crd-reconciler-for-kubernetes/pkg/crd"
+	"github.com/intel/crd-reconciler-for-kubernetes/pkg/resource"
+	"github.com/intel/crd-reconciler-for-kubernetes/pkg/states"
+	"github.com/intel/crd-reconciler-for-kubernetes/pkg/util"
 )
 
 func main() {
