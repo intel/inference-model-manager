@@ -1,5 +1,7 @@
 #!/bin/bash
 
+DOMAIN_NAME=$1
+
 # This script shows how to generate test keys and certs
 # If you provide different value in annotations.allowed values than "CN=client", remember to change subject name also in client key
 
@@ -14,7 +16,7 @@ openssl x509 -req -days 365 -in client-tf.csr -CA ca-cert-tf.crt -CAkey ca-cert-
 
 # Generate valid server key/cert for tf serving
 openssl genrsa -out server-tf.key 4096
-openssl req -new -x509 -days 365 -key server-tf.key -out server-tf.crt -subj "/CN=*.serving-service.com"
+openssl req -new -x509 -days 365 -key server-tf.key -out server-tf.crt -subj "/CN=*.$DOMAIN_NAME"
 
 # Generete empty CRL file
 echo 01 > certserial

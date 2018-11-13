@@ -106,7 +106,6 @@ test_create_endpoint.endpoint_info = None
 test_create_endpoint.pod_name = None
 
 
-@pytest.mark.skip(reason="to be fixed")
 def test_prediction_with_certificates():
     url = test_create_endpoint.endpoint_info
 
@@ -139,7 +138,6 @@ def test_prediction_with_certificates():
     assert num_label == test_label
 
 
-@pytest.mark.skip(reason="to be fixed")
 def test_prediction_batch_with_certificates():
     url = test_create_endpoint.endpoint_info
 
@@ -180,7 +178,6 @@ def test_prediction_batch_with_certificates():
         assert label == test_label
 
 
-@pytest.mark.skip(reason="to be fixed")
 def test_wrong_certificates():
     url = test_create_endpoint.endpoint_info
 
@@ -206,7 +203,6 @@ def test_wrong_certificates():
     assert context.value.details() == 'Received http2 header with status: 403'
 
 
-@pytest.mark.skip(reason="to be fixed")
 def test_no_certificates():
     url = test_create_endpoint.endpoint_info
     trusted_cert, _, _ = prepare_certs(CERT_SERVER)

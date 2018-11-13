@@ -78,7 +78,7 @@ jobs:
             ./internal_ing_dex_certs.sh
             ./generate-dex-certs.sh
             cd ~/inferno-platform/helm-deployment/certs
-            ./scriptcert.sh
+            ./scriptcert.sh $DOMAIN_NAME
             ./script-wrong-certs.sh
       - run:
           name: Create k8s cluster
