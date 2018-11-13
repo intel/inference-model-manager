@@ -1,6 +1,6 @@
 import falcon
 from botocore.exceptions import ClientError
-from kubernetes import client
+from kubernetes import client as k8s_client
 from kubernetes.client.rest import ApiException
 from tenacity import retry, stop_after_attempt, wait_fixed
 from management_api.config import CERT_SECRET_NAME, PORTABLE_SECRETS_PATHS, \
@@ -16,7 +16,7 @@ from management_api.utils.logger import get_logger
 logger = get_logger(__name__)
 
 
-def create_tenant(parameters):
+def create_tenant(parameters, id_token):
     name = parameters['name']
     cert = parameters['cert']
     scope = parameters['scope']
@@ -27,34 +27,34 @@ def create_tenant(parameters):
 
     validate_cert(cert)
 
-    if tenant_exists(name):
+    if tenant_exists(name, id_token):
         raise TenantAlreadyExistsException(name)
 
     try:
-        create_namespace(name, quota)
-        propagate_portable_secrets(target_namespace=name)
+        create_namespace(name, quota, id_token)
+        propagate_portable_secrets(target_namespace=name, id_token=id_token)
         create_bucket(name)
-        create_secret(name, cert)
-        create_resource_quota(name, quota)
-        create_role(name)
-        create_rolebinding(name, scope)
+        create_secret(name, cert, id_token=id_token)
+        create_resource_quota(name, quota, id_token=id_token)
+        create_role(name, id_token=id_token)
+        create_rolebinding(name, scope, id_token=id_token)
     except falcon.HTTPError:
-        delete_namespace(name)
-        delete_bucket(name)
+        delete_namespace(name, id_token=id_token)
+        delete_bucket(name, id_token=id_token)
         raise
 
     logger.info('Tenant {} created'.format(name))
     return name
 
 
-def create_namespace(name, quota):
+def create_namespace(name, quota, id_token):
     annotations = None
     if 'maxEndpoints' in quota:
         annotations = {'maxEndpoints': str(quota.pop('maxEndpoints'))}
-    name_object = client.V1ObjectMeta(name=name, annotations=annotations,
-                                      labels={'created_by': PLATFORM_ADMIN})
-    namespace = client.V1Namespace(metadata=name_object)
-    api_instance = get_k8s_api_client()
+    name_object = k8s_client.V1ObjectMeta(name=name, annotations=annotations,
+                                          labels={'created_by': PLATFORM_ADMIN})
+    namespace = k8s_client.V1Namespace(metadata=name_object)
+    api_instance = get_k8s_api_client(id_token=id_token)
     try:
         response = api_instance.create_namespace(namespace)
     except ApiException as apiException:
@@ -74,13 +74,13 @@ def create_bucket(name):
     return response
 
 
-def create_secret(name, cert):
-    cert_secret_metadata = client.V1ObjectMeta(name=CERT_SECRET_NAME)
+def create_secret(name, cert, id_token):
+    cert_secret_metadata = k8s_client.V1ObjectMeta(name=CERT_SECRET_NAME)
     cert_secret_data = {"ca.crt": cert}
-    cert_secret = client.V1Secret(api_version="v1", data=cert_secret_data,
-                                  kind="Secret", metadata=cert_secret_metadata,
-                                  type="Opaque")
-    api_instance = get_k8s_api_client()
+    cert_secret = k8s_client.V1Secret(api_version="v1", data=cert_secret_data,
+                                      kind="Secret", metadata=cert_secret_metadata,
+                                      type="Opaque")
+    api_instance = get_k8s_api_client(id_token)
     try:
         response = api_instance.create_namespaced_secret(namespace=name,
                                                          body=cert_secret)
@@ -91,11 +91,11 @@ def create_secret(name, cert):
     return response
 
 
-def create_resource_quota(name, quota):
-    name_object = client.V1ObjectMeta(name=name)
-    resource_quota_spec = client.V1ResourceQuotaSpec(hard=quota)
-    body = client.V1ResourceQuota(spec=resource_quota_spec, metadata=name_object)
-    api_instance = get_k8s_api_client()
+def create_resource_quota(name, quota, id_token):
+    name_object = k8s_client.V1ObjectMeta(name=name)
+    resource_quota_spec = k8s_client.V1ResourceQuotaSpec(hard=quota)
+    body = k8s_client.V1ResourceQuota(spec=resource_quota_spec, metadata=name_object)
+    api_instance = get_k8s_api_client(id_token)
     try:
         response = api_instance.create_namespaced_resource_quota(name, body)
     except ApiException as apiException:
@@ -126,10 +126,10 @@ def delete_bucket(name):
 
 
 @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
-def delete_namespace(name):
-    body = client.V1DeleteOptions()
+def delete_namespace(name, id_token):
+    body = k8s_client.V1DeleteOptions()
     response = 'Namespace {} does not exist'.format(name)
-    api_instance = get_k8s_api_client()
+    api_instance = get_k8s_api_client(id_token)
     existed = True
     try:
         response = api_instance.delete_namespace(name, body)
@@ -146,21 +146,21 @@ def delete_namespace(name):
     return response
 
 
-def delete_tenant(parameters):
+def delete_tenant(parameters, id_token):
     name = parameters['name']
     logger.info('Deleting tenant: {}'.format(name))
-    if tenant_exists(name):
+    if tenant_exists(name, id_token=id_token):
         delete_bucket(name)
-        delete_namespace(name)
+        delete_namespace(name, id_token)
         logger.info('Tenant {} deleted'.format(name))
     else:
         raise TenantDoesNotExistException(name)
     return name
 
 
-def propagate_secret(source_secret_path, target_namespace):
+def propagate_secret(source_secret_path, target_namespace, id_token):
     source_secret_namespace, source_secret_name = source_secret_path.split('/')
-    api_instance = get_k8s_api_client()
+    api_instance = get_k8s_api_client(id_token)
     try:
         source_secret = api_instance.read_namespaced_secret(
             source_secret_name, source_secret_namespace)
@@ -177,9 +177,9 @@ def propagate_secret(source_secret_path, target_namespace):
         raise KubernetesCreateException('secret', apiException)
 
 
-def propagate_portable_secrets(target_namespace):
+def propagate_portable_secrets(target_namespace, id_token):
     for portable_secret_path in PORTABLE_SECRETS_PATHS:
-            propagate_secret(portable_secret_path, target_namespace)
+            propagate_secret(portable_secret_path, target_namespace, id_token=id_token)
     logger.info('Portable secrets copied from default to {}'.format(target_namespace))
 
 
@@ -194,9 +194,9 @@ def does_bucket_exist(bucket_name):
     return True
 
 
-def is_namespace_available(namespace):
+def is_namespace_available(namespace, id_token):
     response = None
-    api_instance = get_k8s_api_client()
+    api_instance = get_k8s_api_client(id_token)
     try:
         response = api_instance.read_namespace_status(namespace)
     except ApiException as apiException:
@@ -208,26 +208,45 @@ def is_namespace_available(namespace):
     return True
 
 
-def tenant_exists(tenant_name):
-    result = does_bucket_exist(tenant_name) and is_namespace_available(tenant_name)
+def tenant_exists(tenant_name, id_token):
+    result = does_bucket_exist(tenant_name) and is_namespace_available(tenant_name, id_token)
     logger.info("Tenant already exists: " + str(result))
     return result
 
 
-def create_role(name):
+def create_role(name, id_token):
     api_version = 'rbac.authorization.k8s.io/v1'
-    meta = client.V1ObjectMeta(name=name, namespace=name)
-    service_rules = client.V1PolicyRule(api_groups=[""], resources=["services"],
-                                        verbs=["create", "list", "get", "delete"])
-    ingress_rules = client.V1PolicyRule(api_groups=[""], resources=["ingresses"],
-                                        verbs=["create", "list", "get", "delete"])
-    deployment_rules = client.V1PolicyRule(api_groups=[""], resources=["deployments"],
+    meta = k8s_client.V1ObjectMeta(name=name, namespace=name)
+    service_rules = k8s_client.V1PolicyRule(api_groups=[""], resources=["services"],
+                                            verbs=["create", "list", "get", "delete"])
+    quotas_rules = k8s_client.V1PolicyRule(api_groups=[""], resources=["resourcequotas"],
                                            verbs=["create", "list", "get", "delete"])
-    server_rules = client.V1PolicyRule(api_groups=["aipg.intel.com"], resources=["servers"],
-                                       verbs=["create", "get", "delete", "patch"])
-    role = client.V1Role(api_version=api_version, metadata=meta,
-                         rules=[service_rules, ingress_rules, deployment_rules, server_rules])
-    rbac_api_instance = get_k8s_rbac_api_client()
+    ingress_rules = k8s_client.V1PolicyRule(api_groups=[""], resources=["ingresses"],
+                                            verbs=["create", "list", "get", "delete"])
+    deployment_rules = k8s_client.V1PolicyRule(api_groups=[""], resources=["deployments"],
+                                               verbs=["create", "list", "get", "delete"])
+    server_rules = k8s_client.V1PolicyRule(api_groups=["aipg.intel.com"], resources=["servers"],
+                                           verbs=["create", "get", "delete", "patch"])
+    namespace_rules = k8s_client.V1PolicyRule(api_groups=[""], resources=["namespaces"],
+                                              verbs=["get", "list", "watch"])
+    ns_status_rules = k8s_client.V1PolicyRule(api_groups=[""], resources=["namespaces/status"],
+                                              verbs=["get", "list", "watch"])
+    list_pods_rule = k8s_client.V1PolicyRule(api_groups=[""], resources=["pods"],
+                                             verbs=["list"])
+    deployment_apps_rule = k8s_client.V1PolicyRule(api_groups=["apps"], resources=["deployments"],
+                                                   verbs=["list"])
+    deployment_apps_rule2 = k8s_client.V1PolicyRule(api_groups=["", "apps"],
+                                                    resources=["deployments.apps",
+                                                               "deployment.apps/status"],
+                                                    verbs=["list"])
+
+    role = k8s_client.V1Role(api_version=api_version, metadata=meta,
+                             rules=[service_rules, ingress_rules, deployment_rules,
+                                    server_rules, namespace_rules, ns_status_rules,
+                                    quotas_rules, list_pods_rule, deployment_apps_rule,
+                                    deployment_apps_rule2])
+
+    rbac_api_instance = get_k8s_rbac_api_client(id_token)
     try:
         response = rbac_api_instance.create_namespaced_role(name, role)
     except ApiException as apiException:
@@ -237,14 +256,14 @@ def create_role(name):
     return response
 
 
-def create_rolebinding(name, scope_name):
+def create_rolebinding(name, scope_name, id_token):
     api_version = 'rbac.authorization.k8s.io'
-    scope = 'oidc:/' + scope_name
-    subject = client.V1Subject(kind='Group', name=scope, namespace=name)
-    role_ref = client.V1RoleRef(api_group=api_version, kind='Role', name=name)
-    meta = client.V1ObjectMeta(name=name, namespace=name)
-    rolebinding = client.V1RoleBinding(metadata=meta, role_ref=role_ref, subjects=[subject])
-    rbac_api_instance = get_k8s_rbac_api_client()
+    scope = scope_name
+    subject = k8s_client.V1Subject(kind='Group', name=scope, namespace=name)
+    role_ref = k8s_client.V1RoleRef(api_group=api_version, kind='Role', name=name)
+    meta = k8s_client.V1ObjectMeta(name=name, namespace=name)
+    rolebinding = k8s_client.V1RoleBinding(metadata=meta, role_ref=role_ref, subjects=[subject])
+    rbac_api_instance = get_k8s_rbac_api_client(id_token)
 
     try:
         response = rbac_api_instance.create_namespaced_role_binding(name, rolebinding)
@@ -255,10 +274,11 @@ def create_rolebinding(name, scope_name):
     return response
 
 
-def list_tenants():
+def list_tenants(id_token):
     tenants = []
-    api_instance = get_k8s_api_client()
+    api_instance = get_k8s_api_client(id_token)
     label = f'created_by = {PLATFORM_ADMIN}'
+    namespaces = {}
     try:
         namespaces = api_instance.list_namespace(label_selector=label)
     except ApiException as apiException:

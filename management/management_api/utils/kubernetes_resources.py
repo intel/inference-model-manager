@@ -92,6 +92,12 @@ def get_dex_external_host(api_instance: client):
                              ing_name=ing_name)
 
 
+def get_simple_client(id_token):
+    api_client = client.ApiClient(get_k8s_configuration())
+    api_client.set_default_header("Authorization", "Bearer " + id_token)
+    return api_client
+
+
 @lru_cache(maxsize=None)
 def get_k8s_configuration():
     try:
@@ -102,26 +108,26 @@ def get_k8s_configuration():
 
 
 @lru_cache(maxsize=None)
-def get_k8s_api_client():
-    api_instance = client.CoreV1Api(client.ApiClient(get_k8s_configuration()))
+def get_k8s_api_client(id_token):
+    api_instance = client.CoreV1Api(get_simple_client(id_token))
     return api_instance
 
 
 @lru_cache(maxsize=None)
-def get_k8s_api_custom_client():
-    custom_obj_api_instance = client.CustomObjectsApi(client.ApiClient(get_k8s_configuration()))
+def get_k8s_api_custom_client(id_token):
+    custom_obj_api_instance = client.CustomObjectsApi(get_simple_client(id_token))
     return custom_obj_api_instance
 
 
 @lru_cache(maxsize=None)
-def get_k8s_rbac_api_client():
-    rbac_api_instance = client.RbacAuthorizationV1Api(client.ApiClient(get_k8s_configuration()))
+def get_k8s_rbac_api_client(id_token):
+    rbac_api_instance = client.RbacAuthorizationV1Api(get_simple_client(id_token))
     return rbac_api_instance
 
 
 @lru_cache(maxsize=None)
-def get_k8s_apps_api_client():
-    apps_api_client = client.AppsV1Api(client.ApiClient(get_k8s_configuration()))
+def get_k8s_apps_api_client(id_token):
+    apps_api_client = client.AppsV1Api(get_simple_client(id_token))
     return apps_api_client
 
 
@@ -174,8 +180,8 @@ def get_endpoint_status(api_instance, namespace, endpoint_name):
     return status
 
 
-def endpoint_exists(endpoint_name, namespace):
-    custom_api_instance = get_k8s_api_custom_client()
+def endpoint_exists(endpoint_name, namespace, id_token: str):
+    custom_api_instance = get_k8s_api_custom_client(id_token)
     try:
         custom_api_instance.get_namespaced_custom_object(CRD_GROUP, CRD_VERSION, namespace,
                                                          CRD_PLURAL, endpoint_name)

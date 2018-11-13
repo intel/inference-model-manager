@@ -22,7 +22,7 @@ class StartMultiModel(object):
         namespace = get_namespace(tenant_name)
         body = req.media
         key = get_key(body)
-        if not tenant_exists(namespace):
+        if not tenant_exists(namespace, id_token=req.get_header('Authorization')):
             raise TenantDoesNotExistException(tenant_name=namespace)
 
         upload_id = create_upload(bucket=namespace, key=key)
@@ -53,7 +53,7 @@ class WriteMultiModel(object):
         key = get_key(req.params)
         logger.info(f"Key: {key} ID: {multipart_id}")
         data = req.stream.read()
-        if not tenant_exists(namespace):
+        if not tenant_exists(namespace, id_token=req.get_header('Authorization')):
             raise TenantDoesNotExistException(tenant_name=namespace)
 
         part_etag = upload_part(data=data, part_number=part_number, bucket=namespace,
@@ -69,7 +69,7 @@ class CompleteMultiModel(object):
         namespace = get_namespace(tenant_name)
         body = req.media
         key = get_key(body)
-        if not tenant_exists(namespace):
+        if not tenant_exists(namespace, id_token=req.get_header('Authorization')):
             raise TenantDoesNotExistException(tenant_name=namespace)
 
         complete_upload(bucket=namespace, key=key, multipart_id=body['uploadId'],
@@ -84,7 +84,7 @@ class AbortMultiModel(object):
         namespace = get_namespace(tenant_name)
         body = req.media
         key = get_key(body)
-        if not tenant_exists(namespace):
+        if not tenant_exists(namespace, id_token=req.get_header('Authorization')):
             raise TenantDoesNotExistException(tenant_name=namespace)
 
         abort_upload(bucket=namespace, key=key, multipart_id=body['uploadId'])

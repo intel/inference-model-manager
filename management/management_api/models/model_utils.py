@@ -9,11 +9,11 @@ from management_api.utils.errors_handling import KubernetesGetException, ModelDe
 from management_api.tenants.tenants_utils import tenant_exists
 
 
-def list_models(namespace: str):
+def list_models(namespace: str, id_token):
     if not tenant_exists(namespace):
         raise TenantDoesNotExistException(namespace)
 
-    apps_api_client = get_k8s_apps_api_client()
+    apps_api_client = get_k8s_apps_api_client(id_token)
     try:
         deployments = apps_api_client.list_namespaced_deployment(namespace)
     except ApiException as apiException:
@@ -41,8 +41,8 @@ def list_models(namespace: str):
                f'(model name, model version, model size, deployed count): {models}\n'
 
 
-def delete_model(parameters: dict, namespace: str):
-    if not tenant_exists(namespace):
+def delete_model(parameters: dict, namespace: str, id_token):
+    if not tenant_exists(namespace, id_token):
         raise TenantDoesNotExistException(namespace)
 
     model_path = f"{parameters['modelName']}-{parameters['modelVersion']}"
@@ -52,7 +52,7 @@ def delete_model(parameters: dict, namespace: str):
     if not model_exists(model_in_bucket):
         raise ModelDoesNotExistException(model_path)
 
-    apps_api_client = get_k8s_apps_api_client()
+    apps_api_client = get_k8s_apps_api_client(id_token)
     try:
         deployments = apps_api_client.list_namespaced_deployment(namespace)
     except ApiException as apiException:

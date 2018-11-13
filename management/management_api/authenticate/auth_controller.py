@@ -6,9 +6,7 @@ from jwt import jwk_from_dict
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 
 
-from management_api.config import AuthParameters, DEX_URL
-from management_api.utils.kubernetes_resources import get_dex_external_host
-from management_api.utils.kubernetes_resources import get_k8s_extensions_api_client
+from management_api.config import AuthParameters, DEX_URL, PLATFORM_DOMAIN
 from management_api.utils.errors_handling import MissingTokenException
 from management_api.utils.logger import get_logger
 
@@ -16,9 +14,7 @@ logger = get_logger(__name__)
 
 
 def get_auth_controller_url():
-    api_instance = get_k8s_extensions_api_client()
-    host, port = get_dex_external_host(api_instance)
-    auth_controller_url = f'https://{host}:{port}'
+    auth_controller_url = get_dex_external_url()
     params = {'client_id': AuthParameters.CLIENT_ID, 'redirect_uri': AuthParameters.REDIRECT_URL,
               'response_type': AuthParameters.RESPONSE_TYPE, 'scope': AuthParameters.SCOPE}
     url = urljoin(auth_controller_url, AuthParameters.AUTH_PATH)
@@ -63,6 +59,13 @@ def _get_keys_from_dex():
                                     .decode('utf-8')))
     logger.info("Number of imported keys :" + str(len(keys)))
     return keys
+
+
+def get_dex_external_url():
+    host = "dex." + PLATFORM_DOMAIN
+    port = 443
+    url = f'https://{host}:{port}'
+    return url
 
 
 def get_keys_from_dex():

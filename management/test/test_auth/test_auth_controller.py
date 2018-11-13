@@ -1,16 +1,14 @@
+import os
 from management_api.authenticate.auth_controller import get_auth_controller_url, get_token
 from unittest.mock import Mock
 import pytest
 
 
-def test_get_auth_controller_url(external_svc_auth_controller):
-    create_custom_client_mock, external_ip_port_mock = external_svc_auth_controller
-
-    external_ip_port_mock.return_value = ['127.0.0.1', 1234]
+def test_get_auth_controller_url():
+    os.environ["PLATFORM_DOMAIN"] = "example.com"
     url = get_auth_controller_url()
+    assert url.startswith("https://dex.default")
     assert 'redirect_uri' in url and 'response_type' in url and 'client_id' in url
-    create_custom_client_mock.assert_called_once()
-    external_ip_port_mock.assert_called_once()
 
 
 @pytest.mark.parametrize("case", [('fetch_token'), ('fetch_token_exc'), ('refresh_token'),

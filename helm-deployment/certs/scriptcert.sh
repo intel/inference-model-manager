@@ -23,3 +23,4 @@ echo 01 > crlnumber
 touch certindex
 openssl ca -config ca.conf -gencrl -keyfile ca-cert-tf.key -cert ca-cert-tf.crt -out root.crl.pem
 cat root.crl.pem >> ca-cert-tf.crt
+

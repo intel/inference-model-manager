@@ -65,7 +65,8 @@ jobs:
             echo 'export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp-key.json"' >> $BASH_ENV
             echo 'export CLUSTER_NAME_SHORT_TP=`echo ${CLUSTER_NAME_SHORT} | cut -c 1-20`' >> $BASH_ENV
             echo 'export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"' >> $BASH_ENV
-            echo 'export DOMAIN_NAME="dex.${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com"' >> $BASH_ENV
+            echo 'export DEX_DOMAIN_NAME="dex.${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com"' >> $BASH_ENV
+            echo 'export DOMAIN_NAME="${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com"' >> $BASH_ENV
             echo 'export ISSUER="https://dex.${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com:443/dex"' >> $BASH_ENV
       - run:
           name: Generate certificates
@@ -102,6 +103,7 @@ jobs:
             cd ~/inferno-platform/kops
             
             sed -i "s/toreplacebyclustername/${CLUSTER_NAME_SHORT}/g" desiredcni.yaml
+            sed -i "s@toreplacebyissuer@${ISSUER}@g" desiredcni.yaml
             cp ~/inferno-platform/helm-deployment/charts/dex-subchart/certs/dex-ca.crt .
             sed -i 's/^/      /' dex-ca.crt
             sed -i -e '/replace_by_certificate/{r dex-ca.crt' -e 'd}' desiredcni.yaml
@@ -156,7 +158,7 @@ jobs:
             sed -i "s@toreplacedbyissuer@${ISSUER}@g" values.yaml
             cd ~/inferno-platform/helm-deployment/
             helm dep up .
-            helm install --name inferno --set management-api-chart.tag=$MGMT_TAG --set crd-subchart.tag=$CTRL_TAG --set dex-subchart.issuer=${ISSUER} --set dex-subchart.config.issuer=${ISSUER} --set dex-subchart.ingress.hosts=${DOMAIN_NAME} --set dex-subchart.ingress.tls.hosts=${DOMAIN_NAME} .
+            helm install --name inferno --set management-api-chart.tag=$MGMT_TAG --set crd-subchart.tag=$CTRL_TAG --set dex-subchart.issuer=${ISSUER} --set dex-subchart.config.issuer=${ISSUER} --set dex-subchart.ingress.hosts=${DEX_DOMAIN_NAME} --set dex-subchart.ingress.tls.hosts=${DEX_DOMAIN_NAME} --set global.platformDomain=$DOMAIN_NAME  .
             sleep 150
       - run:
           name: Create record in AWS Route53
@@ -167,9 +169,12 @@ jobs:
             sed -i "s/0.0.0.0/${ING_IP}/g" route_record.json
             sed -i "s/toreplacebydomainname/${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com/g" route_record.json
             cat route_record.json
-            # to uncomment after enabling support for openid tokens
-            # aws route53 change-resource-record-sets --hosted-zone-id Z11DOV0M5AJEBB --change-batch file://./route_record.json
-            # sleep 150
+            virtualenv .venvaws -p python3
+            . .venvaws/bin/activate
+            pip install awscli --upgrade 
+            aws route53 change-resource-record-sets --hosted-zone-id Z11DOV0M5AJEBB --change-batch file://./route_record.json
+            deactivate
+            sleep 150
       - run:
           name: Install Certificates
           command: |
@@ -187,6 +192,8 @@ jobs:
             . ~/inferno-platform/.venv/bin/activate
             cd ~/inferno-platform/helm-deployment/certs
             export CERT=`cat ca-cert-tf.crt | base64 -w0`
+            echo "Creating cluster role binding for group admin"
+            kubectl create clusterrolebinding inferno-cluster-admin-binding --clusterrole cluster-admin  --group admin
             while [ -z $ING_IP ]; do sleep 10; ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}'); done
             export ING_DOMAIN=`kubectl get ing -o=jsonpath='{.items..spec.tls..hosts}' | sed 's/[][]//g'`
             export MANAGEMENT_IP=`kubectl get svc -l "run=management-api" -o "jsonpath={$.items[0].status.loadBalancer.ingress[0].ip}"`
@@ -219,7 +226,10 @@ jobs:
             sed -i "s/0.0.0.0/${ING_IP}/g" route_delete.json
             sed -i "s/toreplacebydomainname/${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com/g" route_delete.json
             cat route_delete.json
-            # aws route53 change-resource-record-sets --hosted-zone-id Z11DOV0M5AJEBB --change-batch file://./route_delete.json
+            . .venvaws/bin/activate
+            aws route53 change-resource-record-sets --hosted-zone-id Z11DOV0M5AJEBB --change-batch file://./route_delete.json
+            deactivate
+            sleep 150
       - run:
           name: clean after failure
           when: on_fail
@@ -234,7 +244,10 @@ jobs:
             sed -i "s/0.0.0.0/${ING_IP}/g" route_delete.json
             sed -i "s/toreplacebydomainname/${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com/g" route_delete.json
             cat route_delete.json
-            # aws route53 change-resource-record-sets --hosted-zone-id Z11DOV0M5AJEBB --change-batch file://./route_delete.json
+            . .venvaws/bin/activate
+            aws route53 change-resource-record-sets --hosted-zone-id Z11DOV0M5AJEBB --change-batch file://./route_delete.json
+            deactivate
+            sleep 150
           no_output_timeout: 32m
 workflows:
   version: 2

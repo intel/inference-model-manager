@@ -57,7 +57,7 @@ TOKEN_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'authenticat
 MODEL_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants/{tenant_name}/models')
 
 PLATFORM_ADMIN = os.environ.get('PLATFORM_ADMIN', 'platform_admin')
-TENANT_NAME = os.environ.get('TENANT_NAME', 'function-tenant')
+TENANT_NAME = os.environ.get('TENANT_NAME', 'test')
 GENERAL_TENANT_NAME = os.environ.get('GENERAL_TENANT_NAME', 'test')
 
 CERT = os.environ.get('CERT',
@@ -97,7 +97,9 @@ WRONG_CERTS = [
     INCORRECT_FORMAT_ERROR_MESSAGE)
 ]
 
-SCOPE_NAME = os.environ.get('SCOPE_NAME', 'scope_name')
+# scope name should be 'test' because tests are performed in tenant 'test'
+# so rolebinding, scope in token and namespace name matches together
+SCOPE_NAME = os.environ.get('SCOPE_NAME', 'test')
 
 QUOTA_REGEX = "^([+]?[0-9.]+)([eEinumkKMGTP]*[+]?[0-9]*)$"
 

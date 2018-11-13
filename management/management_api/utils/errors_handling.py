@@ -152,7 +152,7 @@ class MissingTokenException(ManagementApiException):
 
 class JsonSchemaException(ManagementApiException):
     def __init__(self, ex):
-        raise
+        raise ex
 
 
 class ModelDeleteException(ManagementApiException):

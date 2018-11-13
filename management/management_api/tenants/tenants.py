@@ -12,7 +12,7 @@ class Tenants(object):
 
     def on_get(self, req, resp):
         logger.info("List tenants")
-        tenants = list_tenants()
+        tenants = list_tenants(id_token=req.get_header('Authorization'))
         resp.status = falcon.HTTP_200
         resp.body = tenants
 
@@ -20,13 +20,13 @@ class Tenants(object):
     def on_post(self, req, resp):
         logger.info("Create new tenant")
         body = req.media
-        name = create_tenant(parameters=body)
+        name = create_tenant(parameters=body, id_token=req.get_header('Authorization'))
         resp.status = falcon.HTTP_200
         resp.body = f'Tenant {name} created\n'
 
     @jsonschema.validate(tenant_delete_schema)
     def on_delete(self, req, resp):
         body = req.media
-        name = delete_tenant(parameters=body)
+        name = delete_tenant(parameters=body, id_token=req.get_header('Authorization'))
         resp.status = falcon.HTTP_200
         resp.body = f'Tenant {name} deleted\n'

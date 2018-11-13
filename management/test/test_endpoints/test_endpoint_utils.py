@@ -1,9 +1,10 @@
 from management_api.endpoints.endpoint_utils import create_endpoint, delete_endpoint, \
     create_url_to_service, update_endpoint, scale_endpoint, list_endpoints, view_endpoint
-from management_api.config import PLATFORM_DOMAIN
 from kubernetes.client.rest import ApiException
 import pytest
 from unittest.mock import Mock
+
+from test_utils.token_stuff import user_token
 
 from management_api.utils.errors_handling import KubernetesCreateException, \
     KubernetesDeleteException, KubernetesUpdateException, KubernetesGetException, \
@@ -20,7 +21,8 @@ def test_create_endpoint(mocker, url_to_service_endpoint_utils,
     if tenant_exception:
         with pytest.raises(TenantDoesNotExistException):
             tenant_exists_mock.return_value = False
-            create_endpoint(parameters={'endpointName': "test", 'resources': {}}, namespace="test")
+            create_endpoint(parameters={'endpointName': "test", 'resources': {}}, namespace="test",
+                            id_token=user_token)
     ing_ip_mock, ing_ip_mock_return_values = url_to_service_endpoint_utils
     create_custom_client_mock, custom_client = custom_client_mock_endpoint_utils
     create_apps_client_mock, apps_client = apps_client_mock_endpoint_utils
@@ -34,16 +36,17 @@ def test_create_endpoint(mocker, url_to_service_endpoint_utils,
     if raise_error:
         with pytest.raises(KubernetesCreateException):
             custom_client.create_namespaced_custom_object.side_effect = ApiException()
-            create_endpoint(parameters={'endpointName': "test", 'resources': {}}, namespace="test")
+            create_endpoint(parameters={'endpointName': "test", 'resources': {}}, namespace="test",
+                            id_token=user_token)
     else:
         tenant_exists_mock.return_value = True
-        create_endpoint(parameters={'endpointName': "test", 'resources': {}}, namespace="test")
+        create_endpoint(parameters={'endpointName': "test", 'resources': {}}, namespace="test",
+                        id_token=user_token)
         ing_ip_mock.assert_called_once()
 
     validate_quota_compliance_mock.assert_called_once()
     parameters_resources_mock.assert_called_once()
     custom_client.create_namespaced_custom_object.assert_called_once()
-    create_custom_client_mock.assert_called_once()
 
 
 @pytest.mark.parametrize("raise_error", [(False), (True)])
@@ -55,9 +58,11 @@ def test_delete_endpoint(custom_client_mock_endpoint_utils,
     if raise_error:
         with pytest.raises(KubernetesDeleteException):
             custom_client.delete_namespaced_custom_object.side_effect = ApiException()
-            delete_endpoint(parameters={'endpointName': 'test'}, namespace="test")
+            delete_endpoint(parameters={'endpointName': 'test'}, namespace="test",
+                            id_token=user_token)
     else:
-        delete_endpoint(parameters={'endpointName': 'test'}, namespace="test")
+        delete_endpoint(parameters={'endpointName': 'test'}, namespace="test",
+                        id_token=user_token)
         ing_ip_mock.assert_called_once()
     custom_client.delete_namespaced_custom_object.assert_called_once()
     create_custom_client_mock.assert_called_once()
@@ -74,7 +79,8 @@ def test_read_endpoint_fail(custom_client_mock_endpoint_utils, api_client_mock_e
     create_custom_client_mock, custom_client = custom_client_mock_endpoint_utils
     with pytest.raises(KubernetesGetException):
         custom_client.get_namespaced_custom_object.side_effect = ApiException()
-        method(parameters=arguments, namespace="test", endpoint_name="test")
+        method(parameters=arguments, namespace="test", endpoint_name="test",
+               id_token=user_token)
     create_custom_client_mock.assert_called_once()
     custom_client.get_namespaced_custom_object.assert_called_once()
 
@@ -87,7 +93,9 @@ def test_patch_endpoint_fail(custom_client_mock_endpoint_utils,
     with pytest.raises(KubernetesUpdateException):
         custom_client.get_namespaced_custom_object.return_value = {'spec': {}}
         custom_client.patch_namespaced_custom_object.side_effect = ApiException()
-        method(parameters=arguments, namespace="test", endpoint_name="test")
+        method(parameters=arguments, namespace="test", endpoint_name="test",
+               id_token=user_token)
+        method(parameters=arguments, namespace="test", id_token=user_token)
     create_custom_client_mock.assert_called_once()
     custom_client.get_namespaced_custom_object.assert_called_once()
     custom_client.patch_namespaced_custom_object.assert_called_once()
@@ -99,7 +107,8 @@ def test_patch_endpoint_success(custom_client_mock_endpoint_utils,
     ing_ip_mock, ing_ip_mock_return_values = url_to_service_endpoint_utils
     create_custom_client_mock, custom_client = custom_client_mock_endpoint_utils
     custom_client.get_namespaced_custom_object.return_value = {'spec': {}}
-    method(parameters=arguments, namespace="test", endpoint_name="test")
+    method(parameters=arguments, namespace="test", endpoint_name="test",
+           id_token=user_token)
     create_custom_client_mock.assert_called_once()
     custom_client.get_namespaced_custom_object.assert_called_once()
     custom_client.patch_namespaced_custom_object.assert_called_once()
@@ -117,19 +126,19 @@ def test_list_endpoints(mocker, apps_client_mock_endpoint_utils, tenant_exceptio
     if tenant_exception:
         with pytest.raises(TenantDoesNotExistException):
             tenant_exists_mock.return_value = False
-            list_endpoints(namespace="test")
+            list_endpoints(namespace="test", id_token=user_token)
     else:
         tenant_exists_mock.return_value = True
         if k8s_exception:
             with pytest.raises(KubernetesGetException):
                 apps_client.list_namespaced_deployment.side_effect = ApiException()
-                list_endpoints(namespace="test")
+                list_endpoints(namespace="test", id_token=user_token)
         else:
             endpoints_name_status_mock = mocker.patch(
                 'management_api.endpoints.endpoint_utils.get_endpoints_name_status')
             endpoints_name_status_mock.return_value = {}
             apps_client.list_namespaced_deployment.return_value = {}
-            list_endpoints(namespace="test")
+            list_endpoints(namespace="test",  id_token=user_token)
 
             endpoints_name_status_mock.assert_called_once()
 
@@ -144,12 +153,12 @@ def test_create_url_to_service(mocker):
     create_custom_client_mock = mocker.patch('management_api.endpoints.endpoint_utils.'
                                              'get_k8s_api_client')
     create_custom_client_mock.return_value = api_client
-    mock_return_value = ['127.0.0.1', 443]
-    external_address_mock = mocker.patch('management_api.endpoints.endpoint_utils.'
+    mock_return_value = ['t_end-t_ns.default', 443]
+    external_address_mock = mocker.patch('management_api.utils.kubernetes_resources.'
                                          'get_ingress_external_ip')
     external_address_mock.return_value = mock_return_value
     external_address = "{}:{}".format(mock_return_value[0], mock_return_value[1])
-    expected_output = {'address': external_address, 'opts': "t_end-t_ns.{}".format(PLATFORM_DOMAIN)}
+    expected_output = {'url': external_address}
     output = create_url_to_service(endpoint_name='t_end', namespace="t_ns")
     assert expected_output == output
 
@@ -164,11 +173,11 @@ def test_view_endpoint_fail(mocker, tenant_exception, endpoint_exception):
     if tenant_exception:
         with pytest.raises(TenantDoesNotExistException):
             tenant_exists_mock.return_value = False
-            view_endpoint(namespace="test", endpoint_name="test")
+            view_endpoint(namespace="test", endpoint_name="test", id_token=user_token)
     elif endpoint_exception:
         with pytest.raises(EndpointDoesNotExistException):
             endpoint_exists_mock.return_value = False
-            view_endpoint(namespace="test", endpoint_name="test")
+            view_endpoint(namespace="test", endpoint_name="test", id_token=user_token)
 
             tenant_exists_mock.assert_called_once()
             endpoint_exists_mock.assert_called_once()
@@ -201,7 +210,7 @@ def test_view_endpoint_success(mocker, api_client_mock_endpoint_utils,
     replicas_mock = mocker.patch('management_api.endpoints.endpoint_utils.get_replicas',
                                  apps_api_instance=apps_client)
     replicas_mock.return_value = 1
-    view_endpoint(namespace="test", endpoint_name="test")
+    view_endpoint(namespace="test", endpoint_name="test", id_token=user_token)
 
     tenant_exists_mock.assert_called_once()
     endpoint_exists_mock.assert_called_once()

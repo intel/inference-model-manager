@@ -35,7 +35,7 @@ replace_by_certificate
     oidcCAFile: /etc/srv/kubernetes/ca.pem
     oidcClientID: example-app
     oidcGroupsClaim: groups
-    oidcIssuerURL: https://dex.test-karolina.nlpnp.adsdcsp.com:443/dex
+    oidcIssuerURL: toreplacebyissuer
     oidcUsernameClaim: email
   kubernetesApiAccess:
   - 0.0.0.0/0

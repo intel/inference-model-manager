@@ -1,6 +1,7 @@
 import boto3
 import pytest
 import requests
+import time
 from bs4 import BeautifulSoup
 from botocore.client import Config
 from kubernetes import config, client
@@ -10,10 +11,12 @@ from urllib.parse import urljoin, urlparse, parse_qs
 from management_api_tests.config import MINIO_SECRET_ACCESS_KEY, MINIO_ACCESS_KEY_ID, \
     MINIO_REGION, MINIO_ENDPOINT_ADDR, SIGNATURE_VERSION, CRD_VERSION, CRD_PLURAL, CRD_KIND, \
     CRD_GROUP, CRD_API_VERSION, TENANT_NAME, TENANT_RESOURCES, ENDPOINT_RESOURCES, \
-    AUTH_MANAGEMENT_API_URL, GENERAL_TENANT_NAME, PLATFORM_ADMIN
+    AUTH_MANAGEMENT_API_URL, GENERAL_TENANT_NAME
 from management_api_tests.context import Context
-from management_api_tests.reused import propagate_portable_secrets, transform_quota
+from management_api_tests.reused import transform_quota
 from management_api_tests.authenticate import JANE
+
+from e2e_tests import management_api_requests as api_requests
 
 
 @pytest.fixture(scope="session")
@@ -101,18 +104,10 @@ def minio_resource():
                           region_name=MINIO_REGION)
 
 
-def create_tenant(api_instance, minio_client, context, name, quota):
-    annotations = None
-    if 'maxEndpoints' in quota:
-        annotations = {'maxEndpoints': str(quota.pop('maxEndpoints'))}
-    name_object = client.V1ObjectMeta(name=name, annotations=annotations,
-                                      labels={'created_by': PLATFORM_ADMIN})
-    namespace = client.V1Namespace(metadata=name_object)
-    api_instance.create_namespace(namespace)
-    propagate_portable_secrets(api_instance, name)
-    quota = resource_quota(api_instance, quota=quota, namespace=name)
-    minio_client.create_bucket(Bucket=name)
+def create_tenant(name, quota, context):
+    api_requests.create_tenant(name=name, resources=quota)
     context.add_object(object_type='tenant', object_to_delete={'name': name})
+    time.sleep(20)
     return name, quota
 
 
@@ -147,7 +142,7 @@ def create_endpoint(custom_obj_client, namespace, context, endpoint_name='predic
 def session_tenant(api_instance, minio_client, session_context):
     name = GENERAL_TENANT_NAME
     quota = TENANT_RESOURCES
-    return create_tenant(api_instance, minio_client, session_context, name, quota)
+    return create_tenant(name, quota, session_context)
 
 
 @pytest.fixture(scope="function")
@@ -156,7 +151,7 @@ def tenant_with_endpoint_parametrized_max_endpoints(
     name = TENANT_NAME
     tenant_quota = TENANT_RESOURCES
     tenant_quota["maxEndpoints"] = request.param
-    create_tenant(api_instance, minio_client, function_context, name, tenant_quota)
+    create_tenant(name, tenant_quota, function_context)
     body = create_endpoint(get_k8s_custom_obj_client, name, function_context)
     return name, body
 

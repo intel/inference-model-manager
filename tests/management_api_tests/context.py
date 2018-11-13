@@ -1,7 +1,6 @@
 from tenacity import retry, stop_after_attempt, wait_fixed
 import logging
 from kubernetes import client
-
 from management_api_tests.config import CRD_GROUP, CRD_VERSION, CRD_PLURAL, OperationStatus, \
     CheckResult
 from management_api_tests.endpoints.endpoint_utils import check_server_existence, \
@@ -43,6 +42,7 @@ class Context(object):
                          "{}".format(object_to_delete))
 
     def _delete_namespace_bucket(self, object_to_delete):
+        print("Removing namespace : ", object_to_delete)
         name = object_to_delete['name']
         try:
             bucket = self.minio_resource_client.Bucket(name)

@@ -1,3 +1,4 @@
+import os
 from kubernetes.client.rest import ApiException
 
 from management_api.utils.errors_handling import KubernetesCreateException, \
@@ -5,10 +6,10 @@ from management_api.utils.errors_handling import KubernetesCreateException, \
     KubernetesGetException, TenantDoesNotExistException, EndpointDoesNotExistException, \
     EndpointsReachedMaximumException
 from management_api.utils.logger import get_logger
-from management_api.utils.kubernetes_resources import get_ingress_external_ip, \
+from management_api.utils.kubernetes_resources import get_crd_subject_name_and_resources, \
     get_k8s_api_custom_client, get_k8s_api_client, get_k8s_apps_api_client,\
     validate_quota_compliance, transform_quota, get_replicas, endpoint_exists, \
-    get_endpoint_status, get_crd_subject_name_and_resources
+    get_endpoint_status
 from management_api.config import CRD_GROUP, CRD_VERSION, CRD_PLURAL,\
     CRD_API_VERSION, CRD_KIND, PLATFORM_DOMAIN, DELETE_BODY, REPLICA_FAILURE
 from management_api.tenants.tenants_utils import tenant_exists
@@ -17,23 +18,24 @@ from management_api.tenants.tenants_utils import tenant_exists
 logger = get_logger(__name__)
 
 
-def create_endpoint(parameters: dict, namespace: str):
-    if not tenant_exists(namespace):
+def create_endpoint(parameters: dict, namespace: str, id_token: str):
+    if not tenant_exists(namespace, id_token=id_token):
         raise TenantDoesNotExistException(tenant_name=namespace)
 
     metadata = {"name": parameters['endpointName']}
     body = {"apiVersion": CRD_API_VERSION, "kind": CRD_KIND,
             "spec": parameters, "metadata": metadata}
-    api_instance = get_k8s_api_client()
+    custom_obj_api_instance = get_k8s_api_custom_client(id_token)
+    api_instance = get_k8s_api_client(id_token)
     if 'resources' in parameters:
         validate_quota_compliance(api_instance, namespace=namespace,
                                   endpoint_quota=parameters['resources'])
         parameters['resources'] = transform_quota(parameters['resources'])
 
-    apps_api_instance = get_k8s_apps_api_client()
+    apps_api_instance = get_k8s_apps_api_client(id_token)
     verify_endpoint_amount(api_instance, apps_api_instance, namespace)
 
-    custom_obj_api_instance = get_k8s_api_custom_client()
+    custom_obj_api_instance = get_k8s_api_custom_client(id_token)
     try:
         custom_obj_api_instance.create_namespaced_custom_object(CRD_GROUP, CRD_VERSION, namespace,
                                                                 CRD_PLURAL, body)
@@ -44,8 +46,8 @@ def create_endpoint(parameters: dict, namespace: str):
     return endpoint_url
 
 
-def delete_endpoint(parameters: dict, namespace: str):
-    custom_obj_api_instance = get_k8s_api_custom_client()
+def delete_endpoint(parameters: dict, namespace: str, id_token: str):
+    custom_obj_api_instance = get_k8s_api_custom_client(id_token)
     try:
         custom_obj_api_instance.delete_namespaced_custom_object(
             CRD_GROUP, CRD_VERSION, namespace, CRD_PLURAL, parameters['endpointName'], DELETE_BODY,
@@ -59,19 +61,19 @@ def delete_endpoint(parameters: dict, namespace: str):
 
 
 def create_url_to_service(endpoint_name, namespace):
-    api_instance = get_k8s_api_client()
-    ip, port = get_ingress_external_ip(api_instance)
-    address = "{ip}:{port}".format(ip=ip, port=port)
-    path = "{endpoint_name}-{namespace}.{platform_domain}".format(endpoint_name=endpoint_name,
-                                                                  namespace=namespace,
-                                                                  platform_domain=PLATFORM_DOMAIN)
-    data_for_request = {'address': address, 'opts': path}
+    port = os.getenv("INFERENCE_PORT", 443)
+    path = "{endpoint_name}-{namespace}.{platform_domain}:{inference_port}" \
+           .format(endpoint_name=endpoint_name,
+                   namespace=namespace,
+                   platform_domain=PLATFORM_DOMAIN,
+                   inference_port=port)
+    data_for_request = {'url': path}
 
     return data_for_request
 
 
-def scale_endpoint(parameters: dict, namespace: str, endpoint_name: str):
-    custom_obj_api_instance = get_k8s_api_custom_client()
+def scale_endpoint(parameters: dict, namespace: str, endpoint_name: str, id_token: str):
+    custom_obj_api_instance = get_k8s_api_custom_client(id_token)
     try:
         endpoint_object = custom_obj_api_instance. \
             get_namespaced_custom_object(CRD_GROUP, CRD_VERSION, namespace, CRD_PLURAL,
@@ -92,8 +94,8 @@ def scale_endpoint(parameters: dict, namespace: str, endpoint_name: str):
     return endpoint_url
 
 
-def update_endpoint(parameters: dict, namespace: str, endpoint_name: str):
-    custom_obj_api_instance = get_k8s_api_custom_client()
+def update_endpoint(parameters: dict, namespace: str, endpoint_name: str, id_token: str):
+    custom_obj_api_instance = get_k8s_api_custom_client(id_token)
     try:
         endpoint_object = custom_obj_api_instance. \
             get_namespaced_custom_object(CRD_GROUP, CRD_VERSION, namespace, CRD_PLURAL,
@@ -116,14 +118,14 @@ def update_endpoint(parameters: dict, namespace: str, endpoint_name: str):
     return endpoint_url
 
 
-def view_endpoint(endpoint_name: str, namespace: str):
-    if not tenant_exists(namespace):
+def view_endpoint(endpoint_name: str, namespace: str, id_token: str):
+    if not tenant_exists(namespace, id_token=id_token):
         raise TenantDoesNotExistException(tenant_name=namespace)
-    if not endpoint_exists(endpoint_name, namespace):
+    if not endpoint_exists(endpoint_name, namespace, id_token):
         raise EndpointDoesNotExistException(endpoint_name=endpoint_name)
-    custom_api_instance = get_k8s_api_custom_client()
-    api_instance = get_k8s_api_client()
-    apps_api_instance = get_k8s_apps_api_client()
+    custom_api_instance = get_k8s_api_custom_client(id_token)
+    api_instance = get_k8s_api_client(id_token)
+    apps_api_instance = get_k8s_apps_api_client(id_token)
 
     endpoint_status = get_endpoint_status(api_instance=api_instance, namespace=namespace,
                                           endpoint_name=endpoint_name)
@@ -144,10 +146,10 @@ def view_endpoint(endpoint_name: str, namespace: str):
     return message
 
 
-def list_endpoints(namespace: str):
-    if not tenant_exists(namespace):
+def list_endpoints(namespace: str, id_token: str):
+    if not tenant_exists(namespace, id_token=id_token):
         raise TenantDoesNotExistException(tenant_name=namespace)
-    apps_api_instance = get_k8s_apps_api_client()
+    apps_api_instance = get_k8s_apps_api_client(id_token)
     try:
         deployments = apps_api_instance.list_namespaced_deployment(namespace)
     except ApiException as apiException:
