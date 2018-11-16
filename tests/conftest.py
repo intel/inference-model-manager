@@ -105,9 +105,10 @@ def minio_resource():
 
 
 def create_tenant(name, quota, context):
-    api_requests.create_tenant(name=name, resources=quota)
+    response = api_requests.create_tenant(name=name, resources=quota)
     context.add_object(object_type='tenant', object_to_delete={'name': name})
     time.sleep(20)
+    assert response.status_code == 200
     return name, quota
 
 

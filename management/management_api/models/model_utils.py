@@ -10,7 +10,7 @@ from management_api.tenants.tenants_utils import tenant_exists
 
 
 def list_models(namespace: str, id_token):
-    if not tenant_exists(namespace):
+    if not tenant_exists(namespace, id_token):
         raise TenantDoesNotExistException(namespace)
 
     apps_api_client = get_k8s_apps_api_client(id_token)

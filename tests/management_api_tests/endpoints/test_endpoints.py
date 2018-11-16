@@ -275,7 +275,6 @@ def test_list_endpoints(request, tenant_fix, auth_headers,
     assert expected_message.format(namespace) in response.text
 
 
-@pytest.mark.skip(reason="to be fixed")
 @pytest.mark.parametrize("endpoint_fix, endpoint_name, expected_status, expected_message",
                          [('tenant_with_endpoint', 'predict', 200, "Endpoint {} in {} tenant"),
                           ('tenant_with_endpoint', 'not_exist', 404, 'Endpoint {} does not exist')])

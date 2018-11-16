@@ -37,7 +37,6 @@ def test_create_tenant(function_context, minio_client, api_instance, rbac_api_in
                                        rolebinding=TENANT_NAME) == CheckResult.RESOURCE_AVAILABLE
 
 
-@pytest.mark.skip(reason="to be fixed")
 def test_not_create_tenant_already_exists(session_tenant, minio_client, api_instance):
     name, _ = session_tenant
     data = {
@@ -52,7 +51,7 @@ def test_not_create_tenant_already_exists(session_tenant, minio_client, api_inst
     response = requests.post(url, data=json.dumps(data), headers=ADMIN_HEADERS)
     data['quota'].pop('maxEndpoints')
 
-    assert response.status_code == 400
+    assert response.status_code == 409
     assert check_namespace_availability(api_instance,
                                         namespace=name) == CheckResult.RESOURCE_AVAILABLE
     assert check_bucket_existence(minio_client,
@@ -61,7 +60,6 @@ def test_not_create_tenant_already_exists(session_tenant, minio_client, api_inst
         api_instance, name, provided_quota=data['quota']) == CheckResult.CONTENTS_MISMATCHING
 
 
-@pytest.mark.skip(reason="to be fixed")
 @pytest.mark.parametrize("wrong_body, expected_error, expected_message", WRONG_BODIES)
 def test_not_create_tenant_improper_body(wrong_body, expected_error, expected_message,
                                          minio_client, api_instance):
@@ -69,8 +67,8 @@ def test_not_create_tenant_improper_body(wrong_body, expected_error, expected_me
     url = TENANTS_MANAGEMENT_API_URL
     response = requests.post(url, data=data, headers=ADMIN_HEADERS)
 
-    assert expected_error == response.status_code
     assert expected_message in response.text
+    assert expected_error == response.status_code
     if 'name' in wrong_body and wrong_body['name']:
         assert check_bucket_existence(minio_client, bucket=wrong_body['name']) == \
                CheckResult.RESOURCE_DOES_NOT_EXIST
@@ -78,7 +76,6 @@ def test_not_create_tenant_improper_body(wrong_body, expected_error, expected_me
             api_instance, namespace=wrong_body['name']) == CheckResult.RESOURCE_DOES_NOT_EXIST
 
 
-@pytest.mark.skip(reason="to be fixed")
 @pytest.mark.parametrize("wrong_cert, expected_error", WRONG_CERTS)
 def test_not_create_tenant_with_wrong_cert(wrong_cert, expected_error, minio_client, api_instance):
     data = json.dumps({
@@ -98,7 +95,6 @@ def test_not_create_tenant_with_wrong_cert(wrong_cert, expected_error, minio_cli
                                         ) == CheckResult.RESOURCE_DOES_NOT_EXIST
 
 
-@pytest.mark.skip(reason="to be fixed")
 @pytest.mark.parametrize("quota_wrong_values, expected_error", QUOTA_WRONG_VALUES)
 def test_not_create_tenant_wrong_quota(quota_wrong_values,
                                        expected_error, minio_client, api_instance):
@@ -173,10 +169,9 @@ def test_delete_tenant(minio_client, api_instance):
         RESOURCE_DOES_NOT_EXIST or namespace_status == CheckResult.RESOURCE_BEING_DELETED
 
 
-@pytest.mark.skip(reason="to be fixed")
 def test_list_tenants(session_tenant):
     namespace, _ = session_tenant
     url = TENANTS_MANAGEMENT_API_URL
     response = requests.get(url, headers=ADMIN_HEADERS)
-    assert response.status_code == 200
     assert f"Tenants present on platform: ['{namespace}']" in response.text
+    assert response.status_code == 200

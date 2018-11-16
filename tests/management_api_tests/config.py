@@ -57,7 +57,7 @@ TOKEN_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'authenticat
 MODEL_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants/{tenant_name}/models')
 
 PLATFORM_ADMIN = os.environ.get('PLATFORM_ADMIN', 'platform_admin')
-TENANT_NAME = os.environ.get('TENANT_NAME', 'test')
+TENANT_NAME = os.environ.get('TENANT_NAME', 'function-tenant')
 GENERAL_TENANT_NAME = os.environ.get('GENERAL_TENANT_NAME', 'test')
 
 CERT = os.environ.get('CERT',

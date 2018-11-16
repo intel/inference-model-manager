@@ -223,12 +223,10 @@ def test_no_certificates():
     assert context.value.details() == 'Received http2 header with status: 400'
 
 
-@pytest.mark.skip(reason="to be fixed")
 def test_grpc_client():
     url = test_create_endpoint.endpoint_info
 
     output = main(grpc_address=url,
-                  endpoint_name="fixme",
                   server_cert=CERT_SERVER,
                   client_cert=CERT_CLIENT,
                   client_key=CERT_CLIENT_KEY,

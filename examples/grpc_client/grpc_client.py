@@ -17,15 +17,15 @@ from images_2_numpy import load_images_from_list
 def get_stub_and_request(endpoint_address, endpoint_name, model_name, certs, ssl):
     if ssl:
         server_ca_cert, client_key, client_cert = prepare_certs(server_cert=certs['server_cert'],
-                                                               client_key=certs['client_key'],
-                                                               client_ca=certs['client_cert'])
+                                                                client_key=certs['client_key'],
+                                                                client_ca=certs['client_cert'])
         creds = grpc.ssl_channel_credentials(root_certificates=server_ca_cert,
                                              private_key=client_key, certificate_chain=client_cert)
         stub, request = prepare_stub_and_request(address=endpoint_address, model_name=model_name,
                                                  creds=creds, opts=endpoint_name)
     else:
         stub, request = prepare_stub_and_request(address=endpoint_address, model_name=model_name,
-                                                creds=None, opts=endpoint_name)
+                                                 creds=None, opts=endpoint_name)
     return stub, request
 
 
@@ -76,7 +76,6 @@ def inference(stub, request, imgs, kwargs):
             max_class = np.argmax(single_result)
             print(f'\t\t {i+1} image in batch: {classes.imagenet_classes[max_class]}')
 
-
     if kwargs['performance']:
         get_processing_performance(processing_times, batch_size)
 
@@ -113,7 +112,7 @@ def main(**kwargs):
 
     ssl = False if kwargs['no_ssl'] else True
     stub, request = get_stub_and_request(
-        endpoint_address, kwargs['endpoint_name'], kwargs['model_name'], certs, ssl)
+        endpoint_address, kwargs.get('endpoint_name', None), kwargs['model_name'], certs, ssl)
 
     imgs = prepare_images(kwargs)
 
@@ -124,12 +123,13 @@ def main(**kwargs):
 
     return output
 
+
 def run_inference():
     parser = argparse.ArgumentParser(
         description='Do requests to Tensorflow Serving using jpg images or images in numpy format')
 
     parser.add_argument('--grpc_address', required=True, help='Specify url:port to gRPC service')
-    parser.add_argument('--endpoint_name', required=True,
+    parser.add_argument('--endpoint_name', required=False,
                         help='Specify endpoint name in manner: endpoint-name.domain-name')
 
     parser.add_argument('--server_cert', help='Path to server certificate')

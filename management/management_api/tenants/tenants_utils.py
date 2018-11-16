@@ -233,18 +233,15 @@ def create_role(name, id_token):
                                               verbs=["get", "list", "watch"])
     list_pods_rule = k8s_client.V1PolicyRule(api_groups=[""], resources=["pods"],
                                              verbs=["list"])
-    deployment_apps_rule = k8s_client.V1PolicyRule(api_groups=["apps"], resources=["deployments"],
-                                                   verbs=["list"])
-    deployment_apps_rule2 = k8s_client.V1PolicyRule(api_groups=["", "apps"],
-                                                    resources=["deployments.apps",
-                                                               "deployment.apps/status"],
-                                                    verbs=["list"])
+    deployment_apps_rule = k8s_client.V1PolicyRule(api_groups=["apps"],
+                                                   resources=["deployments",
+                                                              "deployments/status"],
+                                                   verbs=["list", "get"])
 
     role = k8s_client.V1Role(api_version=api_version, metadata=meta,
                              rules=[service_rules, ingress_rules, deployment_rules,
                                     server_rules, namespace_rules, ns_status_rules,
-                                    quotas_rules, list_pods_rule, deployment_apps_rule,
-                                    deployment_apps_rule2])
+                                    quotas_rules, list_pods_rule, deployment_apps_rule])
 
     rbac_api_instance = get_k8s_rbac_api_client(id_token)
     try:
