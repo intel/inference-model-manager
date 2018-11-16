@@ -40,7 +40,7 @@ USER2_HEADERS = {
 CRD_GROUP = 'aipg.intel.com'
 CRD_VERSION = 'v1'
 CRD_PLURAL = 'servers'
-CRD_API_VERSION = 'aipg.intel.com/v1'
+CRD_API_VERSION = f'{CRD_GROUP}/{CRD_VERSION}'
 CRD_KIND = 'Server'
 
 MANAGEMENT_API_URL = os.environ.get('MANAGEMENT_API_URL', 'http://127.0.0.1:5000')

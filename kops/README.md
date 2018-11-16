@@ -1,13 +1,18 @@
-# K8S DEPLOYMENT USIGN KOPS
-##### INSTALL KOPS
+## Kubernetes deployment using Kops
+
+#### Install Kops
 ```
 wget -O kops https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
 chmod +x ./kops
 sudo mv ./kops /usr/local/bin/
 ```
-## CREATE BUCKET TO STORE K8S CLUSTER CONFIGURATION
+
+#### Create bucket to store k8s cluster configuration
+```
 gsutil mb gs://kubernetes-clusters-inferno/
-## CREATE ALL REQUIRED ENVIRONMENT VARIABLES
+```
+
+#### Create all required environment variables
 ```
 export PROJECT=`gcloud config get-value project`
 export KOPS_FEATURE_FLAGS=AlphaAllowGCE
@@ -17,19 +22,21 @@ Replace bucket name if needed
 ```
 export KOPS_STATE_STORE=gs://kubernetes-clusters-inferno
 ```
-## CREATE CLUSTER
+
+#### Create cluster
 ```
 kops create cluster <cluster-name>.k8s.local --zones us-central1-a --state gs://kubernetes-clusters-inferno --project=${PROJECT}
 kops update cluster <cluster-name>.k8s.local --yes
 export NAME=<cluster-name>.k8s.local
 kops export kubecfg ${NAME}
 ```
-##### VALIDATE DEPLOYMENT
+
+#### Validate deployment
 ```
 kubectl get nodes --show-labels
 ```
 
-### DELETE DEPLOYMENT
+#### Delete deployment
 ```
 kops delete cluster <cluster-name> --yes
 ```

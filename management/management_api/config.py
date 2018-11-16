@@ -9,8 +9,8 @@ MINIO_ACCESS_KEY_ID = os.getenv('MINIO_ACCESS_KEY_ID', 'default')
 MINIO_SECRET_ACCESS_KEY = os.getenv('MINIO_SECRET_ACCESS_KEY', 'default')
 MINIO_ENDPOINT_ADDR = os.getenv('MINIO_ENDPOINT_ADDR', 'http://127.0.0.1:9000')
 
-MINIO_REGION = 'us-east-1'
-SIGNATURE_VERSION = 's3v4'
+MINIO_REGION = os.getenv('MINIO_REGION', "us-east-1")
+SIGNATURE_VERSION = os.getenv('MINIO_SIGNATURE_VERSION', "s3v4")
 
 CERT_SECRET_NAME = 'ca-cert-secret'
 PORTABLE_SECRETS_PATHS = ['default/minio-access-info', 'default/tls-secret']
@@ -28,8 +28,8 @@ class AuthParameters:
     RESPONSE_TYPE = 'code'
     SCOPE = 'groups openid email'
     CLIENT_SECRET = os.getenv('AUTH_CLIENT_SECRET', 'ZXhhbXBsZS1hcHAtc2VjcmV0')
-    TOKEN_PATH = os.getenv('AUTH_TOKEN_PATH', '/dex/token')
-    AUTH_PATH = os.getenv('AUTH_TOKEN_PATH', '/dex/auth')
+    TOKEN_PATH = os.getenv('TOKEN_PATH', '/dex/token')
+    AUTH_PATH = os.getenv('AUTH_PATH', '/dex/auth')
     ADMIN_SCOPE = os.getenv('ADMIN_SCOPE', 'admin')
     SYSTEM_NAMESPACE = os.getenv('SYSTEM_NAMESPACE', 'default')
 
@@ -38,7 +38,7 @@ class AuthParameters:
 CRD_GROUP = 'aipg.intel.com'
 CRD_VERSION = 'v1'
 CRD_PLURAL = 'servers'
-CRD_API_VERSION = 'aipg.intel.com/v1'
+CRD_API_VERSION = f'{CRD_GROUP}/{CRD_VERSION}'
 CRD_KIND = 'Server'
 
 ING_NAME = 'ingress-nginx'

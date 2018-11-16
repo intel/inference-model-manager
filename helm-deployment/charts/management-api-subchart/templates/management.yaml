@@ -35,23 +35,40 @@ spec:
             secretKeyRef:
               name: minio-access-info
               key: minio.access_secret_key
+        - name: MINIO_REGION
+          valueFrom:
+            secretKeyRef:
+              name: minio-access-info
+              key: minio.minio_region
+        - name: MINIO_SIGNATURE_VERSION
+          valueFrom:
+            secretKeyRef:
+              name: minio-access-info
+              key: minio.signature_version
         - name: PLATFORM_DOMAIN
           value: "{{ .Values.global.platformDomain }}"
+        - name: PLATFORM_ADMIN
+          value: "{{ .Values.global.platformAdmin }}"
+        - name: ADMIN_SCOPE
+          value: "{{ .Values.global.adminScope }}"
+        - name: SYSTEM_NAMESPACE
+          value: "{{ .Values.global.systemNamespace }}"
         - name: STATIC_CLIENT_ID
           valueFrom:
             secretKeyRef:
               name: dex
               key: staticClient.id
-        - name: STATIC_CLIENT_REDIRECT_URIS
-          valueFrom:
-            secretKeyRef:
-              name: dex
-              key: staticClient.redirectURIs
+        - name: AUTH_REDIRECT_URL
+          value: 'http://127.0.0.1:5555/callback'
         - name: STATIC_CLIENT_SECRET
           valueFrom:
             secretKeyRef:
               name: dex
               key: staticClient.secret
+        - name: TOKEN_PATH
+          value: "{{ .Values.global.dexTokenPath }}"
+        - name: AUTH_PATH
+          value: "{{ .Values.global.dexAuthPath }}"
         volumeMounts:
         - mountPath: /certs/
           name: tls-ing-management-secret

@@ -31,7 +31,7 @@ export MINIO_ENDPOINT_ADDR='http://127.0.0.1:9000'
 export MINIO_POD=`kubectl get pod | grep minio | awk '{print $1}'`
 kubectl port-forward ${MINIO_POD} 9000:9000 &
  
-pytest -v  
+pytest -v
 
 echo "Stop port forwarding"
 pkill -e -f "port-forward"

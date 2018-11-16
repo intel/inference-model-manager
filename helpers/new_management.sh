@@ -7,11 +7,9 @@
 cd ~/inferno-platform/management
 git pull
 kubectl delete deployment management-api
-export IMAGE=management-api-bszelag
+export IMAGE=management-api
 export TAG=latest
-make build
-make tag
-make push
+make circleci
 kubectl create -f ~/management.yaml
 chmod +x ../tests/*.sh
 chmod +x ../helpers/*.sh

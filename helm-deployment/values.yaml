@@ -49,6 +49,13 @@ global:
   accessKey: *accessKey
   secretKey: *secretKey
   platformDomain: "serving-service.com"
+  platformAdmin: "platform_admin"
+  adminScope: "admin"
+  systemNamespace: "default"
   minioEndpoint: "127.0.0.1:9000"
   minioEndpointUrl: "http://127.0.0.1:9000"
+  minioRegion: "us-east-1"
+  minioSignatureVersion: "s3v4"
+  dexTokenPath: "/dex/token"
+  dexAuthPath: "/dex/auth"
 openstack: false
