@@ -1,0 +1,28 @@
+image: <image_path>
+tag: <image_tag>
+service:
+  name: management-api
+  type: LoadBalancer
+  externalPort: 443
+ingress:
+  enabled: true
+  # Used to create Ingress record (should used with service.type: ClusterIP).
+  hosts: <management_api_desired_dns>
+  serviceName: management-api
+  servicePort: 443
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-body-size: 32m
+    nginx.ingress.kubernetes.io/secure-backends: "true"
+    nginx.ingress.kubernetes.io/secure-verify-ca-secret: ca-secret-ing-man-api
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  tls:
+     secretName: tls-management-secret
+     hosts: <management_api_desired_dns>
+resources: {}
+platformDomain: <dns_for_platform>
+dexTokenPath: "/dex/token"
+dexAuthPath: "/dex/auth"
+platformAdmin: "platform_admin"
+adminScope: "admin"
+systemNamespace: "default"

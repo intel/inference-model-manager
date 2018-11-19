@@ -1,0 +1,13 @@
+image: <crd_image_path>
+tag: <crd_image_tag>
+servingImage: "tensorflow/serving:1.11.1"
+docker_secret: false
+platformDomain: <dns_for_tfs>
+minio:
+  secretCreate: true
+  accessKey: <minio_access_key>
+  secretKey: <minio_secret_key>
+  endpoint: <minio_endpoint>
+  endpointUrl: <minio_endpoint_url>
+  minioRegion: "us-east-1"
+  minioSignatureVersion: "s3v4"

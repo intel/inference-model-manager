@@ -1,3 +1,0 @@
-image: "gcr.io/constant-cubist-173123/server-controller-prod"
-tag: "latest"
-servingImage: "tensorflow/serving:1.11.1"

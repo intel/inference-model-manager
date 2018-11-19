@@ -1,0 +1,78 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: server-controller
+rules:
+- apiGroups: ["apiextensions.k8s.io"]
+  resources: ["customresourcedefinitions"]
+  verbs: ["*"]
+- apiGroups: ["aipg.intel.com"]
+  resources: ["servers"]
+  verbs: ["*"]
+- apiGroups: ["extensions"]
+  resources: ["deployments"]
+  verbs: ["*"]
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["*"]
+- apiGroups: ["extensions"]
+  resources: ["ingresses"]
+  verbs: ["*"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: server-controller
+subjects:
+- kind: ServiceAccount
+  name: server-controller
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: server-controller
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: server-controller
+{{ if .Values.openstack }}
+  imagePullSecrets:
+    - name: gcr-json-key
+{{ end }}
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: server-controller
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: server-controller
+    spec:
+      serviceAccountName: server-controller
+{{ if .Values.docker_secret }}
+      imagePullSecrets:
+        - name: gcr-json-key
+{{ end }}
+
+      containers:
+      - name: server-controller
+        image: {{ .Values.image }}:{{ .Values.tag }}
+        ports:
+        - containerPort: 80
+        command:
+        - /bin/sh
+        - -c
+        args:
+        - /server-controller
+        env:
+          - name: PLATFORM_DOMAIN
+            valueFrom:
+              configMapKeyRef:
+                name: platform-domain
+                key: platform.domain
+          - name: SERVING_IMAGE
+            value: "{{ .Values.servingImage }}"

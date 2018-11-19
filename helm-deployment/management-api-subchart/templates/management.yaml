@@ -1,0 +1,99 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: management-api
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: management-api
+    spec:
+{{ if .Values.openstack }}
+      imagePullSecrets:
+        - name: gcr-json-key
+{{ end }}
+      containers:
+      - name: management-api
+        image: {{ .Values.image }}:{{ .Values.tag }}
+        ports:
+        - containerPort: 443
+        env:
+        - name: MINIO_ENDPOINT_ADDR
+          valueFrom:
+            secretKeyRef:
+              name: minio-access-info
+              key: minio.endpoint_url
+        - name: MINIO_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: minio-access-info
+              key: minio.access_key_id
+        - name: MINIO_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-access-info
+              key: minio.access_secret_key
+        - name: MINIO_REGION
+          valueFrom:
+            secretKeyRef:
+              name: minio-access-info
+              key: minio.minio_region
+        - name: MINIO_SIGNATURE_VERSION
+          valueFrom:
+            secretKeyRef:
+              name: minio-access-info
+              key: minio.signature_version
+        - name: PLATFORM_DOMAIN
+          value: "{{ .Values.platformDomain }}"
+        - name: PLATFORM_ADMIN
+          value: "{{ .Values.platformAdmin }}"
+        - name: ADMIN_SCOPE
+          value: "{{ .Values.adminScope }}"
+        - name: SYSTEM_NAMESPACE
+          value: "{{ .Values.systemNamespace }}"
+        - name: STATIC_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: dex
+              key: staticClient.id
+        - name: AUTH_REDIRECT_URL
+          value: 'http://127.0.0.1:5555/callback'
+        - name: STATIC_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: dex
+              key: staticClient.secret
+        - name: TOKEN_PATH
+          value: "{{ .Values.dexTokenPath }}"
+        - name: AUTH_PATH
+          value: "{{ .Values.dexAuthPath }}"
+        volumeMounts:
+        - mountPath: /certs/
+          name: tls-ing-management-secret
+        - mountPath: /dex-CA/
+          name: ca-secret-dex
+      volumes:
+      - secret:
+            defaultMode: 420
+            secretName: tls-ing-management-secret
+        name: tls-ing-management-secret
+      - secret:
+            defaultMode: 420
+            secretName: ca-secret-dex
+        name: ca-secret-dex
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: management-api
+  name: management-api
+spec:
+  ports:
+  - port: 443
+    targetPort: 443
+  selector:
+    app: management-api
+  type: ClusterIP
+

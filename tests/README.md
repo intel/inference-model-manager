@@ -1,7 +1,7 @@
 ## Management API testing
 It is possible to check if platform is working properly by running tests. 
 
-### Prerequisities 
+### Prerequisites 
 
 To run tests you need to create virtual environment:
 ```shell

@@ -1,19 +1,7 @@
 #!/usr/bin/env bash
 
-echo "Waiting for Ingress public IP"
-while [ -z $ING_IP ]; do  
-TMP=$(kubectl get services -n ingress-nginx|grep ingress-nginx |awk '{ print $4 }'); 
-# wait while IP is "Pending"
-if ! [[ $TMP = *ending* ]] 
-then
-    ING_IP=$TMP
-else
-    sleep 10
-fi
-done
-echo "Found: ${ING_IP}"
 
-export MANAGEMENT_API_URL='https://management-api.aipg.com'
+export MANAGEMENT_API_URL="https://${MGMT_DOMAIN_NAME}:443"
 echo "URL FOR MANAGEMENT API: $MANAGEMENT_API_URL"
 
 DEX_SERVICE=`kubectl get svc|grep "dex   "| awk '{ print $1 }'`

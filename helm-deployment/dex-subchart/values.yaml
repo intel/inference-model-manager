@@ -1,0 +1,23 @@
+issuer: "none"
+config:
+  <There you can put your dex config>
+service:
+  name: dex
+  type: LoadBalancer
+  externalPort: 443
+ingress:
+  enabled: true
+  # Used to create Ingress record (should used with service.type: ClusterIP).
+  hosts: none
+  serviceName: dex
+  servicePort: 443
+  annotations:
+     kubernetes.io/ingress.class: nginx
+     nginx.ingress.kubernetes.io/proxy-body-size: 8m
+     nginx.ingress.kubernetes.io/secure-backends: "true"
+     nginx.ingress.kubernetes.io/secure-verify-ca-secret: ca-secret-dex
+     nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  tls:
+     secretName: dex-key-cert
+     hosts: none
+resources: {}

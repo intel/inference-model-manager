@@ -9,38 +9,17 @@ Certificates should have names `man-api-server.crt` and `man-api-server.key`
 If you want to you can use our script which generate necessary certificates.
 Go to the directory mentioned earlier and run `management_api_certs.sh` and `internal_ing_man_api_certs.sh`.
 
-##
 ### Platform deployment 
-```
-cd helm-deployment
-helm dep up .
-helm install --name inferno-platform . 
-```
-`helm dep up .` will download minio and dex as subcharts.  
-`helm install --name inferno-platform .` will deploy all components on exisitng kubernetes cluster. 
-Release will be named 'inferno-platform'.
 
-In case of problems with tiller make sure that service account tiller is created:
-```
-kubectl create sa tiller --namespace kube-system
-kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
-helm init --debug --upgrade --service-account tiller
-```
+To get fully functional platform you have to install components:
+- [CRD](crd-subchart/README.md)
+- [INGRESS](ing-subchart/README.md)
+- [DEX](dex-subchart/README.md)
+- [MANAGEMENT-API](management-api-subchart/README.md)
 
-It is possible to override subchart's values.yaml variables by adding 
-```
-subchart:
-  variable: Something
-```
-in parent chart.   
- 
-**WARNING**: Values for dex have to be passed to helm config. They are passed using separate yaml 
-file, but if you prefer you can put your values using method given above.  
-**WARNING**: There are test keys and certificates included in this helm deployment 
-(/inferno-platform/helm-deployment/certs), please replace them with secure certificates in case of production deployment.
+If you dont have minio/s3 prepared you can use our deployment:
+- [MINIO](minio-subchart/README.md)
 
-In order to overwrite minio credentials edit values.yaml file. 
-Please do not provide minio credentials as argument in `helm install .` command.
 
 ##
 ### Certificate Revocation List

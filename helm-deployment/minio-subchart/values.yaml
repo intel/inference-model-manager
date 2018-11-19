@@ -1,0 +1,4 @@
+minio:
+  enabled: true
+  accessKey: <minio_access_key>
+  secretKey: <minio_secret_key>
