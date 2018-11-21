@@ -54,13 +54,16 @@ spec:
                 name: minio-access-info
                 key: minio.endpoint_url
           - name: AWS_REGION
-            value: us-east-1
+            valueFrom:
+               secretKeyRef:
+                name: minio-access-info
+                key: minio.minio_region
           - name: BUCKET_NAME
             value: {{.ObjectMeta.Namespace}}
           - name: S3_USE_HTTPS
-            value: "0"
+            value: "{{ GlobalTemplateValue "s3UseHttps" }}"
           - name: S3_VERIFY_SSL
-            value: "0"
+            value: "{{ GlobalTemplateValue "s3VerifySsl" }}"
         resources:
           limits: 
 {{ range $resource, $request := .Spec.Resources.Limits }}

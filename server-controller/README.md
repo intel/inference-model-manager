@@ -38,7 +38,7 @@ make circleci
 ### Local execution
 Server controller requires $PLATFORM_DOMAIN environment variable to be set. It shall contain domain 
 name for the system, controller will operate in.
-As a result endpoints created by it will be distunguishable from each other thanks to subdomains in 
+As a result endpoints created by it will be distinguishable from each other thanks to subdomains in 
 one provided domain (e.g. endpointName-namespace.PLATFORM_DOMAIN).
 ```
 # Assumes you have a working kubeconfig. Not required if operating in-cluster.

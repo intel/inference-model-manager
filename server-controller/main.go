@@ -55,6 +55,14 @@ func main() {
 	if !ok {
 		panic(errors.New("SERVING_IMAGE environment variable not set. Controller was unable to start."))
 	}
+	s3UseHttps, ok := os.LookupEnv("S3_USE_HTTPS")
+	if !ok {
+		panic(errors.New("S3_USE_HTTPS environment variable not set. Controller was unable to start."))
+	}
+	s3VerifySsl, ok := os.LookupEnv("S3_VERIFY_SSL")
+	if !ok {
+		panic(errors.New("S3_VERIFY_SSL environment variable not set. Controller was unable to start."))
+	}
 	flag.Parse()
 	// Create the client config. Use kubeconfig if given, otherwise assume
 	// in-cluster.
@@ -107,6 +115,8 @@ func main() {
 	globalTemplateValues := resource.GlobalTemplateValues{}
 	globalTemplateValues["platformDomain"] = platformDomain
 	globalTemplateValues["servingImage"] = servingImage
+	globalTemplateValues["s3UseHttps"] = s3UseHttps
+	globalTemplateValues["s3VerifySsl"] = s3VerifySsl
 	deploymentClient := resource.NewDeploymentClient(globalTemplateValues, k8sclientset, *deploymentTemplateFile)
 	serviceClient := resource.NewServiceClient(globalTemplateValues, k8sclientset, *serviceTemplateFile)
 	ingressClient := resource.NewIngressClient(globalTemplateValues, k8sclientset, *ingressTemplateFile)

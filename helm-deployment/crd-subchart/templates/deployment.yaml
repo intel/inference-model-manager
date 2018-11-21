@@ -76,3 +76,7 @@ spec:
                 key: platform.domain
           - name: SERVING_IMAGE
             value: "{{ .Values.servingImage }}"
+          - name: S3_USE_HTTPS
+            value: "{{ .Values.s3_use_https }}"
+          - name: S3_VERIFY_SSL
+            value: "{{ .Values.s3_verify_ssl }}"

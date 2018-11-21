@@ -1,6 +1,0 @@
-dependencies:
-- name: minio
-  repository: https://kubernetes-charts.storage.googleapis.com
-  version: 1.6.0
-digest: sha256:5274da71cb7e630bd491eaf947ab82e6c97d83382843689b510e06bc819a0c83
-generated: 2018-11-07T15:09:26.779222+01:00
