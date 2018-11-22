@@ -35,10 +35,20 @@ class KubernetesCallException(ManagementApiException):
         super().__init__(k8s_api_exception)
 
     def form_response(self, message):
-        if 400 <= self.k8s_api_exception.status < 500:
+        if self.k8s_api_exception.status == 403:
+            raise falcon.HTTPForbidden(message)
+        elif 400 <= self.k8s_api_exception.status < 500:
             raise falcon.HTTPBadRequest(message)
         else:
             raise falcon.HTTPInternalServerError(message)
+
+
+class KubernetesForbiddenException(KubernetesCallException):
+    @staticmethod
+    def handler(ex, req, resp, params):
+        message = "K8s forbidden: {}"
+        logger.error(message.format(str(ex.k8s_api_exception)))
+        ex.form_response(message.format(ex.k8s_api_exception.reason))
 
 
 class KubernetesCreateException(KubernetesCallException):
@@ -183,12 +193,12 @@ class ModelDeleteException(ManagementApiException):
         raise falcon.HTTPConflict(description=message)
 
 
-custom_errors = [ManagementApiException, KubernetesCallException, KubernetesDeleteException,
-                 KubernetesCreateException, KubernetesGetException, KubernetesUpdateException,
-                 MinioCallException, TenantAlreadyExistsException, TenantDoesNotExistException,
-                 InvalidParamException, MissingTokenException, JsonSchemaException,
-                 EndpointDoesNotExistException, ModelDeleteException, ModelDoesNotExistException,
-                 EndpointsReachedMaximumException]
+custom_errors = [ManagementApiException, KubernetesCallException, KubernetesForbiddenException,
+                 KubernetesDeleteException, KubernetesCreateException, KubernetesGetException,
+                 KubernetesUpdateException, MinioCallException, TenantAlreadyExistsException,
+                 TenantDoesNotExistException, InvalidParamException, MissingTokenException,
+                 JsonSchemaException, EndpointDoesNotExistException, ModelDeleteException,
+                 ModelDoesNotExistException, EndpointsReachedMaximumException]
 
 
 def default_exception_handler(ex, req, resp, params):

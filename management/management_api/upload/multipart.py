@@ -24,7 +24,6 @@ from management_api.utils.errors_handling import TenantDoesNotExistException, \
     MissingParamException, InvalidParamException
 from management_api.upload.multipart_utils import create_upload, get_key, complete_upload, \
     upload_part, abort_upload
-from management_api.authenticate import get_namespace
 from management_api.schemas.uploads import multipart_start_schema, multipart_done_schema,\
     multipart_abort_schema
 
@@ -35,7 +34,7 @@ logger = get_logger(__name__)
 class StartMultiModel(object):
     @jsonschema.validate(multipart_start_schema)
     def on_post(self, req, resp, tenant_name):
-        namespace = get_namespace(tenant_name)
+        namespace = tenant_name
         body = req.media
         key = get_key(body)
         if not tenant_exists(namespace, id_token=req.get_header('Authorization')):
@@ -60,7 +59,7 @@ class WriteMultiModel(object):
 
     @model_put_params_validator
     def on_put(self, req, resp, tenant_name):
-        namespace = get_namespace(tenant_name)
+        namespace = tenant_name
         multipart_id = req.get_param('uploadId')
         try:
             part_number = int(req.get_param('partNumber'))
@@ -82,7 +81,7 @@ class WriteMultiModel(object):
 class CompleteMultiModel(object):
     @jsonschema.validate(multipart_done_schema)
     def on_post(self, req, resp, tenant_name):
-        namespace = get_namespace(tenant_name)
+        namespace = tenant_name
         body = req.media
         key = get_key(body)
         if not tenant_exists(namespace, id_token=req.get_header('Authorization')):
@@ -97,7 +96,7 @@ class CompleteMultiModel(object):
 class AbortMultiModel(object):
     @jsonschema.validate(multipart_abort_schema)
     def on_post(self, req, resp, tenant_name):
-        namespace = get_namespace(tenant_name)
+        namespace = tenant_name
         body = req.media
         key = get_key(body)
         if not tenant_exists(namespace, id_token=req.get_header('Authorization')):

@@ -81,6 +81,7 @@ minio_resource = boto3.resource('s3',
 DELETE_BODY = client.V1DeleteOptions()
 
 # -------------------------------------------
+K8S_FORBIDDEN = 403
 RESOURCE_DOES_NOT_EXIST = 404
 NAMESPACE_BEING_DELETED = 409
 TERMINATION_IN_PROGRESS = 'Terminating'

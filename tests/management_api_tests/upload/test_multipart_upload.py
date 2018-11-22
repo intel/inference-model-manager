@@ -18,7 +18,7 @@ import json
 import requests
 import pytest
 from management_api_tests.config import DEFAULT_HEADERS, USER1_HEADERS, \
-    START_MULTIPART_UPLOAD_API_URL
+    START_MULTIPART_UPLOAD_API_URL, USER2_HEADERS
 
 
 @pytest.mark.parametrize("tenant_fix, auth, body, expected_status",
@@ -26,9 +26,12 @@ from management_api_tests.config import DEFAULT_HEADERS, USER1_HEADERS, \
                                                                'modelVersion': 1,
                                                                'fileName': 'saved_model.pb'}, 200),
                           ('session_tenant', DEFAULT_HEADERS, {'modelName': 'resnet2'}, 400),
-                          ('fake_tenant', USER1_HEADERS, {'modelName': 'resnet2',
-                                                          'modelVersion': 1,
-                                                          'fileName': 'saved_model.pb'}, 404),
+                          ('fake_nick_tenant', USER2_HEADERS, {'modelName': 'resnet2',
+                                                               'modelVersion': 1,
+                                                               'fileName': 'saved_model.pb'}, 404),
+                          ('session_tenant', USER1_HEADERS, {'modelName': 'resnet2',
+                                                             'modelVersion': 1,
+                                                             'fileName': 'saved_model.pb'}, 403),
                           ])
 def test_multipart_upload(request, tenant_fix, auth, body, expected_status):
     namespace, _ = request.getfixturevalue(tenant_fix)

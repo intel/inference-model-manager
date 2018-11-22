@@ -19,7 +19,7 @@ import requests
 import json
 import time
 
-from management_api_tests.config import DEFAULT_HEADERS, USER1_HEADERS,\
+from management_api_tests.config import DEFAULT_HEADERS,\
     USER2_HEADERS, ENDPOINT_MANAGEMENT_API_URL, ENDPOINTS_MANAGEMENT_API_URL, CheckResult, \
     ENDPOINT_RESOURCES, ENDPOINT_MANAGEMENT_API_URL_SCALE, OperationStatus
 
@@ -279,7 +279,7 @@ def test_not_create_endpoint_with_incompliant_resource_quota(session_tenant, inc
                            "Endpoints present in {} tenant"),
                           ('empty_tenant', DEFAULT_HEADERS, 200,
                            "There's no endpoints present in {} tenant"),
-                          ('fake_tenant_endpoint', USER1_HEADERS, 404, "Tenant {} does not exist")
+                          ('fake_tenant_endpoint', USER2_HEADERS, 404, "Tenant {} does not exist")
                           ])
 def test_list_endpoints(request, tenant_fix, auth_headers,
                         expected_status, expected_message):
@@ -306,7 +306,7 @@ def test_view_endpoint(request, endpoint_fix, endpoint_name, expected_status, ex
 def test_not_create_endpoint_tenant_not_exist():
     headers = USER2_HEADERS
     crd_server_name = 'predict'
-    namespace = 'tenant-not-exist'
+    namespace = 'nick'
     replicas = 1
     data = json.dumps({
         'modelName': 'resnet',

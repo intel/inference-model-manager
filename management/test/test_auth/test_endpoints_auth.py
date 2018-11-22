@@ -37,10 +37,11 @@ def get_keys():
     return keys
 
 
-@pytest.mark.parametrize("body, expected_status",
+@pytest.mark.parametrize("body, tenant_name, expected_status",
                          [({'modelName': 'test', 'modelVersion': 3, 'endpointName': 'test',
-                            'subjectName': 'test'}, falcon.HTTP_OK)])
-def test_add_endpoint_auth_valid_user_token(mocker, client_with_auth, body, expected_status):
+                            'subjectName': 'test'}, 'test', falcon.HTTP_OK)])
+def test_add_endpoint_auth_valid_user_token(mocker, client_with_auth, body, tenant_name,
+                                            expected_status):
     create_endpoint_mock = mocker.patch('management_api.endpoints.endpoints.create_endpoint')
     create_endpoint_mock.return_value = "test"
     time_mock = mocker.patch('time.time')
@@ -48,7 +49,8 @@ def test_add_endpoint_auth_valid_user_token(mocker, client_with_auth, body, expe
     get_keys_mock = mocker.patch('management_api.authenticate.auth_controller._get_keys_from_dex')
     get_keys_mock.side_effect = get_keys
     header = {'Authorization': user_token}
-    result = client_with_auth.simulate_request(method='POST', path='/tenants/default/endpoints',
+    request_path = f'/tenants/{tenant_name}/endpoints'
+    result = client_with_auth.simulate_request(method='POST', path=request_path,
                                                headers=header, json=body)
     assert expected_status == result.status
 
@@ -96,7 +98,7 @@ def test_create_tenant_with_user_token(mocker, client_with_auth, body, expected_
 @pytest.mark.parametrize("body, expected_status",
                          [("Wrong payload", falcon.HTTP_400)])
 def test_create_tenant_with_user_admin(mocker, client_with_auth, body, expected_status):
-    # HTTP 400 means we passsed token verification
+    # HTTP 400 means we passed token verification
     time_mock = mocker.patch('time.time')
     time_mock.return_value = 1538148672.765898  # Friday 28th September 2018
     get_keys_mock = mocker.patch('management_api.authenticate.auth_controller._get_keys_from_dex')

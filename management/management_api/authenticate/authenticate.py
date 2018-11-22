@@ -96,6 +96,7 @@ class AuthMiddleware:
 
     def __init__(self):
         self.admin_endpoints = ['/tenants']
+        self.user_endpoints_prefix = '/tenants/'
         self.no_auth_endpoints = ['/authenticate/token', '/authenticate']
         self.admin_user = AuthParameters.ADMIN_SCOPE
         self.system_namespace = AuthParameters.SYSTEM_NAMESPACE
@@ -127,17 +128,6 @@ class AuthMiddleware:
         logger.info("Decoded token : {}".format(decoded))
         logger.info("Request : {}".format(req.headers))
 
-        user_groups = decoded['groups']
-
-        if self.admin_user in user_groups:
-            user_groups.remove(self.admin_user)
-
-        if self.system_namespace in user_groups:
-            user_groups.remove(self.system_namespace)
-
-        req.context['groups'] = user_groups
-        logger.info("Response : {}".format(resp))
-
     def _token_has_admin_priv(self, decoded):
         if self.admin_user in decoded['groups']:
             return True
@@ -147,7 +137,3 @@ class AuthMiddleware:
         if decoded['exp'] < time.time():
             return True
         return False
-
-
-def get_namespace(tenant_name):
-    return tenant_name

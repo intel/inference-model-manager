@@ -20,12 +20,12 @@ from kubernetes import client as k8s_client
 from kubernetes.client.rest import ApiException
 from tenacity import retry, stop_after_attempt, wait_fixed
 from management_api.config import CERT_SECRET_NAME, PORTABLE_SECRETS_PATHS, \
-    minio_client, minio_resource, RESOURCE_DOES_NOT_EXIST, \
+    minio_client, minio_resource, RESOURCE_DOES_NOT_EXIST, K8S_FORBIDDEN, \
     NAMESPACE_BEING_DELETED, NO_SUCH_BUCKET_EXCEPTION, TERMINATION_IN_PROGRESS, PLATFORM_ADMIN
 from management_api.utils.cert import validate_cert
 from management_api.utils.errors_handling import TenantAlreadyExistsException, MinioCallException, \
     TenantDoesNotExistException, KubernetesCreateException, KubernetesDeleteException, \
-    KubernetesGetException
+    KubernetesGetException, KubernetesForbiddenException
 from management_api.utils.kubernetes_resources import get_k8s_api_client, get_k8s_rbac_api_client
 from management_api.utils.logger import get_logger
 
@@ -211,13 +211,14 @@ def does_bucket_exist(bucket_name):
 
 
 def is_namespace_available(namespace, id_token):
-    response = None
     api_instance = get_k8s_api_client(id_token)
     try:
         response = api_instance.read_namespace_status(namespace)
     except ApiException as apiException:
         if apiException.status == RESOURCE_DOES_NOT_EXIST:
             return False
+        if apiException.status == K8S_FORBIDDEN:
+            raise KubernetesForbiddenException('forbidden', apiException)
         raise KubernetesGetException('namespace status', apiException)
     if response and response.status.phase == TERMINATION_IN_PROGRESS:
         return False

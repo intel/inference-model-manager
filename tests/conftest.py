@@ -181,8 +181,8 @@ def tenant_with_endpoint(function_context, session_tenant, get_k8s_custom_obj_cl
 
 
 @pytest.fixture(scope="session")
-def fake_tenant():
-    name = "tenant-fake"
+def fake_nick_tenant():
+    name = "nick"
     quota = {}
     return name, quota
 
@@ -193,8 +193,8 @@ def empty_tenant(session_tenant):
 
 
 @pytest.fixture(scope="function")
-def fake_tenant_endpoint(fake_tenant):
-    return create_dummy_tenant(fake_tenant)
+def fake_tenant_endpoint(fake_nick_tenant):
+    return create_dummy_tenant(fake_nick_tenant)
 
 
 def create_dummy_tenant(session_tenant):

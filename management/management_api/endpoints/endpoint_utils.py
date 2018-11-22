@@ -41,7 +41,6 @@ def create_endpoint(parameters: dict, namespace: str, id_token: str):
     metadata = {"name": parameters['endpointName']}
     body = {"apiVersion": CRD_API_VERSION, "kind": CRD_KIND,
             "spec": parameters, "metadata": metadata}
-    custom_obj_api_instance = get_k8s_api_custom_client(id_token)
     api_instance = get_k8s_api_client(id_token)
     if 'resources' in parameters:
         validate_quota_compliance(api_instance, namespace=namespace,
