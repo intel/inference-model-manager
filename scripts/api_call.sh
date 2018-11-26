@@ -26,7 +26,8 @@ Options:
 	p - management api port (could be provided with MANAGEMENT_API_PORT env or from config file)
 	c - path to config file
 Examples: 
-	.${0##*/} -a 127.0.0.1 -p 6666 -v create tenant mytenant
+	.${0##*/} -a mgmt.example.com -p 443 -v create tenant mytenant
+	.${0##*/} create t mytenant myscope
 	.${0##*/} create e myendpoint mymodel
 	.${0##*/} -a 127.0.0.1 login
 	.${0##*/} logout
@@ -81,6 +82,9 @@ PARAM_2=$4
 PARAM_3=$5
 PARAM_4=$6
 PARAM_5=$7
+PARAM_6=$8
+PARAM_7=$9
+PARAM_8=${10}
 
 if [[ -s ${CFG_FILE} ]]; then
 	TOKEN=`cat ${CFG_FILE} | jq -r '.id_token'`
@@ -103,9 +107,10 @@ case "$OPERATION" in
 		case "$RESOURCE" in
 			tenant | t) echo "Create tenant"
 				[[ -z ${PARAM_1} ]] && read -p "Please provide tenant name " PARAM_1
+				[[ -z ${PARAM_2} ]] && read -p "Please provide scope (group name) " PARAM_2
 				CURL='curl -s -H "accept: application/json" \
 					-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
-					-d "{\"name\": \"${PARAM_1}\", \"cert\": \"${CERT}\", \"scope\":\"scope_name\",\"quota\": ${TENANT_RESOURCES}}" \
+					-d "{\"name\": \"${PARAM_1}\", \"cert\": \"${CERT}\", \"scope\":\"${PARAM_2}\",\"quota\": ${TENANT_RESOURCES}}" \
 					-X POST "https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants"'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
 				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
@@ -142,10 +147,10 @@ case "$OPERATION" in
 			endpoint | e)
 				[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
 				[[ -z ${PARAM_2} ]] && read -p "Please provide tenant name " PARAM_2
-				CURL='curl -X DELETE -s \
-					"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_2}/endpoints" \
-					-H "accept: application/json" -H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \ 
-					-d "{\"endpointName\": \"${PARAM_1}\"}"'
+				CURL='curl -s -H "accept: application/json" \
+					-H "Authorization: ${TOKEN}" -H "Content-Type: application/json"  \
+					-d "{\"endpointName\": \"${PARAM_1}\"}" -X DELETE \
+					"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_2}/endpoints"'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
 				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
 				eval "$CURL"
@@ -279,7 +284,7 @@ case "$OPERATION" in
 		esac
 		python ../examples/grpc_client/grpc_client.py --grpc_address ${RESOURCE} --model_name ${PARAM_1} \
 		${INPUT_TYPE} ${PARAM_3} --batch_size ${PARAM_4} --server_cert ${PARAM_5} \
-		--client_cert ${PARAM_6} --client_key ${PARAM_7}
+		--client_cert ${PARAM_6} --client_key ${PARAM_7} 
 		;;
 	*)	show_help
 		exit 0
