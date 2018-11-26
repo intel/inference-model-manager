@@ -14,7 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
+echo "deploy imm ldap"
+source ./deployment_imm_ldap.sh
+OPENLDAP_SVC=`kubectl get svc|grep "openldap   "| awk '{ print $1 }'`
+OPENLDAP_SVC_ADDRESS="$OPENLDAP_SVC:389"
+echo $OPENLDAP_SVC_ADDRESS
+sed -i "s@toreplacebyldapaddress@${OPENLDAP_SVC_ADDRESS}@g" dex_config.yaml
 echo "deploy ingress"
 source ./deployment_ingress.sh
 echo "deploy CRD"

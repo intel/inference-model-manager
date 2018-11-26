@@ -30,7 +30,7 @@ from management_api_tests.config import MINIO_SECRET_ACCESS_KEY, MINIO_ACCESS_KE
     AUTH_MANAGEMENT_API_URL, GENERAL_TENANT_NAME
 from management_api_tests.context import Context
 from management_api_tests.reused import transform_quota
-from management_api_tests.authenticate import JANE
+from management_api_tests.authenticate import VENUS_CREDENTIALS
 
 from e2e_tests import management_api_requests as api_requests
 
@@ -71,7 +71,7 @@ def auth_code_for_jane():
     soup = BeautifulSoup(resp.text, 'html.parser')
     login_form_action = urljoin(dex_base_url, soup.form['action'])
 
-    data = JANE
+    data = VENUS_CREDENTIALS
     resp = requests.post(login_form_action, data=data, allow_redirects=False)
 
     resp = requests.get(urljoin(dex_base_url, resp.headers['Location']), allow_redirects=False)
@@ -181,8 +181,8 @@ def tenant_with_endpoint(function_context, session_tenant, get_k8s_custom_obj_cl
 
 
 @pytest.fixture(scope="session")
-def fake_nick_tenant():
-    name = "nick"
+def fake_saturn_tenant():
+    name = "saturn-tenant"
     quota = {}
     return name, quota
 
@@ -193,8 +193,8 @@ def empty_tenant(session_tenant):
 
 
 @pytest.fixture(scope="function")
-def fake_tenant_endpoint(fake_nick_tenant):
-    return create_dummy_tenant(fake_nick_tenant)
+def fake_tenant_endpoint(fake_saturn_tenant):
+    return create_dummy_tenant(fake_saturn_tenant)
 
 
 def create_dummy_tenant(session_tenant):
@@ -231,7 +231,6 @@ def fake_endpoint_with_fake_model(fake_endpoint, minio_client):
 
 
 def list_namespaces():
-    api_response = ""
     try:
         k8s_client = client.CoreV1Api(client.ApiClient(config.load_kube_config()))
         api_response = k8s_client.list_namespace()
@@ -243,7 +242,6 @@ def list_namespaces():
 
 
 def get_all_pods_in_namespace(namespace, label_selector=''):
-    api_response = ""
     try:
         k8s_client = client.CoreV1Api(client.ApiClient(config.load_kube_config()))
         api_response = k8s_client.list_namespaced_pod(namespace=namespace,

@@ -159,7 +159,6 @@ jobs:
             export CRD_TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
             cd ~/inferno-platform/tests/deployment
             sed -i "s@toreplacedbyissuer@${ISSUER}@g" dex_config.yaml
-            sed -i "s@toreplacebyldapaddress@${LDAP_ADDRESS}@g" dex_config.yaml
             cd ~/inferno-platform/tests/deployment
             ./deployment_platform.sh
             sleep 150

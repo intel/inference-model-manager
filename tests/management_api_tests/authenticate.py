@@ -29,13 +29,13 @@ client_id = 'example-app'
 client_secret = 'ZXhhbXBsZS1hcHAtc2VjcmV0'
 
 # Credentials for admin
-ADMIN = {'login': "admin@example.com", 'password': "admin"}
+ADMIN_CREDENTIALS = {'login': "sun@example.com", 'password': "sun_pass"}
 
-# Credentials for Jane which belongs to default and test group
-JANE = {'login': "janedoe@example.com", 'password': "foo"}
+# Credentials for venus which belongs to test group
+VENUS_CREDENTIALS = {'login': "venus@example.com", 'password': "venus_pass"}
 
-# Credentials for Joe which belongs in default group
-JOE = {'login': "johndoe@example.com", 'password': "bar"}
+# Credentials for mercury which belongs to constellation group
+MERCURY_CREDENTIALS = {'login': "mercury@example.com", 'password': "mercury_pass"}
 
 
 # Requests authentication form provided by dex.
@@ -93,16 +93,18 @@ admin_token = None
 def get_user_token():
     global user_token
     if not user_token:
-        user_token = authenticate(JANE['login'], JANE['password'])
+        user_token = authenticate(VENUS_CREDENTIALS['login'], VENUS_CREDENTIALS['password'])
     return user_token
 
 
 def get_admin_token():
     global admin_token
     if not admin_token:
-        admin_token = authenticate(ADMIN['login'], ADMIN['password'])
+        admin_token = authenticate(ADMIN_CREDENTIALS['login'],
+                                   ADMIN_CREDENTIALS['password'])
     return admin_token
 
 
 def get_token(userpass):
-    return authenticate(userpass + "@example.com", userpass)
+    user_password = f'{userpass}_pass'
+    return authenticate(userpass + "@example.com", user_password)

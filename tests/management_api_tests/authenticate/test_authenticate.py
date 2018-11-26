@@ -19,7 +19,7 @@ import pytest
 import json
 
 from management_api_tests.config import AUTH_MANAGEMENT_API_URL, TOKEN_MANAGEMENT_API_URL
-from management_api_tests.authenticate import authenticate, JOE
+from management_api_tests.authenticate import authenticate, MERCURY_CREDENTIALS
 
 
 def test_get_auth_redirection():
@@ -31,10 +31,12 @@ def test_get_auth_redirection():
 @pytest.mark.parametrize("body_key, refresh_token", [('code', False), ('refresh_token', True)])
 def test_get_token(body_key, refresh_token):
     if 'code' in body_key:
-        code = authenticate(username=JOE['login'], password=JOE['password'],
+        code = authenticate(username=MERCURY_CREDENTIALS['login'],
+                            password=MERCURY_CREDENTIALS['password'],
                             token=refresh_token)
     else:
-        code = authenticate(username=JOE['login'], password=JOE['password'],
+        code = authenticate(username=MERCURY_CREDENTIALS['login'],
+                            password=MERCURY_CREDENTIALS['password'],
                             token=refresh_token)['refresh_token']
     url = TOKEN_MANAGEMENT_API_URL
     data = json.dumps({
