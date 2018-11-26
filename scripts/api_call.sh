@@ -260,16 +260,15 @@ case "$OPERATION" in
 		;;
 	run-inference | ri)
 		echo "Running inference"
-		[[ -z ${RESOURCE} ]] && read -p "Please provide endpoint ip with port (grpc address) " RESOURCE
-		[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
-		[[ -z ${PARAM_2} ]] && read -p "Please provide model name " PARAM_2
-		[[ -z ${PARAM_3} ]] && read -p "Please specify input type: list/numpy " PARAM_3
-		[[ -z ${PARAM_4} ]] && read -p "Please provide images (type: ${PARAM_3}) " PARAM_4
-		[[ -z ${PARAM_5} ]] && read -p "Please provide batch size " PARAM_5
-		[[ -z ${PARAM_6} ]] && read -p "Please provide path to server cert " PARAM_6
-		[[ -z ${PARAM_7} ]] && read -p "Please provide path to client cert " PARAM_7
-		[[ -z ${PARAM_8} ]] && read -p "Please provide path to client key  " PARAM_8
-		case "${PARAM_3}" in
+		[[ -z ${RESOURCE} ]] && read -p "Please provide endpoint address with port (grpc address) " RESOURCE
+		[[ -z ${PARAM_1} ]] && read -p "Please provide model name " PARAM_1
+		[[ -z ${PARAM_2} ]] && read -p "Please specify input type: list/numpy " PARAM_2
+		[[ -z ${PARAM_3} ]] && read -p "Please provide images (type: ${PARAM_2}) " PARAM_3
+		[[ -z ${PARAM_4} ]] && read -p "Please provide batch size " PARAM_4
+		[[ -z ${PARAM_5} ]] && read -p "Please provide path to server cert " PARAM_5
+		[[ -z ${PARAM_6} ]] && read -p "Please provide path to client cert " PARAM_6
+		[[ -z ${PARAM_7} ]] && read -p "Please provide path to client key  " PARAM_7
+		case "${PARAM_2}" in
 				list)   INPUT_TYPE="--images_list"
 					;;
 				numpy)  INPUT_TYPE="--images_numpy_path"
@@ -278,9 +277,9 @@ case "$OPERATION" in
 					exit 0
 					;;
 		esac
-		python ../examples/grpc_client/grpc_client.py --grpc_address ${RESOURCE} --endpoint_name ${PARAM_1} \
-		--model_name ${PARAM_2} ${INPUT_TYPE} ${PARAM_4} --batch_size ${PARAM_5} --server_cert ${PARAM_6} \
-		--client_cert ${PARAM_7} --client_key ${PARAM_8}
+		python ../examples/grpc_client/grpc_client.py --grpc_address ${RESOURCE} --model_name ${PARAM_1} \
+		${INPUT_TYPE} ${PARAM_3} --batch_size ${PARAM_4} --server_cert ${PARAM_5} \
+		--client_cert ${PARAM_6} --client_key ${PARAM_7}
 		;;
 	*)	show_help
 		exit 0

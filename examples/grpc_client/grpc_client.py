@@ -30,7 +30,7 @@ from endpoint_utils import prepare_certs, prepare_stub_and_request
 from images_2_numpy import load_images_from_list
 
 
-def get_stub_and_request(endpoint_address, endpoint_name, model_name, certs, ssl):
+def get_stub_and_request(endpoint_address, model_name, certs, ssl):
     if ssl:
         server_ca_cert, client_key, client_cert = prepare_certs(server_cert=certs['server_cert'],
                                                                 client_key=certs['client_key'],
@@ -38,10 +38,10 @@ def get_stub_and_request(endpoint_address, endpoint_name, model_name, certs, ssl
         creds = grpc.ssl_channel_credentials(root_certificates=server_ca_cert,
                                              private_key=client_key, certificate_chain=client_cert)
         stub, request = prepare_stub_and_request(address=endpoint_address, model_name=model_name,
-                                                 creds=creds, opts=endpoint_name)
+                                                 creds=creds)
     else:
         stub, request = prepare_stub_and_request(address=endpoint_address, model_name=model_name,
-                                                 creds=None, opts=endpoint_name)
+                                                 creds=None)
     return stub, request
 
 
@@ -119,8 +119,6 @@ def get_processing_performance(processing_times, batch_size):
 
 
 def main(**kwargs):
-    endpoint_address = f'{kwargs["grpc_address"]}'
-
     certs = dict()
     certs['server_cert'] = kwargs['server_cert']
     certs['client_cert'] = kwargs['client_cert']
@@ -128,7 +126,7 @@ def main(**kwargs):
 
     ssl = False if kwargs['no_ssl'] else True
     stub, request = get_stub_and_request(
-        endpoint_address, kwargs.get('endpoint_name', None), kwargs['model_name'], certs, ssl)
+        kwargs['grpc_address'], kwargs['model_name'], certs, ssl)
 
     imgs = prepare_images(kwargs)
 
@@ -145,8 +143,6 @@ def run_inference():
         description='Do requests to Tensorflow Serving using jpg images or images in numpy format')
 
     parser.add_argument('--grpc_address', required=True, help='Specify url:port to gRPC service')
-    parser.add_argument('--endpoint_name', required=False,
-                        help='Specify endpoint name in manner: endpoint-name.domain-name')
 
     parser.add_argument('--server_cert', help='Path to server certificate')
     parser.add_argument('--client_cert', help='Path to client certificate')
