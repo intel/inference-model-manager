@@ -1,6 +1,7 @@
 issuer: "none"
+namespace: "dex"
 config:
-  <There you can put your dex config>
+  <Here you can put your dex config>
 service:
   name: dex
   type: LoadBalancer

@@ -15,5 +15,5 @@
 # limitations under the License.
 #
 
-cp /dex-CA/ca.crt /usr/local/share/ca-certificates/dex-ca.crt
+cp -r /custom_CA/ /usr/local/share/ca-certificates/
 update-ca-certificates

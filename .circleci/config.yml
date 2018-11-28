@@ -71,18 +71,19 @@ jobs:
             echo 'export ISSUER="https://dex.${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com:443/dex"' >> $BASH_ENV
             echo 'export MGMT_IMAGE="gcr.io/constant-cubist-173123/management-api"' >> $BASH_ENV
             echo 'export CRD_IMAGE="gcr.io/constant-cubist-173123/server-controller-prod"' >> $BASH_ENV
-            echo 'export ING_CERTS="true"' >> $BASH_ENV
-            echo 'export WRONG_CERTS="true"' >> $BASH_ENV
+            echo 'export TF_TEST_CERTS="true"' >> $BASH_ENV
             echo 'export MGMT_INTERNAL_CERTS="true"' >> $BASH_ENV
             echo 'export MGMT_CERTS="true"' >> $BASH_ENV
             echo 'export DEX_INTERNAL_CERTS="true"' >> $BASH_ENV
+            echo 'export DEX_NAMESPACE="dex"' >> $BASH_ENV
+            echo 'export MGT_NAMESPACE="mgt-api"' >> $BASH_ENV
             echo 'export MINIO_ACCESS_KEY="AKIAIOSFODNN7EXAMPLE"' >> $BASH_ENV
             echo 'export MINIO_SECRET_KEY="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"' >> $BASH_ENV
       - run:
           name: Generate certificates for dex external service
           command: |
             cd ~/inferno-platform/helm-deployment/dex-subchart/certs
-            ./generate-dex-certs.sh
+            ./generate-ing-dex-certs.sh
       - run:
           name: Create k8s cluster
           command: |
@@ -107,9 +108,9 @@ jobs:
             
             sed -i "s/toreplacebyclustername/${CLUSTER_NAME_SHORT}/g" desiredcni.yaml
             sed -i "s@toreplacebyissuer@${ISSUER}@g" desiredcni.yaml
-            cp ~/inferno-platform/helm-deployment/dex-subchart/certs/dex-ca.crt .
-            sed -i 's/^/      /' dex-ca.crt
-            sed -i -e '/replace_by_certificate/{r dex-ca.crt' -e 'd}' desiredcni.yaml
+            cp ~/inferno-platform/helm-deployment/dex-subchart/certs/ca-ing-dex.crt .
+            sed -i 's/^/      /' ca-ing-dex.crt
+            sed -i -e '/replace_by_certificate/{r ca-ing-dex.crt' -e 'd}' desiredcni.yaml
             kops create -f desiredcni.yaml
             kops update cluster ${CLUSTER_NAME} --yes
             sleep 300
@@ -166,7 +167,7 @@ jobs:
           name: Create record in AWS Route53
           command: |    
             cd ~/inferno-platform/kops/
-            while [ -z $ING_IP ]; do sleep 10; ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}'); done
+            while [ -z $ING_IP ]; do sleep 10; ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}' -n mgt-api); done
                   
             sed -i "s/0.0.0.0/${ING_IP}/g" route_record.json
             sed -i "s/toreplacebydomainname/${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com/g" route_record.json
@@ -180,25 +181,22 @@ jobs:
       - run:
           name: Install Certificates
           command: |
-            sudo cp ~/inferno-platform/helm-deployment/management-api-subchart/certs/ca-man-api.crt /usr/local/share/ca-certificates/ca-man-api.crt
-            sudo cp ~/inferno-platform/helm-deployment/dex-subchart/certs/dex-ca.crt /usr/local/share/ca-certificates/dex-ca.crt
+            sudo cp ~/inferno-platform/helm-deployment/management-api-subchart/certs/ca-ing-mgt-api.crt /usr/local/share/ca-certificates/ca-ing-mgt-api.crt
+            sudo cp ~/inferno-platform/helm-deployment/dex-subchart/certs/ca-ing-dex.crt /usr/local/share/ca-certificates/ca-ing-dex.crt
             sudo update-ca-certificates
             # Commands below are necessary to enable developers debug their builds
             echo "MANAGEMENT API CA"
-            cat ~/inferno-platform/helm-deployment/management-api-subchart/certs/ca-man-api.crt
+            cat ~/inferno-platform/helm-deployment/management-api-subchart/certs/ca-ing-mgt-api.crt
             echo "DEX CA"
-            cat ~/inferno-platform/helm-deployment/dex-subchart/certs/dex-ca.crt
+            cat ~/inferno-platform/helm-deployment/dex-subchart/certs/ca-ing-dex.crt
       - run:
           name: Run tests
           command: |
             . ~/inferno-platform/.venv/bin/activate
-            cd ~/inferno-platform/helm-deployment/ing-subchart/certs
+            cd ~/inferno-platform/helm-deployment/management-api-subchart/certs
             export CERT=`cat ca-cert-tf.crt | base64 -w0`
             echo "Creating cluster role binding for group admin"
-            kubectl create clusterrolebinding imm-cluster-admin-binding --clusterrole cluster-admin  --group admin
-            while [ -z $ING_IP ]; do sleep 10; ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}'); done
-            export ING_DOMAIN=`kubectl get ing -o=jsonpath='{.items..spec.tls..hosts}' | sed 's/[][]//g'`
-            echo "${ING_IP} ${ING_DOMAIN}" | sudo tee -a /etc/hosts
+            kubectl create clusterrolebinding inferno-cluster-admin-binding --clusterrole cluster-admin  --group admin
             export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
             cd ~/inferno-platform/tests
             pip install -q -r requirements.txt
@@ -218,7 +216,7 @@ jobs:
           when: on_success
           command: |
             export PROJECT=`gcloud config get-value project`
-            export ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}')
+            export ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}' -n mgt-api)
             helm ls --short | xargs -L1 helm --debug delete
             sleep 3m
             kops delete cluster ${CLUSTER_NAME} --yes
@@ -235,7 +233,7 @@ jobs:
           when: on_fail
           command: |
             export PROJECT=`gcloud config get-value project`
-            export ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}')
+            export ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}' -n mgt-api)
             sleep 30m
             helm ls --short | xargs -L1 helm --debug delete
             sleep 3m

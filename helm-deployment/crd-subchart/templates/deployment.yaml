@@ -2,6 +2,7 @@ kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: server-controller
+  namespace: {{ .Values.namespace }}
 rules:
 - apiGroups: ["apiextensions.k8s.io"]
   resources: ["customresourcedefinitions"]
@@ -23,10 +24,11 @@ kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
   name: server-controller
+  namespace: {{ .Values.namespace }}
 subjects:
 - kind: ServiceAccount
   name: server-controller
-  namespace: default
+  namespace: {{ .Values.namespace }}
 roleRef:
   kind: ClusterRole
   name: server-controller
@@ -36,6 +38,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: server-controller
+  namespace: {{ .Values.namespace }}
 {{ if .Values.openstack }}
   imagePullSecrets:
     - name: gcr-json-key
@@ -45,6 +48,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: server-controller
+  namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
   template:
@@ -70,10 +74,7 @@ spec:
         - /server-controller
         env:
           - name: PLATFORM_DOMAIN
-            valueFrom:
-              configMapKeyRef:
-                name: platform-domain
-                key: platform.domain
+            value: "{{ .Values.platformDomain }}"
           - name: SERVING_IMAGE
             value: "{{ .Values.servingImage }}"
           - name: S3_USE_HTTPS

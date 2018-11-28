@@ -99,7 +99,6 @@ class AuthMiddleware:
         self.user_endpoints_prefix = '/tenants/'
         self.no_auth_endpoints = ['/authenticate/token', '/authenticate']
         self.admin_user = AuthParameters.ADMIN_SCOPE
-        self.system_namespace = AuthParameters.SYSTEM_NAMESPACE
         self.tokenDecoder = TokenDecoder()
 
     def process_request(self, req, resp):

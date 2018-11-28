@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
 # Copyright (c) 2018 Intel Corporation
 #
@@ -15,13 +15,13 @@
 # limitations under the License.
 #
 
-# This script shows how to generate test keys and certs
+# Example how to create self-signed CA for Management API external interface
 
-# Generate CA
-openssl genrsa -out ca-ing-man-api.key 4096
-openssl req -new -x509 -days 365 -key ca-ing-man-api.key -out ca-ing-man-api.crt -subj "/CN=management-api.cluster"
+# Generate valid CA for Ing Management api
+openssl genrsa -out ca-ing-mgt-api.key 4096
+openssl req -new -x509 -days 365 -key ca-ing-mgt-api.key -out ca-ing-mgt-api.crt -subj "/CN=ca-ing-mgt-api"
 
 # Generate server key/cert
-openssl genrsa -out ing-man-api-server.key 4096
-openssl req -new -key ing-man-api-server.key -out ing-man-api-server.csr -subj "/CN=management-api.cluster"
-openssl x509 -req -days 365 -in ing-man-api-server.csr -CA ca-ing-man-api.crt -CAkey ca-ing-man-api.key -set_serial 01 -out ing-man-api-server.crt
+openssl genrsa -out ing-mgt-api.key 4096
+openssl req -new -key ing-mgt-api.key -out ing-mgt-api.csr -subj "/CN=${MGMT_DOMAIN_NAME}"
+openssl x509 -req -days 365 -in ing-mgt-api.csr -CA ca-ing-mgt-api.crt -CAkey ca-ing-mgt-api.key -set_serial 01 -out ing-mgt-api.crt

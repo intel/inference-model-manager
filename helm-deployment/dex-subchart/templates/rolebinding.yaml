@@ -4,6 +4,7 @@ metadata:
   labels:
     app: dex
   name: dex
+  namespace: {{ .Values.namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -11,4 +12,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: dex
-    namespace: default
+    namespace: {{ .Values.namespace }}

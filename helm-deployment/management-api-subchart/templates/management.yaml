@@ -2,6 +2,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: management-api
+  namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
   template:
@@ -46,12 +47,16 @@ spec:
               key: minio.signature_version
         - name: PLATFORM_DOMAIN
           value: "{{ .Values.platformDomain }}"
+        - name: DEX_URL
+          value: "{{ .Values.dexUrl }}"
         - name: PLATFORM_ADMIN
           value: "{{ .Values.platformAdmin }}"
         - name: ADMIN_SCOPE
           value: "{{ .Values.adminScope }}"
-        - name: SYSTEM_NAMESPACE
-          value: "{{ .Values.systemNamespace }}"
+        - name: MGT_API_NAMESPACE
+          value: "{{ .Values.namespace }}"
+        - name: ING_NAMESPACE
+          value: "{{ .Values.ingNamespace }}"
         - name: STATIC_CLIENT_ID
           valueFrom:
             secretKeyRef:
@@ -70,18 +75,18 @@ spec:
           value: "{{ .Values.dexAuthPath }}"
         volumeMounts:
         - mountPath: /certs/
-          name: tls-ing-management-secret
-        - mountPath: /dex-CA/
-          name: ca-secret-dex
+          name: tls-management-secret
+        - mountPath: /custom_CA/
+          name: custom-ca-secret
       volumes:
       - secret:
             defaultMode: 420
-            secretName: tls-ing-management-secret
-        name: tls-ing-management-secret
+            secretName: tls-management-secret
+        name: tls-management-secret
       - secret:
             defaultMode: 420
-            secretName: ca-secret-dex
-        name: ca-secret-dex
+            secretName: custom-ca-secret
+        name: custom-ca-secret
 ---
 apiVersion: v1
 kind: Service
@@ -89,6 +94,7 @@ metadata:
   labels:
     run: management-api
   name: management-api
+  namespace: {{ .Values.namespace }}
 spec:
   ports:
   - port: 443

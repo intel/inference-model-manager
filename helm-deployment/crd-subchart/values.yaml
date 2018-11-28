@@ -1,15 +1,8 @@
 image: <crd_image_path>
 tag: <crd_image_tag>
+namespace: "crd"
 servingImage: "tensorflow/serving:1.11.1"
 docker_secret: false
-platformDomain: <dns_for_tfs>
+platformDomain: <dns_domain_name>
 s3_use_https: 0
 s3_verify_ssl: 0
-minio:
-  secretCreate: true
-  accessKey: <minio_access_key>
-  secretKey: <minio_secret_key>
-  endpoint: <minio_endpoint>
-  endpointUrl: <minio_endpoint_url>
-  minioRegion: "us-east-1"
-  minioSignatureVersion: "s3v4"

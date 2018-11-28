@@ -14,10 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+RETURN_DIR=$PWD
 echo "deploy imm ldap"
 source ./deployment_imm_ldap.sh
 OPENLDAP_SVC=`kubectl get svc|grep "openldap   "| awk '{ print $1 }'`
-OPENLDAP_SVC_ADDRESS="$OPENLDAP_SVC:389"
+OPENLDAP_SVC_ADDRESS="$OPENLDAP_SVC.default:389"
 echo $OPENLDAP_SVC_ADDRESS
 sed -i "s@toreplacebyldapaddress@${OPENLDAP_SVC_ADDRESS}@g" dex_config.yaml
 echo "deploy ingress"
@@ -29,4 +31,13 @@ source ./deployment_minio.sh
 echo "deploy dex"
 source ./deployment_dex.sh
 echo "deploy management api"
+echo "generate certs needed for tf serving endpoint test"
+if [ "$TF_TEST_CERTS" = "true" ]
+then
+echo "Generate all certs required to run platform"
+cd ../../helm-deployment/management-api-subchart/certs/ && ./scriptcert.sh && ./script-wrong-certs.sh
+cd $RETURN_DIR
+fi
+echo "Copy dex CA"
+cp ../../helm-deployment/dex-subchart/certs/ca-dex.crt ../../helm-deployment/management-api-subchart/certs/ca-dex.crt
 source ./deployment_management_api.sh

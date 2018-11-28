@@ -13,7 +13,8 @@ You have to set all values specify in this chapter to properly run this chart
    platformDomain: - platform dns
 ```
 Also you have to make sure that you already have deploy ```minio-access-info``` secret.
-Platform required ssl to internal traffic. We recommend to use for this purpose our script ```internal_ing_man_api_certs.sh``` located in ```certs``` directory.
+Platform required ssl to internal traffic. We recommend to use for this purpose our script ```generate-management-api-certs.sh``` located in ```certs``` directory.
+Before running the script mentioned above, set the environment variable ```MGT_NAMESPACE```
 
 ### Installation
 

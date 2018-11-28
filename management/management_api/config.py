@@ -28,9 +28,6 @@ MINIO_ENDPOINT_ADDR = os.getenv('MINIO_ENDPOINT_ADDR', 'http://127.0.0.1:9000')
 MINIO_REGION = os.getenv('MINIO_REGION', "us-east-1")
 SIGNATURE_VERSION = os.getenv('MINIO_SIGNATURE_VERSION', "s3v4")
 
-CERT_SECRET_NAME = 'ca-cert-secret'
-PORTABLE_SECRETS_PATHS = ['default/minio-access-info', 'default/tls-secret']
-
 PLATFORM_DOMAIN = os.getenv('PLATFORM_DOMAIN', 'default')
 PLATFORM_ADMIN = os.getenv('PLATFORM_ADMIN', 'platform_admin')
 
@@ -47,7 +44,6 @@ class AuthParameters:
     TOKEN_PATH = os.getenv('TOKEN_PATH', '/dex/token')
     AUTH_PATH = os.getenv('AUTH_PATH', '/dex/auth')
     ADMIN_SCOPE = os.getenv('ADMIN_SCOPE', 'admin')
-    SYSTEM_NAMESPACE = os.getenv('SYSTEM_NAMESPACE', 'default')
 
 
 # CRD DEFINITIONS:
@@ -58,7 +54,12 @@ CRD_API_VERSION = f'{CRD_GROUP}/{CRD_VERSION}'
 CRD_KIND = 'Server'
 
 ING_NAME = 'ingress-nginx'
-ING_NAMESPACE = 'ingress-nginx'
+ING_NAMESPACE = os.getenv('ING_NAMESPACE', 'ingress-nginx')
+
+MGT_API_NAMESPACE = os.getenv('MGT_API_NAMESPACE', 'man-api')
+CERT_SECRET_NAME = 'ca-cert-secret'
+PORTABLE_SECRETS_PATHS = [f'{MGT_API_NAMESPACE}/minio-access-info',
+                          f'{MGT_API_NAMESPACE}/tls-secret']
 
 minio_client = boto3.client('s3',
                             endpoint_url=MINIO_ENDPOINT_ADDR,

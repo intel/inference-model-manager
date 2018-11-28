@@ -4,6 +4,7 @@ metadata:
   labels:
     app: dex
   name: dex
+  namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
   template:
@@ -39,4 +40,4 @@ spec:
       - name: https-tls
         secret:
           defaultMode: 420
-          secretName: tls-ing-dex-secret
+          secretName: dex-key-cert

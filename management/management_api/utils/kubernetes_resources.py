@@ -191,7 +191,7 @@ def get_endpoint_status(api_instance, namespace, endpoint_name):
             pod_phases.append(pod_phase)
     running = sum(pod_phase == 'Running' for pod_phase in pod_phases)
     pending = sum(pod_phase == 'Pending' for pod_phase in pod_phases)
-    failed = sum(pod_phase == 'Failed' for pod_phase in pod_phase)
+    failed = sum(pod_phase == 'Failed' for pod_phase in pod_phases)
     status = {'Running pods': running, 'Pending pods': pending, 'Failed pods': failed}
     return status
 

@@ -1,5 +1,6 @@
 image: <image_path>
 tag: <image_tag>
+namespace: "mgt-api"
 service:
   name: management-api
   type: LoadBalancer
@@ -20,9 +21,23 @@ ingress:
      secretName: tls-management-secret
      hosts: <management_api_desired_dns>
 resources: {}
-platformDomain: <dns_for_platform>
+platformDomain: <dns_for_manager>
+dexUrl: "https://dex.dex:443"
 dexTokenPath: "/dex/token"
 dexAuthPath: "/dex/auth"
 platformAdmin: "platform_admin"
 adminScope: "admin"
-systemNamespace: "default"
+ingNamespace: 'ingress-nginx'
+minio:
+  secretCreate: true
+  accessKey: <minio_access_key>
+  secretKey: <minio_secret_key>
+  endpoint: <minio_endpoint>
+  endpointUrl: <minio_endpoint_url>
+  minioRegion: "us-east-1"
+  minioSignatureVersion: "s3v4"
+dex:
+  id: example-app
+  redirectURIs: 'http://127.0.0.1:5555/callback'
+  name: 'Example App'
+  secret: ZXhhbXBsZS1hcHAtc2VjcmV0

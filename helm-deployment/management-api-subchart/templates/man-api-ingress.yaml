@@ -6,6 +6,7 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: {{ .Values.service.name }}
+  namespace: {{ .Values.namespace }}
   labels:
     chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
     release: {{ .Release.Name }}
@@ -24,7 +25,7 @@ spec:
               serviceName: {{ $serviceName }}
               servicePort: {{ $servicePort }}
   tls:
-    - secretName: tls-management-secret
+    - secretName: tls-ing-management-secret
       hosts:
         - {{ $host }}
 {{- end -}}
