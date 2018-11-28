@@ -1,7 +1,7 @@
-## Inferno Platform
+## Inference Model Manager for Kubernetes
 [![CircleCI](https://circleci.com/gh/NervanaSystems/inferno-platform.svg?style=svg&circle-token=677ac34c125509e550220a080f4f8f68dfb8729c)](https://circleci.com/gh/NervanaSystems/inferno-platform)
 
-**Inferno Platform** is built on top of Kubernetes and provides solution for deploying, hosting and 
+**Inference Model Manager for Kubernetes** is built on top of Kubernetes and provides solution for deploying, hosting and 
 managing inference processing endpoints exposed over gRPC protocol.  
  
 Two types of interfaces are presented:
@@ -21,7 +21,7 @@ accessible externally via well-known URL.
 
 For more information about managing tenants, endpoints and models see 
 [Management API overview](./management/README.md)  
-For example usage of platform see [example client for Resnet model](./examples/grpc_client/README.md)
+For example usage of Inference Model Manager for Kubernetes see [example client for Resnet model](./examples/grpc_client/README.md)
 
 ##
 ### Third-party components

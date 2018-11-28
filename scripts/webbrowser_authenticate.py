@@ -129,7 +129,7 @@ def parse_args():
 def main():
     args = parse_args()
     print(args.ca_cert)
-    config_file_path = getenv('INFERNO_CONFIG_PATH', join(expanduser("~"), '.inferno'))
+    config_file_path = getenv('IMM_CONFIG_PATH', join(expanduser("~"), '.imm'))
     auth_url = get_dex_auth_url(address=args.address, port=args.port, ca_cert_path=args.ca_cert)
     auth_url_with_refresh_token = enable_getting_refresh_token(auth_url)
 

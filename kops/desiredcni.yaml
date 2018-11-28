@@ -11,7 +11,7 @@ spec:
     rbac: {}
   channel: stable
   cloudProvider: gce
-  configBase: gs://kubernetes-clusters-inferno/toreplacebyclustername.k8s.local
+  configBase: gs://kubernetes-clusters-imm/toreplacebyclustername.k8s.local
   etcdClusters:
   - etcdMembers:
     - instanceGroup: master-us-west1-a

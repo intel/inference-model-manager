@@ -37,7 +37,7 @@ Operations:
 Resources:
 	tenant (t), endpoint (e), model (m)
 Environment variables:
-	CFG_FILE - platform config file
+	IMM_CONFIG_PATH - Inference Model Manager config file
 	MANAGEMENT_API_ADDRESS - management api address
 	MANAGEMENT_API_PORT - management api port
 	CERT - path to certificate for tenant creation
@@ -49,8 +49,8 @@ EOF
 
 VERBOSE=0
 OPTIND=1
-DEFAULT_CFG_FILE=~/.inferno
-CFG_FILE=${CFG_FILE:=${DEFAULT_CFG_FILE}}
+DEFAULT_CFG_FILE=~/.imm
+IMM_CONFIG_PATH=${IMM_CONFIG_PATH:=${DEFAULT_CFG_FILE}}
 
 while getopts "hva:p:c:" opt; do
 	case $opt in
@@ -65,8 +65,8 @@ while getopts "hva:p:c:" opt; do
 		p)	MANAGEMENT_API_PORT=$OPTARG
 			echo "Management api port: ${MANAGEMENT_API_PORT}"
 			;;
-		c)	CFG_FILE=$OPTARG
-			echo "Config file: ${CFG_FILE}"
+		c)	IMM_CONFIG_PATH=$OPTARG
+			echo "Config file: ${IMM_CONFIG_PATH}"
 			;;
 		*)	show_help >&2
 			exit 1
@@ -86,10 +86,10 @@ PARAM_6=$8
 PARAM_7=$9
 PARAM_8=${10}
 
-if [[ -s ${CFG_FILE} ]]; then
-	TOKEN=`cat ${CFG_FILE} | jq -r '.id_token'`
-	[[ -z "${MANAGEMENT_API_ADDRESS}" ]] && MANAGEMENT_API_ADDRESS=`cat ${CFG_FILE} | jq -r '.management_api_address'`
-	[[ -z "${MANAGEMENT_API_PORT}" ]] && MANAGEMENT_API_PORT=`cat ${CFG_FILE} | jq -r '.management_api_port'`
+if [[ -s ${IMM_CONFIG_PATH} ]]; then
+	TOKEN=`cat ${IMM_CONFIG_PATH} | jq -r '.id_token'`
+	[[ -z "${MANAGEMENT_API_ADDRESS}" ]] && MANAGEMENT_API_ADDRESS=`cat ${IMM_CONFIG_PATH} | jq -r '.management_api_address'`
+	[[ -z "${MANAGEMENT_API_PORT}" ]] && MANAGEMENT_API_PORT=`cat ${IMM_CONFIG_PATH} | jq -r '.management_api_port'`
 elif [[ ${OPERATION} != "login" ]]; then
 	echo "Please login first"
 	exit 0
@@ -210,18 +210,18 @@ case "$OPERATION" in
 		fi
 		[[ -z ${MANAGEMENT_CA_CERT_PATH} ]] && MANAGEMENT_CA_CERT_PATH="" || MANAGEMENT_CA_CERT_PATH="--ca_cert ${MANAGEMENT_CA_CERT_PATH}"
 		python webbrowser_authenticate.py --address ${MANAGEMENT_API_ADDRESS} --port ${MANAGEMENT_API_PORT} ${MANAGEMENT_CA_CERT_PATH}
-		TOKEN=`cat "${CFG_FILE}" | jq -r '.id_token'`
+		TOKEN=`cat "${IMM_CONFIG_PATH}" | jq -r '.id_token'`
 		echo ${TOKEN}
 		;;
 	logout)
 		read -r -p "Are you sure? This will remove all tokens from your config file. [y/n] " response
 		if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
-			if [ -f ${CFG_FILE} ]; then
-				CFG_WITHOUT_TOKENS=`cat ${CFG_FILE} | jq -c '{management_api_address, management_api_port}'`
-				echo ${CFG_WITHOUT_TOKENS} > ${CFG_FILE}
+			if [ -f ${IMM_CONFIG_PATH} ]; then
+				CFG_WITHOUT_TOKENS=`cat ${IMM_CONFIG_PATH} | jq -c '{management_api_address, management_api_port}'`
+				echo ${CFG_WITHOUT_TOKENS} > ${IMM_CONFIG_PATH}
 				echo "Signed out"
 			else
-				echo "Config file ${CFG_FILE} does not exist"
+				echo "Config file ${IMM_CONFIG_PATH} does not exist"
 			fi
 		fi
 		;;

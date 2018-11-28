@@ -31,7 +31,7 @@ def read_config(file_path):
 
 
 def main():
-    config_file_path = getenv('INFERNO_CONFIG_PATH', join(expanduser("~"), '.inferno'))
+    config_file_path = getenv('IMM_CONFIG_PATH', join(expanduser("~"), '.imm'))
     config = read_config(config_file_path)
     ca_cert_path = check_cert(config['ca_cert_path'])
     new_config = get_dex_auth_token(config['management_api_address'], config['management_api_port'],

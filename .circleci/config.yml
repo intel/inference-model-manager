@@ -59,9 +59,9 @@ jobs:
             echo 'export KOPS_FEATURE_FLAGS=AlphaAllowGCE' >> $BASH_ENV
             echo 'export PR_NR=`basename ${CIRCLE_PULL_REQUEST}`' >> $BASH_ENV
             echo 'export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`' >> $BASH_ENV
-            echo 'export CLUSTER_NAME="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}.k8s.local"' >> $BASH_ENV
-            echo 'export CLUSTER_NAME_SHORT="inferno-${SHORT_SHA1}-${CIRCLE_BRANCH}"' >> $BASH_ENV
-            echo 'export KOPS_STATE_STORE=gs://kubernetes-clusters-inferno' >> $BASH_ENV
+            echo 'export CLUSTER_NAME="imm-${SHORT_SHA1}-${CIRCLE_BRANCH}.k8s.local"' >> $BASH_ENV
+            echo 'export CLUSTER_NAME_SHORT="imm-${SHORT_SHA1}-${CIRCLE_BRANCH}"' >> $BASH_ENV
+            echo 'export KOPS_STATE_STORE=gs://kubernetes-clusters-imm' >> $BASH_ENV
             echo 'export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp-key.json"' >> $BASH_ENV
             echo 'export CLUSTER_NAME_SHORT_TP=`echo ${CLUSTER_NAME_SHORT} | cut -c 1-20`' >> $BASH_ENV
             echo 'export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"' >> $BASH_ENV
@@ -195,7 +195,7 @@ jobs:
             cd ~/inferno-platform/helm-deployment/ing-subchart/certs
             export CERT=`cat ca-cert-tf.crt | base64 -w0`
             echo "Creating cluster role binding for group admin"
-            kubectl create clusterrolebinding inferno-cluster-admin-binding --clusterrole cluster-admin  --group admin
+            kubectl create clusterrolebinding imm-cluster-admin-binding --clusterrole cluster-admin  --group admin
             while [ -z $ING_IP ]; do sleep 10; ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}'); done
             export ING_DOMAIN=`kubectl get ing -o=jsonpath='{.items..spec.tls..hosts}' | sed 's/[][]//g'`
             echo "${ING_IP} ${ING_DOMAIN}" | sudo tee -a /etc/hosts

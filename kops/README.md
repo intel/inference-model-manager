@@ -9,7 +9,7 @@ sudo mv ./kops /usr/local/bin/
 
 #### Create bucket to store k8s cluster configuration
 ```
-gsutil mb gs://kubernetes-clusters-inferno/
+gsutil mb gs://kubernetes-clusters-imm/
 ```
 
 #### Create all required environment variables
@@ -20,12 +20,12 @@ export GOOGLE_APPLICATION_CREDENTIALS="/home/<user.name>/.config/gcloud/legacy_c
 ```
 Replace bucket name if needed
 ```
-export KOPS_STATE_STORE=gs://kubernetes-clusters-inferno
+export KOPS_STATE_STORE=gs://kubernetes-clusters-imm
 ```
 
 #### Create cluster
 ```
-kops create cluster <cluster-name>.k8s.local --zones us-central1-a --state gs://kubernetes-clusters-inferno --project=${PROJECT}
+kops create cluster <cluster-name>.k8s.local --zones us-central1-a --state gs://kubernetes-clusters-imm --project=${PROJECT}
 kops update cluster <cluster-name>.k8s.local --yes
 export NAME=<cluster-name>.k8s.local
 kops export kubecfg ${NAME}

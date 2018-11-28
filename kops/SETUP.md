@@ -13,7 +13,7 @@ export CLUSTER_NAME="<clustername>"
 
 sed -i "s/toreplacebyclustername/${CLUSTER_NAME}/g" desired.yaml
 kops create -f desired.yaml
-export KOPS_STATE_STORE=gs://kubernetes-clusters-inferno
+export KOPS_STATE_STORE=gs://kubernetes-clusters-imm
 kops update cluster <clustername>.k8s.local --yes
 export NAME=<cluster-name>.k8s.local
 kops export kubecfg ${NAME}
@@ -22,13 +22,6 @@ kubectl create sa tiller --namespace kube-system
 kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
 helm init --debug --upgrade --service-account tiller
 
-cd ../helm-deployment/
-helm dep up .
-helm install --name inferno-platform .
-
-while [ -z $ING_IP ]; do sleep 10; ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}'); done
-
-echo $ING_IP
 ```
 ## ADD A RECORD IN AWS ROUTE 53
 

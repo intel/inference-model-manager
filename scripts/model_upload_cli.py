@@ -25,7 +25,7 @@ from model_upload import upload_model
 
 
 def read_config():
-    config_path = getenv('INFERNO_CONFIG_PATH', join(expanduser("~"), '.inferno'))
+    config_path = getenv('IMM_CONFIG_PATH', join(expanduser("~"), '.imm'))
     with open(config_path) as config_file:
         config = json.load(config_file)
     return config
@@ -49,7 +49,7 @@ def part_size_t(value):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Inferno Model Uploader')
+    parser = argparse.ArgumentParser(description='Model Uploader')
     parser.add_argument('file_path', type=str,
                         help='Path to file with model to upload')
     parser.add_argument('model_name', type=str,

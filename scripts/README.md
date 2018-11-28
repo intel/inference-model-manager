@@ -9,8 +9,8 @@ A special script for authentication has been created, it is available under the 
 webbrowser_authenticate.py
 ```
 It runs the appropriate page for authentication in the browser, then after the correct login it saves the token and refresh token to the file.
-By default this is the path `~/.inferno`.
-This path can be changed by setting the `INFERNO_CONFIG_PATH` environment variable.  
+By default this is the path `~/.imm`.
+This path can be changed by setting the `IMM_CONFIG_PATH` environment variable.  
 Command to run the script:
 
 ```
