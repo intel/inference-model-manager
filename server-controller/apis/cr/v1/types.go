@@ -29,15 +29,15 @@ import (
 )
 
 // GroupName is the group name used in this package.
-const GroupName = "aipg.intel.com"
+const GroupName = "ai.intel.com"
 
 const Version = "v1"
 
-const ServerResourceKind = "Server"
+const ServerResourceKind = "Inference-Endpoint"
 
-const ServerResourceSingular = "server"
+const ServerResourceSingular = "inference-endpoint"
 
-const ServerResourcePlural = "servers"
+const ServerResourcePlural = "inference-endpoints"
 
 var (
 	// GVK unambiguously identifies the stream predicition kind.
