@@ -39,7 +39,7 @@ With `--performance` flag enable perfomance information.
 
 ##
 ## Create numpy array with images
-You can provide list or directory containing Imagenet images to `/inferno-platform/common/images_2_numpy.py` script in order 
+You can provide list or directory containing Imagenet images to `/inference-model-manager/common/images_2_numpy.py` script in order 
 to create numpy array to feed `grpc_client.py`. That is not required step.
 
 Note that this script doesn't provide preprocessing of data.

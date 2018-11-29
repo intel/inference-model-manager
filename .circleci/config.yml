@@ -3,44 +3,44 @@ jobs:
   style_and_unit_tests:
     docker:
       - image: circleci/python:3.6.6-jessie-browsers
-    working_directory: ~/inferno-platform
+    working_directory: ~/inference-model-manager
     steps:
       - setup_remote_docker
       - checkout
       - run:
           name: Create venv
           command: |
-            cd ~/inferno-platform/
+            cd ~/inference-model-manager
             python3 -m venv .venv
       - run:
           name: Style checker
           command: |
-            . ~/inferno-platform/.venv/bin/activate
+            . ~/inference-model-manager/.venv/bin/activate
             pip install -q flake8==3.5.0
-            echo "management folder" && cd ~/inferno-platform/management/ && make style
-            echo "tests folder && " && cd ~/inferno-platform/tests/ && make style
-            echo "scripts folder" && cd ~/inferno-platform/scripts/ && flake8 --max-line-length 100
+            echo "management folder" && cd ~/inference-model-manager/management/ && make style
+            echo "tests folder && " && cd ~/inference-model-manager/tests/ && make style
+            echo "scripts folder" && cd ~/inference-model-manager/scripts/ && flake8 --max-line-length 100
       - run:
           name: Run unit tests
           command: |
-            . ~/inferno-platform/.venv/bin/activate
-            cd ~/inferno-platform/management/ && python setup.py test
+            . ~/inference-model-manager/.venv/bin/activate
+            cd ~/inference-model-manager/management/ && python setup.py test
   functional_tests:
     docker:
       - image: circleci/python:3.6.6-jessie-browsers
-    working_directory: ~/inferno-platform
+    working_directory: ~/inference-model-manager
     steps:
       - setup_remote_docker
       - checkout
       - run:
           name: Create venv
           command: |
-            cd ~/inferno-platform/
+            cd ~/inference-model-manager/
             python3 -m venv .venv
       - run:
           name: Choose region
           command: |
-            cd ~/inferno-platform/kops
+            cd ~/inference-model-manager/kops
             export BRANCH=$(git symbolic-ref --short HEAD)
             echo $REGION_JSON
             if [ "$BRANCH" != "master" ]
@@ -82,12 +82,12 @@ jobs:
       - run:
           name: Generate certificates for dex external service
           command: |
-            cd ~/inferno-platform/helm-deployment/dex-subchart/certs
+            cd ~/inference-model-manager/helm-deployment/dex-subchart/certs
             ./generate-ing-dex-certs.sh
       - run:
           name: Create k8s cluster
           command: |
-            echo "${GOOGLE_INFERNO_KEY}" | base64 -d > /tmp/gcp-key.json
+            echo "${GOOGLE_IMM_KEY}" | base64 -d > /tmp/gcp-key.json
             echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
             curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
             sudo apt-get update && sudo apt-get install -y google-cloud-sdk
@@ -104,11 +104,11 @@ jobs:
             chmod +x ./kops
             sudo mv ./kops /usr/local/bin/
             export PROJECT=`gcloud config get-value project`
-            cd ~/inferno-platform/kops
+            cd ~/inference-model-manager/kops
             
             sed -i "s/toreplacebyclustername/${CLUSTER_NAME_SHORT}/g" desiredcni.yaml
             sed -i "s@toreplacebyissuer@${ISSUER}@g" desiredcni.yaml
-            cp ~/inferno-platform/helm-deployment/dex-subchart/certs/ca-ing-dex.crt .
+            cp ~/inference-model-manager/helm-deployment/dex-subchart/certs/ca-ing-dex.crt .
             sed -i 's/^/      /' ca-ing-dex.crt
             sed -i -e '/replace_by_certificate/{r ca-ing-dex.crt' -e 'd}' desiredcni.yaml
             kops create -f desiredcni.yaml
@@ -128,12 +128,12 @@ jobs:
       - run:
           name: Check management api images version
           command: |
-            cd ~/inferno-platform/
+            cd ~/inference-model-manager/
             export TAG=$(find management/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
             export TAG_EXISTS=$(gcloud container images list-tags gcr.io/constant-cubist-173123/management-api | grep $TAG)
             echo $TAG
             echo $TAG_EXISTS
-            cd ~/inferno-platform/management
+            cd ~/inference-model-manager/management
             if [ -z "$TAG_EXISTS" ]; then
                make circleci
             else
@@ -142,12 +142,12 @@ jobs:
       - run:
           name: Check CRD controller image version
           command: |
-            cd ~/inferno-platform
+            cd ~/inference-model-manager
             export TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
             export TAG_EXISTS=$(gcloud container images list-tags gcr.io/constant-cubist-173123/server-controller-prod | grep $TAG)
             echo $TAG
             echo $TAG_EXISTS
-            cd ~/inferno-platform/server-controller/
+            cd ~/inference-model-manager/server-controller/
             if [ -z "$TAG_EXISTS" ]; then
                make circleci
             else
@@ -158,15 +158,15 @@ jobs:
           command: |
             export MGMT_TAG=$(find management/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
             export CRD_TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
-            cd ~/inferno-platform/tests/deployment
+            cd ~/inference-model-manager/tests/deployment
             sed -i "s@toreplacedbyissuer@${ISSUER}@g" dex_config.yaml
-            cd ~/inferno-platform/tests/deployment
+            cd ~/inference-model-manager/tests/deployment
             ./deployment_platform.sh
             sleep 150
       - run:
           name: Create record in AWS Route53
           command: |    
-            cd ~/inferno-platform/kops/
+            cd ~/inference-model-manager/kops/
             while [ -z $ING_IP ]; do sleep 10; ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}' -n mgt-api); done
                   
             sed -i "s/0.0.0.0/${ING_IP}/g" route_record.json
@@ -181,24 +181,24 @@ jobs:
       - run:
           name: Install Certificates
           command: |
-            sudo cp ~/inferno-platform/helm-deployment/management-api-subchart/certs/ca-ing-mgt-api.crt /usr/local/share/ca-certificates/ca-ing-mgt-api.crt
-            sudo cp ~/inferno-platform/helm-deployment/dex-subchart/certs/ca-ing-dex.crt /usr/local/share/ca-certificates/ca-ing-dex.crt
+            sudo cp ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-ing-mgt-api.crt /usr/local/share/ca-certificates/ca-ing-mgt-api.crt
+            sudo cp ~/inference-model-manager/helm-deployment/dex-subchart/certs/ca-ing-dex.crt /usr/local/share/ca-certificates/ca-ing-dex.crt
             sudo update-ca-certificates
             # Commands below are necessary to enable developers debug their builds
             echo "MANAGEMENT API CA"
-            cat ~/inferno-platform/helm-deployment/management-api-subchart/certs/ca-ing-mgt-api.crt
+            cat ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-ing-mgt-api.crt
             echo "DEX CA"
-            cat ~/inferno-platform/helm-deployment/dex-subchart/certs/ca-ing-dex.crt
+            cat ~/inference-model-manager/helm-deployment/dex-subchart/certs/ca-ing-dex.crt
       - run:
           name: Run tests
           command: |
-            . ~/inferno-platform/.venv/bin/activate
-            cd ~/inferno-platform/helm-deployment/management-api-subchart/certs
+            . ~/inference-model-manager/.venv/bin/activate
+            cd ~/inference-model-manager/helm-deployment/management-api-subchart/certs
             export CERT=`cat ca-cert-tf.crt | base64 -w0`
             echo "Creating cluster role binding for group admin"
             kubectl create clusterrolebinding inferno-cluster-admin-binding --clusterrole cluster-admin  --group admin
             export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
-            cd ~/inferno-platform/tests
+            cd ~/inference-model-managertests
             pip install -q -r requirements.txt
             . run_test.sh
       - run:
@@ -220,7 +220,7 @@ jobs:
             helm ls --short | xargs -L1 helm --debug delete
             sleep 3m
             kops delete cluster ${CLUSTER_NAME} --yes
-            cd ~/inferno-platform/kops
+            cd ~/inference-model-managerkops
             sed -i "s/0.0.0.0/${ING_IP}/g" route_delete.json
             sed -i "s/toreplacebydomainname/${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com/g" route_delete.json
             cat route_delete.json
@@ -238,7 +238,7 @@ jobs:
             helm ls --short | xargs -L1 helm --debug delete
             sleep 3m
             kops delete cluster ${CLUSTER_NAME} --yes
-            cd ~/inferno-platform/kops
+            cd ~/inference-model-manager/kops
             sed -i "s/0.0.0.0/${ING_IP}/g" route_delete.json
             sed -i "s/toreplacebydomainname/${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com/g" route_delete.json
             cat route_delete.json
