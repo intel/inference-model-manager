@@ -198,7 +198,7 @@ jobs:
             echo "Creating cluster role binding for group admin"
             kubectl create clusterrolebinding inferno-cluster-admin-binding --clusterrole cluster-admin  --group admin
             export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
-            cd ~/inference-model-managertests
+            cd ~/inference-model-manager/tests
             pip install -q -r requirements.txt
             . run_test.sh
       - run:
@@ -220,7 +220,7 @@ jobs:
             helm ls --short | xargs -L1 helm --debug delete
             sleep 3m
             kops delete cluster ${CLUSTER_NAME} --yes
-            cd ~/inference-model-managerkops
+            cd ~/inference-model-manager/kops
             sed -i "s/0.0.0.0/${ING_IP}/g" route_delete.json
             sed -i "s/toreplacebydomainname/${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com/g" route_delete.json
             cat route_delete.json
