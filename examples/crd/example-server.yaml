@@ -1,0 +1,9 @@
+apiVersion: "intel.com/v1"
+kind: Server
+metadata:
+  name: example-endpoint
+spec:
+  modelName: "resnet_v1_50"
+  modelVersion: 1
+  subjectName: "client-name"
+  endpointName: "resnet"

@@ -3,7 +3,6 @@ tag: <image_tag>
 namespace: "mgt-api"
 service:
   name: management-api
-  type: LoadBalancer
   externalPort: 443
 ingress:
   enabled: true

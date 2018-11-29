@@ -1,11 +1,30 @@
-## Server controller
+# Server controller
 
-It is an implementation of custom resource definition controller aimed to automate Tensorflow Serving 
-instances management.
+CRD controller installation is extending the Kubernetes API definition to additional CRD record type called ‘servers.aipg.intel.com’. 
+Its definition is included in [crd.yaml](../helm-deployment/crd-subchart/templates/crd.yaml)
+The controller is monitoring the status of ‘servers.aipg.intel.com’ CRD records and applies required changes 
+in linked Kubernetes deployments, services and ingress resources. 
 
-### Local development
+This way managing all aspects of serving inference endpoints can be delegated to a single Kubernetes record. 
+It makes the management much simpler and allows delegating for the users permissions to manage the inference endpoint 
+without exposing other operations and resources in Kubernetes like pods, secrets and config maps.
 
-#### Prerequisites
+## Docker image building
+
+```
+make docker_build
+```
+While the docker image is built it should be pushed to a docker registry accessible by the K8S cluster.
+
+
+## Deployment in Kubernetes cluster
+
+Refer to the [helm chart](../helm-deployment/crd-subchart) documentation. 
+
+
+## Development guide
+
+### Prerequisites
 It is golang project so you need to [prepare workspace](https://golang.org/doc/code.html) 
 in order to easily develop it.
 In order to re-generate deep copy operations for CRD structures you will need deepcopy package.
@@ -20,37 +39,43 @@ cd server-controller/
 dep ensure -v
 ```
 
-#### Building
+### Inference Endpoint configuration files
+
+Currently all the inference endpoints in the platform are being provisioned using the templates from [resources](resources).
+They are fixed at the docker image building time.
+
+In plans is adding more flexibility to define multiple templates at run-time in the form of K8S config maps.
+
+
+### Local building
 In order to build server-controller locally please use following command
 ```
 go build -v -i .
 ```
 
-### Production build
+### Continuous integration build
 For production usage Dockerfile.prod shall be built and deployed.
 To do so please use following make command:
 ```
-# assuming you are in ./inferno-platform/server-controller
-# and ~/.netrc file is prepared and located here
 make circleci
 ```
 
 ### Local execution
 Server controller requires $PLATFORM_DOMAIN environment variable to be set. It shall contain domain 
 name for the system, controller will operate in.
-As a result endpoints created by it will be distinguishable from each other thanks to subdomains in 
-one provided domain (e.g. endpointName-namespace.PLATFORM_DOMAIN).
+Endpoints created by the controller will include the domain name (e.g. endpointName-namespace.PLATFORM_DOMAIN)
+
 ```
 # Assumes you have a working kubeconfig. Not required if operating in-cluster.
 export PLATFORM_DOMAIN=some-domain.com
 ./server-controller -kubeconfig=$HOME/.kube/config
 ```
 
-### Use Cases
+### Testing
 
-#### Creation of new Tensorflow Serving instance.
-In order to create new Tensorflow Serving instance you need to provide description of it in Yaml 
-file form. To see reference go to CRD definition in inferno-platform/CRD. There is one resource file
+#### Creation of new inference endpoint.
+In order to create new Inference Endpoint you need to provide description of it in a yaml 
+file.  There is one resource file
 with example called example-server.yaml.
 In order to add it to existing kubernetes just type:
 ```kubectl create -f example-server.yaml```
@@ -58,8 +83,8 @@ In order to add it to existing kubernetes just type:
 Server-controller will spin new deployment, service and ingress record for you.
 
 ### Resources removal
-In order to remove all resources that sums up to your Tensorflow Serving instance just remove CRD 
+In order to remove all resources that sums up to your Inference Endpoint just remove CRD 
 resource you introduced:
-```kubectl delete servers.aipg.intel.com my-super-server```
+```kubectl delete servers.aipg.intel.com example-endpoint```
 
 

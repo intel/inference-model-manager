@@ -21,6 +21,9 @@ VERSION := $(shell git describe --tags --always --dirty)
 IMAGE ?= server-controller-prod
 TAG ?= latest
 
+HTTP_PROXY := "$(http_proxy)"
+HTTPS_PROXY := "$(https_proxy)"
+
 docker_build:
 	docker build --build-arg http_proxy=$(HTTP_PROXY) --build-arg https_proxy=$(HTTPS_PROXY) -f Dockerfile.prod -t $(IMAGE):$(TAG) .
 

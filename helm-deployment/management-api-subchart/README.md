@@ -1,26 +1,51 @@
-## Helm deployment of Management-api
+# Helm deployment of Management-api
 
-### Preparation to installation
+## Preperations
 
-You have to set all values specify in this chapter to properly run this chart
-```image: <crd_image_path> - path to image
-   tag: <crd_image_tag> - iamge tag
-   ingress:
-     hosts: <management_api_desired_dns> - address to management api
-     tls:
-        hosts: <management_api_desired_dns> - address to management api
-   resources: {} - it`s optionall, if you want you can specify resources for dex
-   platformDomain: - platform dns
+Generate K8S cluster internal TLS certificates to be used in Management API component
 ```
-Also you have to make sure that you already have deploy ```minio-access-info``` secret.
-Platform required ssl to internal traffic. We recommend to use for this purpose our script ```generate-management-api-certs.sh``` located in ```certs``` directory.
-Before running the script mentioned above, set the environment variable ```MGT_NAMESPACE```
+cd helm-deployment/management-api-subchart/certs/
+export MGT_NAMESPACE=<namespace for mgt api>
+./generate-management-api-certs.sh
+```
 
-### Installation
+Generate external TLS certificates to ingress or arrange trusted certificates from your CA and place them with the same
+names in certs folder. 
+```
+./generate-ing-management-api-certs.sh
+```
+For security reasons it is strongly recommended to secure external ingress endpoints using TLS certificates from a 
+trusted Certificate Authority.
 
-To install this chart after preparation phase use:
-```helm install .```
+## Installation
 
+Adjust the helm chart `values.yaml` as needed. Specifically set:
+
+```
+minio.endpoint - minio clusterIP and port for example "minio.namespace:9000" 
+MINIO_URL - for example "http://minio.namespace:9000
+image - docker image name with Management API component
+tag - docker image tag with Management API component
+platformDomain - DNS domain to be used for new Inference Endpoints
+ingress.hosts,ingress.tls.hosts - DNS name for the Management API external interface
+minio.accessKey - MinIo access key
+minio.secretKey - MinIo secret
+platformAdmin - the group with Platform admin permissions - should match JWT token groups scope
+```
+
+The group set in `platformAdmin` parameter is being granted kubernetes cluster role binding to enable managing 
+all inferenece tenanats and kubernetes namespaces.
+ 
+In case `dexUrl` is pointing to dex internal service name which is protected using a TLS certificate with a self-signed CA,
+you need to copy the dex CA certificate to `certs` folder with a name `ca-dex.crt`. This way Management API will be
+able to connect securely with the dex endpoints.
+When `dexUrl` is using external ingress URL with a trusted certificate this step is not required.
+
+
+Execute helm installation via:
+```
+helm install .
+```
 
 ## MANUAL STEP REQUIRED TO USE MINIO WITH SELF-SIGNED CERTIFICATES
 
@@ -62,7 +87,8 @@ kubectl edit secret minio-access-info
 
 Replace current value of minio.endpoint_url with your minio url, started with https, base64 encoded.
 
-### MANUAL STEPS REQUIRED TO REPLACE MINIO WITH AWS S3
+
+## MANUAL STEPS REQUIRED TO REPLACE MINIO WITH AWS S3
 
 Edit secret with minio access information:
 ```

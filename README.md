@@ -1,39 +1,38 @@
-## Inference Model Manager for Kubernetes
-[![CircleCI](https://circleci.com/gh/NervanaSystems/inferno-platform.svg?style=svg&circle-token=677ac34c125509e550220a080f4f8f68dfb8729c)](https://circleci.com/gh/NervanaSystems/inferno-platform)
+# Inference Model Manager for Kubernetes
 
-**Inference Model Manager for Kubernetes** is built on top of Kubernetes and provides solution for deploying, hosting and 
-managing inference processing endpoints exposed over gRPC protocol.  
- 
-Two types of interfaces are presented:
-* Management API with token based authentication and authorization,
-* gRPC Inference Endpoints with MTLS client authentication and Tensorflow Serving API.
+*Inference Model Manager for Kubernetes* is an open source SW platform intended to provide convenient solution for 
+hosting, management and scaling inference processing endpoints exposed over gRPC protocol.
 
-##
-#### Management API
-Management API has two primary functions:
-* manage the AI models stored in Minio buckets using access control based on OpenID tokens,
-* provide REST API for managing tenants and inference endpoints instead of using Kubernetes API 
-or kubectl commands directly.  
 
-#### Inference Endpoints
-Each model is represented as Inference Endpoint and hosted as Tensorflow Serving instance. They are 
-accessible externally via well-known URL.
+It is built on top of Kubernetes and integrates with Tensorflow Serving for exposing the inference endpoints.
+In the plans is also support for integration with other model serving components like 
+[OpenVINO Model Server](https://github.com/IntelAI/OpenVINO-model-server).
 
-For more information about managing tenants, endpoints and models see 
-[Management API overview](./management/README.md)  
-For example usage of Inference Model Manager for Kubernetes see [example client for Resnet model](./examples/grpc_client/README.md)
+It is intended for organizations who dynamically deploy and scale inference endpoints.
+- Users are organized into tenants
+- Multiple tenants are supported with “soft” isolation between tenants	
 
-##
-### Third-party components
-* Minio/S3 for model storage
-* Identity provider which could be LDAP, GitHub or other provider supported by DEX
+Inference Model Manager for Kubernetes includes a custom REST API which simplifies the configuration and management of hosted inference services.
+Inference Model Manager integrates with Minio or other S3 compatible components used for storage of the AI models.
 
-##
-#### Cluster creation
+Inference Model Manager for Kubernetes conjoins inference services scalability and easy management with 
+security features like:
+- limiting access to inference endpoints to authorized clients only
+- preventing unauthorized access to management API
+- limiting access to tenant data based on group membership information from external identity provider.
 
-See [kops deployment](./kops/README.md)
+[Architecture overview](docs/architecture.md)
 
-##
-#### Platform deployment
+[Prerequisites and requirements](docs/prerequisites.md)
 
-See [deployment instruction](./helm-deployment/README.md)
+[Building platform components](docs/building.md)
+
+[Deployment guide](docs/deployment.md)
+
+[Platform admin guide](docs/platform_admin_guide.md)
+
+[Platform user guide](docs/platform_user_guide.md)
+
+[Example grpc client](examples/grpc_client)
+
+[Security recommendation for Kubernetes](docs/security_recommendations.md)

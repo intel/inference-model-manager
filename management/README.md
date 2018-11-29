@@ -1,5 +1,31 @@
-## Management API
+# Management API
 
+Management API component provides a convenience layer for controlling CRD records and handling AI models in MinIO storage.
+With that users and platform admin can control all aspects of Inference Endpoints functionality without direct access
+to Kubernetes API. 
+
+Authorization of the models management functions is implemented based on user token permissions in kubernetes namespace 
+associated with the MinIo bucket.
+ 
+All the kubernetes operations are executed by Management API component using the user token so the authorization 
+is configured in Kubernetes using appropriate user roles and role bindings. 
+
+The roles and permissions are created automatically by Management API during tenant creation. 
+
+
+## Docker image building
+
+```
+make docker_build
+```
+While the docker image is built it should be pushed to a docker registry accessible by the K8S cluster.
+
+## Deployment in Kubernetes cluster
+
+Refer to the [helm chart](../helm-deployment/management-api-subchart) documentation. 
+
+
+## API documentation
 
 ### Tenants
 Tenants are managed by Platform Admin. It is possible to take actions as follow:
@@ -111,10 +137,19 @@ curl -X GET "https://<management_api_address>:443/tenants/<namespace>/endpoints"
 Models are pretrained deep learning models able to be server via Tensoflow Serving.
 
 #### Upload model
-To upload model use `/inferno-platform/scripts/model_upload_cli.py`.  
+To upload model use `scripts/model_upload_cli.py`.  
 Run help to get information about usage:
 ```
 python model_upload_cli.py -h
+```
+
+#### Listing the models
+Listing the models will display the information about the stored models. 
+Example command:
+
+```
+curl -X GET "https://<management_api_address>:443/tenants/<namespace>/models" -H "accept: application/json" \
+-H "Authorization: <jwt_token>" -H "Content-Type: application/json" }"
 ```
 
 #### Delete model
@@ -126,6 +161,7 @@ curl -X DELETE "https://<management_api_address>:443/tenants/<namespace>/models"
 -H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
 -d "{\"modelName\": <string>, \"modelVersion\": <int>}"
 ```
-##
-### Script for API calls
-In `/inferno-platform/scripts` it is `api_call.sh` script presented which helps to make API requests easier.
+
+## Script for API calls
+
+You can refer to api_call.sh example CLI employing all API endpoints on [scripts](../scripts/)
