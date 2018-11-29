@@ -33,6 +33,7 @@ For testing purposes you can deploy MinIO using provided [example deployment aut
 Inference Model Manager requires nginx ingress controller to expose the gRPC inference endpoints and 
 other platform services like Management API and DEX. The recommended version is 0.17.1. 
 You can install it using the deployment procedure described on [automation scripts](../helm-deployment/ing-subchart)
+
 If you need to use version 0.20.0 or above it can still work but you would need to adjust manually the template for inference 
 ingress record in the 'server controller' [code](../server-controller/resources/ingress.tmpl) and update 
 nginx records template in the [config map](../helm-deployment/ing-subchart/nginx.tmpl). 
