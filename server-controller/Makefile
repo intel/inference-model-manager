@@ -36,7 +36,7 @@ test: lint
 	go test --cover ./apis/cr/v1
 
 code-generation:
-	deepcopy-gen -v 3 --input-dirs=github.com/NervanaSystems/inferno-platform/server-controller/apis/cr/v1/...
+	deepcopy-gen -v 3 --input-dirs=github.com/IntelAI/inference-model-manager/server-controller/apis/cr/v1/...
 
 docker_tag:
 	@ echo "tagging image"

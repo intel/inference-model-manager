@@ -38,7 +38,7 @@ python model_upload_cli.py --help
 usage: model_upload_cli.py [-h] [--part PART]
                            file_path model_name model_version tenant
 
-Inferno Model Uploader
+Inference Model Uploader
 
 positional arguments:
   file_path      Path to file with model to upload
