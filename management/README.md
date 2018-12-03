@@ -193,7 +193,7 @@ When an operation ends with success, it returns a statement (example for an endp
 ```
 Endpoint test-endpoint in test tenant: 
 {'Endpoint status': {'Running pods': 1, 'Pending pods': 0, 'Failed pods': 0}, 
-'Model path': {'url': 'endpoint-test.imm-165a35-aaa.nlpnp.adsdcsp.com:443'}, 'Subject name': 'client', 
+'Model path': {'url': 'endpoint-test.example-domain.com:443'}, 'Subject name': 'client', 
 'Resources': {'limits': {'cpu': '2', 'memory': '2Gi'}, 'requests': {'cpu': '1', 'memory': '1Gi'}}, 
 'Replicas': {'Available': 1, 'Unavailable': None}}
 ```
@@ -209,7 +209,7 @@ curl -X PATCH "https://<management_api_address>/tenants/<tenant-name>/endpoints/
 When an operation ends with success, it returns a statement (example for an endpoint with a name 
 `endpoint` from `test`):
 ```
-Endpoint {'url': 'endpoint-test.imm-165a35-aaa.nlpnp.adsdcsp.com:443'} patched successfully. 
+Endpoint {'url': 'endpoint-test.example-domain.com:443'} patched successfully. 
 New values: {'modelName': 'new-model', 'modelVersion': 1}
 ```
 
@@ -225,7 +225,7 @@ curl -X PATCH "https://<management_api_address>/tenants/<tenant-name>/endpoints/
 When an operation ends with success, it returns a statement (example for an endpoint with a name 
 `endpoint` from `test`):
 ```
-Endpoint {'url': 'endpoint-test.imm-165a35-aaa.nlpnp.adsdcsp.com:443'} patched successfully. New values: {'replicas': 2}
+Endpoint {'url': 'endpoint-test.example-domain.com:443'} patched successfully. New values: {'replicas': 2}
 ```
 
 ## Script for API calls
