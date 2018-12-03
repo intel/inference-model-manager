@@ -126,8 +126,6 @@ python webbrowser_authenticate.py --address <management_api ip> --port <manageme
 - `ENDPOINT_RESOURCES` - quota used for endpoint creation, default: `"{\"requests.cpu\": \"1\", \"requests.memory\": \"1Gi\", \"limits.cpu\": \"1\", \"limits.memory\": \"1Gi\"}"`
 
 More information: `./api_call.sh -h`.
-More info: `./api_call.sh -h`
-
 
 ### Uploading a model
 Recommended way to upload models is to use `model_upload_cli.py` script.  
