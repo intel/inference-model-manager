@@ -1,5 +1,48 @@
 # User Guide
 
+## Creating client certificates 
+
+Before gRPC client connect to the Inference Endpoints there should be generated for him
+a client TLS certificate which authenticates and authorizes the client to connect to the nginx ingress interface.
+
+This certificate needs to be signed by the CA certificate which was associated with the tenant during its creation
+by the Platform Admin.
+
+Here is the explanation of the anticipated process:
+- Tenant organization representative should generate a CA certificate using a command similar to:
+
+```bash
+openssl genrsa -des3 -out ca.key 4096 # it stored the private key encrypted
+or
+openssl genrsa -out ca.key 4096 # it stored the private key in plain text
+
+openssl req -new -x509 -days 3650 -key ca.key -out ca.crt
+```
+
+The file `ca/ca.key` should be stored securely by the users. It will be needed to create client certificates.
+
+The file `ca/ca.crt` needs to be passed to the Platform Admin to associate it with the new tenant.
+
+- Anyone can create a request for the client certificates with the following commands:
+```bash
+openssl genrsa -out client/client.key 4096
+openssl req -key client/client.key -new -out client/client.req # It will prompt for cert info including Common Name (Subject Name)
+```
+
+This `client.req` should be passed to the tenant user with the access to `ca.key` to generate the client certificate:
+```bash
+openssl x509 -req -sha256
+ -in client.req -CA ca.crt -CAkey ca.key -CAserial ca/file.srl -out client.crt
+```
+The generated `client.crt` should be returned to the user requesting the certificates.
+
+`client.crt` together with `client.key` can be used to authorize the client against the nginx ingress endpoints via MTLS.
+
+- Note that the Inference Endpoints needs to be configured to allow connections for the clients matching the certificate 
+`Subject Name` and signed by the appropriate CA configured in the tenant.
+
+Refer to [gRPC example client](../examples/grpc_client) to see how the credentials should be used by the client.
+
 ## Login operation
 
 All operations presented here require that the user is logged in to platform and has acquired JTW token from
@@ -12,7 +55,7 @@ Login operation is based on Oauth2 process. It can be implemented using [example
 
 ### Creating inference endpoints
 
-Creating endpoint will create deployment with Tensorflow Serving instance.  
+Creating endpoint creates a deployment with Tensorflow Serving instance.  
 Endpoints can be created by using a REST endpoint exposed by Management API with an address:
 
 `https://<management-api-address>/tenants/<tenant-name>/endpoints`
@@ -35,17 +78,16 @@ how the endpoint should be used.
 
 Similarly to the tenant level quotas it is possible to set endpoint level resource constraints. It can define the 
 limits for resource consumption and allocation on a single replica level in the Inference Endpoint.  
-User will be asked to provide the same set of resources as in the tenant quota.
-If tenant quota doesn’t specify all fields that user will want to be presented in endpoint, 
-he can extend a resources with needed values. If admin didn’t specify any quota in tenant, 
-user can still provide values for resources dictionary.  
+User is asked to provide the same set of resources as in the tenant quota.
+User can extend endpoint resources with additional values which are not specified in tenant's quota.
+If admin did not specify any quota in tenant, user can still provide values for resources dictionary.  
 Example of resources could be:
 `\”resources\” {\”requests.cpu\”: \”2\”, \”limits.cpu\”: \”4\”}`
 
 
 ### Listing inference endpoints
 
-Endpoints can be listed by using a REST endpoint exposed by Management API with an address:
+Endpoints can be listed using a REST endpoint exposed by Management API with an address:
 
 ```https://<management-api-address>/tenants/<tenant-name>/endpoints```
 
@@ -57,7 +99,7 @@ how the endpoint should be used.
 
 ### Deleting inference endpoints
 
-Endpoints can be deleted by using a REST endpoint exposed by Management API with an address:
+Endpoints can be deleted using a REST endpoint exposed by Management API with an address:
 
 ```https://<management-api-address>/tenants/<tenant-name>/endpoints```
 
@@ -68,7 +110,7 @@ how the endpoint should be used.
 
 ### Viewing inference endpoints
 
-Endpoints can be viewed by using a REST endpoint exposed by Management API with an address:
+Endpoints can be viewed using a REST endpoint exposed by Management API with an address:
 
 ```https://<management-api-address>/tenants/<tenant-name>/endpoints/<endpoint-name>```
 
@@ -84,7 +126,7 @@ how the endpoint should be used.
 
 ### Updating the inference endpoints
 
-Endpoints can be viewed by using a REST endpoint exposed by Management API with an address:
+Endpoints can be viewed using a REST endpoint exposed by Management API with an address:
 
 ```https://<management-api-address>/tenants/<tenant-name>/endpoints/<endpoint-name>```
  
@@ -99,7 +141,7 @@ how the endpoint should be used.
 
 ### Scaling inference endpoints
 
-Scaling is implementing by changing the number of replicas number of this endpoint. 
+Scaling is implemented by changing the number of replicas number of this endpoint. 
 Replicas number passed as a parameter for API call, will make a change in a deployment of endpoint’s CRD.
  
 Endpoints can be scaled by using a REST endpoint exposed by Management API with an address:
@@ -118,12 +160,12 @@ For “turning on” just call a scale operation and change replicas number for 
 
 ### Uploading AI model
 
-Management API is exposing a set of endpoints which enable uploading AI models to MinIo storage using multipart transfer.
+Management API is exposing a set of endpoints which enable uploading AI models to Minio storage using multipart transfer.
 It makes the upload operation reliable and fast even for big model files.
 
-Management API is managing the model versions the same way like TensorFlow Serving does.
-Each model name can have a list of versions are needs to be represented by a positive integer number.
-In the MinIo it forms a structure of folders like in the example below:
+Management API manages model versions the same way like TensorFlow Serving does.
+Each model can have a list of versions represented by a positive integer number.
+In the Minio it forms a structure of folders like in the example below:
 ```
 bucket_name
     model_name1
@@ -135,7 +177,7 @@ bucket_name
         1
             saved_model.pb
 ```
-Inference model servers are automatically pulling the models from the appropriate MinIo path by just referencing the 
+Inference model servers are automatically pulling models from the appropriate Minio path just by referencing the 
 tenant name (bucket), model name and model version.
 
 Below are described [example CLI options](../scripts/model_upload_cli.py) for uploading the models.
@@ -162,7 +204,7 @@ optional arguments:
 
 ## Listing the models
 
-Platform user can list names of models by using GET API request on 
+Platform user can list model names using GET API request on 
 `https://<management-api-address>/tenants/{tenant-name}/models` address.
 
 
@@ -170,7 +212,7 @@ Refer to the Management [API documentation](../management)
 
 ## Deleting the models
 
-Platform user can list names of models by using DELETE API request on 
+Platform user can delete models by using DELETE API request on 
 `https://<management-api-address>/tenants/{tenant-name}/models` address.
 
 Refer to the Management [API documentation](../management)

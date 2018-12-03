@@ -24,9 +24,9 @@ as used by K8S API.
 REST API is used for convenience and management simplification. A complete platform state is stored in kubernetes itself.
 
 Minio server with S3 is used for storage of the models. All user interaction with Minio are implemented via management API only. 
-It means that users do not need to connect to the MinIo directly and they don't need its credentials.
+It means that users do not need to connect to the Minio directly and they don't need its credentials.
 
-Management API acts as a proxy for filtering the traffic to MinIo based on token validity and user permissions. 
+Management API acts as a proxy for filtering the traffic to Minio based on token validity and user permissions. 
 
 ![architecture drawing](architecture.png)
 

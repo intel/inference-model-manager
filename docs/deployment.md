@@ -9,7 +9,7 @@ A prerequisite for the CRD controller functionality is the presence of [nginx in
 It should be deployed using created helm chart [ing-subchart](../helm-deployment/ing-subchart) or existing nginx controller 
 should be adjusted to include the required changes in nginx template. 
 
-There should be also accessible MinIo service. The person deploying the platform need to know MinIo endpoint URL,
+There should be also accessible Minio service. The person deploying the platform need to know Minio endpoint URL,
 access key id and access secret.
 
 CRD controller will be creating ingress records for defined inference endpoints relying on the TLS endpoint certificates 
@@ -80,7 +80,7 @@ Specifically kube-apiserver component in kubernetes needs to have included addit
 ## Management API server
 
 Deployment of management API can be completed when the prerequisites are met and remaining platform components are 
-deployed (CRD, DEX, K8S API with OID, MinIo)
+deployed (CRD, DEX, K8S API with OID, Minio)
 
 Management API can be deployed using a helm chart. Follow the steps described on
 [chart](../helm-deployment/management-api-subchart)
