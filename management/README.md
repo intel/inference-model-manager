@@ -87,7 +87,7 @@ When an operation ends with success, it returns a statement (example for a tenan
 
 ##
 ### Models 
-Models are pretrained deep learning models able to be server via Tensoflow Serving.
+Models are pretrained deep learning models able to be served via Tensoflow Serving.
 
 #### Upload model
 To upload model use `scripts/model_upload_cli.py`.  
