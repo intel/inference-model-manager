@@ -10,24 +10,10 @@ Login operation is based on Oauth2 process. It can be implemented using [example
 
 ## Uploading AI model
 
-Management API is exposing a set of endpoints which enable uploading AI models to MinIo storage using multipart transfer.
+Management API is exposing a set of endpoints which enable uploading AI models to Minio storage using multipart transfer.
 It makes the upload operation reliable and fast even for big model files.
 
-Management API is managing the model versions the same way like TensorFlow Serving does.
-Each model name can have a list of versions are needs to be represented by a positive integer number.
-In the MinIo it forms a structure of folders like in the example below:
-```
-bucket_name
-    model_name1
-        1
-            saved_model.pb
-        2
-            saved_model.pb
-     model_name2
-        1
-            saved_model.pb
-```
-Inference model servers are automatically pulling the models from the appropriate MinIo path by just referencing the 
+Inference model servers are automatically pulling the models from the appropriate Minio path by just referencing the 
 tenant name (bucket), model name and model version.
 
 Below are described [example CLI options](../scripts/model_upload_cli.py) for uploading the models.
