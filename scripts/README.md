@@ -23,7 +23,7 @@ python webbrowser_authenticate.py --address <management_api ip> --port <manageme
 ```
 
 ### Management API calls
-*api_call.sh* script allows to call Management API in a more convinient way.    
+*api_call.sh* script allows to call Management API in a more convenient way.
 
 #### List of available options
 ##### login
