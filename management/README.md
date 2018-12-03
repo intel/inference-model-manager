@@ -57,7 +57,7 @@ H “Authorization: <id-token>” H “Content-Type: application/json” d {\”
 \”requests.memory\”: <string>, \”limits.memory\”: <string>}}
 ```
 
-Quota parameter is required, but there is an option to pass and empty dictionary instead of resource specification
+Quota parameter is required, but there is an option to pass an empty dictionary instead of resource specification
 (see Create tenant).
 
 #### List tenants
@@ -96,9 +96,8 @@ Run help to get information about usage:
 python model_upload_cli.py -h
 ```
 
-#### Listing the models
-Listing the models will display the information about the stored models. 
-Example command:
+#### List models
+Call a GET operation on `https://<management-api-address>/tenants/<tenant-name>/models`:
 
 ```
 curl -X GET "https://<management_api_address>/tenants/<tenant-name>/models" -H "accept: application/json" \
@@ -112,9 +111,7 @@ Models in test tenant (model name, model version, model size, deployed count):
 ```
 
 #### Delete model
-Delete model will delete model with given name and version.  
-Example command:
-
+Call a DELETE operation on `https://<management-api-address>/tenants/<tenant-name>/models`:
 ```
 curl -X DELETE "https://<management_api_address>/tenants/<tenant-name>/models" -H "accept: application/json" \
 -H "Authorization: <jwt_token>" -H "Content-Type: application/json" \

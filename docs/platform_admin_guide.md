@@ -4,7 +4,7 @@ Tenants can be managed by using a REST endpoint exposed by Management API with a
 
 `https://<management-api-address>/tenants`
 
-## Creating new tenants
+## Create a new tenant
  
 This section explains possible operations with this endpoint.
  
@@ -57,14 +57,14 @@ To do that, use a parameter `maxEndpoints`.
 Check for the API example on [Management API doc](../management) and review [example CLI](../scripts).
 
 
-### Listing tenants
+### List tenants
 
 Platform Admin can list names of tenants using GET API request on `https:/<management-api-address>/tenants` address.
 
 Check for the API example on [Management API doc](../management) and review [example CLI](../scripts).
 
 
-### Deleting a tenant
+### Delete tenant
 
 *WARNING*
 

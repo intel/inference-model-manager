@@ -1,6 +1,6 @@
 # User Guide
 
-## Creating client certificates 
+## Create client certificates 
 
 Before gRPC client connect to the Inference Endpoints there should be generated for him
 a client TLS certificate which authenticates and authorizes the client to connect to the nginx ingress interface.
@@ -51,114 +51,10 @@ which was associated with the tenant but the Platform Admin.
 
 Login operation is based on Oauth2 process. It can be implemented using [example CLI script](../scripts) 
 
-## Endpoints
-
-### Creating inference endpoints
-
-Creating endpoint creates a deployment with Tensorflow Serving instance.  
-Endpoints can be created by using a REST endpoint exposed by Management API with an address:
-
-`https://<management-api-address>/tenants/<tenant-name>/endpoints`
- 
-To create an endpoint we need to provide following parameters:
-- endpointName - it identifies the endpoint and will compose the URL for the inference clients 
-<endpointName><tenant><domain name>
-- subjectName - Common Name in the client certificate authorized to access the gRPC Inference Endpoint,
-- modelName – model to serve
-- modelVersion – version of a model to serve
-We can also specify additional parameters:
-- replicas – number of replicas to be provisioned
-- resources – see Resources for endpoint
-
-Refer to the Management [API documentation](../management) and [example CLI](../scripts) to see 
-how the endpoint should be used.
-
-
-### Resources for endpoints
-
-Similarly to the tenant level quotas it is possible to set endpoint level resource constraints. It can define the 
-limits for resource consumption and allocation on a single replica level in the Inference Endpoint.  
-User is asked to provide the same set of resources as in the tenant quota.
-User can extend endpoint resources with additional values which are not specified in tenant's quota.
-If admin did not specify any quota in tenant, user can still provide values for resources dictionary.  
-Example of resources could be:
-`\”resources\” {\”requests.cpu\”: \”2\”, \”limits.cpu\”: \”4\”}`
-
-
-### Listing inference endpoints
-
-Endpoints can be listed using a REST endpoint exposed by Management API with an address:
-
-```https://<management-api-address>/tenants/<tenant-name>/endpoints```
-
-List endpoint is returning the list of the endpoint names and their status.
-
-Refer to the Management [API documentation](../management) and [example CLI](../scripts) to see 
-how the endpoint should be used.
-
-
-### Deleting inference endpoints
-
-Endpoints can be deleted using a REST endpoint exposed by Management API with an address:
-
-```https://<management-api-address>/tenants/<tenant-name>/endpoints```
-
-Delete endpoint is removing requests Inference Endpoint records. It is not removing the served model.
-
-Refer to the Management [API documentation](../management) and [example CLI](../scripts) to see 
-how the endpoint should be used.
-
-### Viewing inference endpoints
-
-Endpoints can be viewed using a REST endpoint exposed by Management API with an address:
-
-```https://<management-api-address>/tenants/<tenant-name>/endpoints/<endpoint-name>```
-
-View endpoint is returning the information about the request inference Endpoint:
-- status
-- model path
-- client cert Subject Name 
-- resources
-- replicas
-
-Refer to the Management [API documentation](../management) and [example CLI](../scripts) to see 
-how the endpoint should be used.
-
-### Updating the inference endpoints
-
-Endpoints can be viewed using a REST endpoint exposed by Management API with an address:
-
-```https://<management-api-address>/tenants/<tenant-name>/endpoints/<endpoint-name>```
- 
-Update endpoint can change the model served be the endpoint. It accepts the following parameters:
-- modelName – name of the model from bucket,
-- modelVersion – version of the model from bucket
-
-A change will trigger a rolling update in the Inference Endpoint replicas.
-
-Refer to the Management [API documentation](../management) and [example CLI](../scripts) to see 
-how the endpoint should be used.
-
-### Scaling inference endpoints
-
-Scaling is implemented by changing the number of replicas number of this endpoint. 
-Replicas number passed as a parameter for API call, will make a change in a deployment of endpoint’s CRD.
- 
-Endpoints can be scaled by using a REST endpoint exposed by Management API with an address:
- 
-```https://<management-api-address>/tenants/<tenant-name>/endpoints/<endpoint-name>/replicas```
- 
-New replicas will be provisioned uness there are insufficient available resources in the tenant quota, 
-or in the cluster. 
-
-It is possible to scale down an endpoint to 0, which means that the endpoint is not in a running state. 
-That is a way of “turning off” an endpoint. 
-For “turning on” just call a scale operation and change replicas number for a desired number.
- 
 
 ## Models 
 
-### Uploading AI model
+### Upload AI model
 
 Management API is exposing a set of endpoints which enable uploading AI models to Minio storage using multipart transfer.
 It makes the upload operation reliable and fast even for big model files.
@@ -202,7 +98,7 @@ optional arguments:
                  (acceptable values: 5-5000, default: 30)
 ```
 
-## Listing the models
+## List model
 
 Platform user can list model names using GET API request on 
 `https://<management-api-address>/tenants/{tenant-name}/models` address.
@@ -210,10 +106,113 @@ Platform user can list model names using GET API request on
 
 Refer to the Management [API documentation](../management)
 
-## Deleting the models
+## Delete model
 
 Platform user can delete models by using DELETE API request on 
 `https://<management-api-address>/tenants/{tenant-name}/models` address.
 
 Refer to the Management [API documentation](../management)
 
+## Endpoints
+
+### Create endpoint
+
+Creating endpoint creates a deployment with Tensorflow Serving instance.  
+Endpoints can be created by using a REST endpoint exposed by Management API with an address:
+
+`https://<management-api-address>/tenants/<tenant-name>/endpoints`
+ 
+To create an endpoint we need to provide following parameters:
+- endpointName - it identifies the endpoint and will compose the URL for the inference clients 
+<endpointName><tenant><domain name>
+- subjectName - Common Name in the client certificate authorized to access the gRPC Inference Endpoint,
+- modelName – model to serve
+- modelVersion – version of a model to serve
+We can also specify additional parameters:
+- replicas – number of replicas to be provisioned
+- resources – see Resources for endpoint
+
+Refer to the Management [API documentation](../management) and [example CLI](../scripts) to see 
+how the endpoint should be used.
+
+
+### Resources for endpoints
+
+Similarly to the tenant level quotas it is possible to set endpoint level resource constraints. It can define the 
+limits for resource consumption and allocation on a single replica level in the Inference Endpoint.  
+User is asked to provide the same set of resources as in the tenant quota.
+User can extend endpoint resources with additional values which are not specified in tenant's quota.
+If admin did not specify any quota in tenant, user can still provide values for resources dictionary.  
+Example of resources could be:
+`\”resources\” {\”requests.cpu\”: \”2\”, \”limits.cpu\”: \”4\”}`
+
+
+### List endpoints
+
+Endpoints can be listed using a REST endpoint exposed by Management API with an address:
+
+```https://<management-api-address>/tenants/<tenant-name>/endpoints```
+
+List endpoint is returning the list of the endpoint names and their status.
+
+Refer to the Management [API documentation](../management) and [example CLI](../scripts) to see 
+how the endpoint should be used.
+
+
+### Delete endpoint
+
+Endpoints can be deleted using a REST endpoint exposed by Management API with an address:
+
+```https://<management-api-address>/tenants/<tenant-name>/endpoints```
+
+Delete endpoint is removing requests Inference Endpoint records. It is not removing the served model.
+
+Refer to the Management [API documentation](../management) and [example CLI](../scripts) to see 
+how the endpoint should be used.
+
+### View endpoint
+
+Endpoints can be viewed using a REST endpoint exposed by Management API with an address:
+
+```https://<management-api-address>/tenants/<tenant-name>/endpoints/<endpoint-name>```
+
+View endpoint is returning the information about the request inference Endpoint:
+- status
+- model path
+- client cert Subject Name 
+- resources
+- replicas
+
+Refer to the Management [API documentation](../management) and [example CLI](../scripts) to see 
+how the endpoint should be used.
+
+### Update endpoint
+
+Endpoints can be viewed using a REST endpoint exposed by Management API with an address:
+
+```https://<management-api-address>/tenants/<tenant-name>/endpoints/<endpoint-name>```
+ 
+Update endpoint can change the model served be the endpoint. It accepts the following parameters:
+- modelName – name of the model from bucket,
+- modelVersion – version of the model from bucket
+
+A change will trigger a rolling update in the Inference Endpoint replicas.
+
+Refer to the Management [API documentation](../management) and [example CLI](../scripts) to see 
+how the endpoint should be used.
+
+### Scale endpoint
+
+Scaling is implemented by changing the number of replicas number of this endpoint. 
+Replicas number passed as a parameter for API call, will make a change in a deployment of endpoint’s CRD.
+ 
+Endpoints can be scaled by using a REST endpoint exposed by Management API with an address:
+ 
+```https://<management-api-address>/tenants/<tenant-name>/endpoints/<endpoint-name>/replicas```
+ 
+New replicas will be provisioned uness there are insufficient available resources in the tenant quota, 
+or in the cluster. 
+
+It is possible to scale down an endpoint to 0, which means that the endpoint is not in a running state. 
+That is a way of “turning off” an endpoint. 
+For “turning on” just call a scale operation and change replicas number for a desired number.
