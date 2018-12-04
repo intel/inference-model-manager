@@ -30,7 +30,7 @@ from endpoint_utils import prepare_certs, prepare_stub_and_request
 from images_2_numpy import load_images_from_list
 
 
-def get_stub_and_request(endpoint_address, model_name, certs, ssl):
+def get_stub_and_request(endpoint_address, model_name, certs, ssl, target_name):
     if ssl:
         server_ca_cert, client_key, client_cert = prepare_certs(server_cert=certs['server_cert'],
                                                                 client_key=certs['client_key'],
@@ -38,10 +38,10 @@ def get_stub_and_request(endpoint_address, model_name, certs, ssl):
         creds = grpc.ssl_channel_credentials(root_certificates=server_ca_cert,
                                              private_key=client_key, certificate_chain=client_cert)
         stub, request = prepare_stub_and_request(address=endpoint_address, model_name=model_name,
-                                                 creds=creds)
+                                                 creds=creds, opts=target_name)
     else:
         stub, request = prepare_stub_and_request(address=endpoint_address, model_name=model_name,
-                                                 creds=None)
+                                                 creds=None, opts=target_name)
     return stub, request
 
 
@@ -126,7 +126,7 @@ def main(**kwargs):
 
     ssl = False if kwargs['no_ssl'] else True
     stub, request = get_stub_and_request(
-        kwargs['grpc_address'], kwargs['model_name'], certs, ssl)
+        kwargs['grpc_address'], kwargs['model_name'], certs, ssl, kwargs['target_name'])
 
     imgs = prepare_images(kwargs)
 
