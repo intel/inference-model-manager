@@ -104,4 +104,5 @@ S3_ENDPOINT=s3.<region>.amazonaws.com
 S3_USE_HTTPS=1
 S3_VERIFY_SSL=1
 ```
+
 NOTE: Do not use general aws s3 url: s3.amazonaws.com, location is needed
