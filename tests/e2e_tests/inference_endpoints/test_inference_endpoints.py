@@ -30,7 +30,7 @@ sys.path.append(os.path.realpath(os.path.join(os.path.realpath(__file__), '../..
 
 from grpc_client import main
 import classes
-from endpoint_utils import prepare_certs, prepare_stub_and_request
+from grpc_client_utils import prepare_certs, prepare_stub_and_request
 from model_upload import upload_model
 
 from e2e_tests.management_api_requests import create_endpoint, create_tenant, delete_tenant

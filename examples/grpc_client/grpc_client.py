@@ -20,11 +20,9 @@ import numpy as np
 import tensorflow.contrib.util as tf_contrib_util
 import datetime
 import argparse
-import os
-import sys
 
 import classes
-from endpoint_utils import prepare_certs, prepare_stub_and_request
+from grpc_client_utils import prepare_certs, prepare_stub_and_request
 from images_2_numpy import load_images_from_list
 
 
