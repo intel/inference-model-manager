@@ -121,7 +121,7 @@ func (c *serverHooks) Add(obj interface{}) {
 	}
 	fmt.Printf("Ingress (%s) created successfully\n", serverCopy.Spec.EndpointName)
 
-	serverCopy.Status = crv1.ServerStatus{
+	serverCopy.Status = crv1.InferenceEndpointStatus{
 		State:   states.Completed,
 		Message: "Successfully processed by controller",
 	}
