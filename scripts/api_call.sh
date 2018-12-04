@@ -31,7 +31,7 @@ Examples:
 	.${0##*/} create e myendpoint mymodel 1 mytenant subjectName
 	.${0##*/} -a 127.0.0.1 login
 	.${0##*/} logout
-	.${0##*/} run-inference 127.0.0.1 443 numpy imgs.npy 10 mymodel server.crt client.crt client.key
+	.${0##*/} run-inference myendpoint-mytenant.example.com:443 mymodel numpy ../images.npy  10 server.crt client.crt client.key
 Operations:
 	create (c), remove (rm), update (up), scale (s), list (ls), login, logout, upload (u), run-inference (ri)
 Resources:
