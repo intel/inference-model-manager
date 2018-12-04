@@ -22,17 +22,18 @@ Generally, any installation mechanism can be applied as long as:
 - there is an option to add OID authentication parameter in kube-apiserver
 
 ## Minio
-Inference Model Manager is relying on MinIO service or other S3 compatible storage. 
-Kubernetes cluster needs connectivity with the MinIO storage.
-You can install minio server outside of the cluster, deploy it as Kubernetes service inside the cluster or 
+Inference Model Manager is relying on Minio service or other S3 compatible storage. 
+Kubernetes cluster needs connectivity with the Minio storage.
+You can install Minio server outside of the cluster, deploy it as Kubernetes service inside the cluster or 
 use a cloud provider for S3 compliant service. There is no need to enable connectivity between the users and 
-the minio service as it is expected that the users would connect to the storage only using Inference Model Manager Management API.
-For testing purposes you can deploy MinIO using provided [example deployment automation](../helm-deployment/minio-subchart). 
+the Minio service as it is expected that the users would connect to the storage only using Inference Model Manager Management API.
+For testing purposes you can deploy Minio using provided [example deployment automation](../helm-deployment/minio-subchart). 
 
 ## Nginx ingress controller
 Inference Model Manager requires nginx ingress controller to expose the gRPC inference endpoints and 
 other platform services like Management API and DEX. The recommended version is 0.17.1. 
 You can install it using the deployment procedure described on [automation scripts](../helm-deployment/ing-subchart)
+
 If you need to use version 0.20.0 or above it can still work but you would need to adjust manually the template for inference 
 ingress record in the 'server controller' [code](../server-controller/resources/ingress.tmpl) and update 
 nginx records template in the [config map](../helm-deployment/ing-subchart/nginx.tmpl). 

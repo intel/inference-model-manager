@@ -1,11 +1,11 @@
 # Management API
 
-Management API component provides a convenience layer for controlling CRD records and handling AI models in MinIO storage.
+Management API component provides a convenience layer for controlling CRD records and handling AI models in Minio storage.
 With that users and platform admin can control all aspects of Inference Endpoints functionality without direct access
 to Kubernetes API. 
 
 Authorization of the models management functions is implemented based on user token permissions in kubernetes namespace 
-associated with the MinIo bucket.
+associated with the Minio bucket.
  
 All the kubernetes operations are executed by Management API component using the user token so the authorization 
 is configured in Kubernetes using appropriate user roles and role bindings. 
@@ -34,41 +34,95 @@ Tenants are managed by Platform Admin. It is possible to take actions as follow:
 * list tenants.
 
 #### Create tenant
-Create tenant will create Kubernetes namespace and Minio bucket with given `name`. In `quota` you 
-can provide dictionary that contains
-[Kuberentes resource quota values](https://kubernetes.io/docs/concepts/policy/resource-quotas/).  
-Currently supported values are `requests.cpu`, `limits.cpu`, `requests.memory` and `limits.memory`.  
-You can also specify `maxEndpoints` value that will represent how many endpoints users can create 
-within a tenant.     
-You can specify only these values that you need.    
-Note that when creating endpoint, user needs 
-to provide the same set of values (excluding `maxEndpoints`) - he will be informed about what exactly 
-he needs to add.  
-`cert` is a CA certificate used to verify certificates presented by clients connecting to endpoint instances.   
-Example command:
+
+Call a POST operation on `https://<management-api-address>/tenants`:
 ```
-curl -X POST "https://<management_api_address>:443/tenants" -H "accept: application/json" \
+curl -X POST "https://<management_api_address>/tenants" -H "accept: application/json" \
 -H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
--d "{\"cert\": <cert_encoded_with_base64>, \"scope\": <string>, \"name\": <string>, \"quota\": <dict>}"
+-d "{\"name\": <string>, \"cert\": <cert_encoded_with_base64>, \"scope\": <string>, \"quota\": {}}"
 ```
 
-#### Delete tenant
-Delete tenant will delete Kubernetes namespace and Minio bucket with given `name`. 
-It will also delete models and endpoints within a tenant.  
-Example command:
+When an operation ends with success, it returns a statement (example for a tenant with a name `test`):
+
+```Tenant test created```
+
+#### Quota configuration for tenant
+
+Call a POST operation on `https://<management-api-address>/tenants` with quota defined:
 ```
-curl -X DELETE "https://<management_api_address>:443/tenants" -H "accept: application/json" \
--H "Authorization: <jwt_token>" -H "Content-Type: application/json" -d "{\"name\": <string>}"
+curl -X POST https://<management-api-address>/tenants -H “accept: application/json” \
+H “Authorization: <id-token>” H “Content-Type: application/json” d {\”name\”: <string>, \ 
+\”cert\”: <cert_encoded_with_base64>\”, \”scope\”: <string>, \
+\”quota\”: {\”maxEndpoints\”: <int>, \”requests.cpu\”: <string>, \”limits.cpu\”: <string>, \ 
+\”requests.memory\”: <string>, \”limits.memory\”: <string>}}
 ```
+
+Quota parameter is required, but there is an option to pass an empty dictionary instead of resource specification
+(see Create tenant).
 
 #### List tenants
-List tenants will list tenant names created by Platform Admin.
-Example command:  
+
+Call a GET operation on `https://<management-api-address>/tenants`:
 ```
-curl -X GET "https://<management_api_address>:443/tenants" -H "accept: application/json" \
+curl -X GET "https://<management_api_address>/tenants" -H "accept: application/json" \
 -H "Authorization: <jwt_token>" -H "Content-Type: application/json"
 ```
 
+When an operation ends with success, it returns a statement (example for a tenant with a name `test`):
+ 
+```Tenants present of platform: test```
+
+
+#### Delete tenant
+
+Call a DELETE operation on `https://<management-api-address>/tenants`:
+```
+curl -X DELETE "https://<management_api_address>/tenants" -H "accept: application/json" \
+-H "Authorization: <jwt_token>" -H "Content-Type: application/json" -d "{\"name\": <string>}"
+```
+
+When an operation ends with success, it returns a statement (example for a tenant with a name `test`):
+ 
+```Tenant test deleted```
+
+##
+### Models 
+Models are pretrained deep learning models able to be served via Tensoflow Serving.
+
+#### Upload model
+To upload model use `scripts/model_upload_cli.py`.  
+Run help to get information about usage:
+```
+python model_upload_cli.py -h
+```
+
+#### List models
+Call a GET operation on `https://<management-api-address>/tenants/<tenant-name>/models`:
+
+```
+curl -X GET "https://<management_api_address>/tenants/<tenant-name>/models" -H "accept: application/json" \
+-H "Authorization: <jwt_token>" -H "Content-Type: application/json" }"
+```
+
+When an operation ends with success, it returns a statement (example for a tenant `test`):
+```
+Models in test tenant (model name, model version, model size, deployed count): 
+[('resnet', '1', 102619858, 0), ('resnet', '2', 102619858, 0)]
+```
+
+#### Delete model
+Call a DELETE operation on `https://<management-api-address>/tenants/<tenant-name>/models`:
+```
+curl -X DELETE "https://<management_api_address>/tenants/<tenant-name>/models" -H "accept: application/json" \
+-H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
+-d "{\"modelName\": <string>, \"modelVersion\": <int>}"
+```
+When an operation ends with success, it returns a statement (example for a model `resnet` in version 1):
+```
+Model deleted: resnet-1
+```
+
+##
 ### Endpoints
 Endpoints are managed by Platform Users. It is possible to take actions as follow:
 * create endpoint
@@ -79,89 +133,98 @@ Endpoints are managed by Platform Users. It is possible to take actions as follo
 * list endpoints
 
 #### Create endpoint
-Create endpoint will create deployment with Tensorflow Serving instance. It will be exposed by 
-`endpointName.<domain>.com:9000`. `modelName` is a name of a model uploaded to a Minio bucket.
-Add `modelVersion` to specify version of a model.   
-`resources` is a dictionary with quota compliant to the one provided by Platform Admin within tenant. 
-If there's no resource quota presented in tenant, `resources` here are optional.  
-Example command:
+Call a POST operation on `https://<management-api-address>/tenants/<tenant-name>/endpoints`:
 ```
-curl -X POST "https://<management_api_address>:443/tenants/<namespace>/endpoints" -H "accept: 
+curl -X POST "https://<management_api_address>/tenants/<tenant-name>/endpoints" -H "accept: 
 application/json" \
 -H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
 -d "{\"endpointName\": <string>, \"modelName\": <string>, \"modelVersion\": <int>, \"subjectName\": <string>
 \"resources\": <dict>}"
 ```
 
-#### View endpoint
-View endpoint will show information about endpoint: endpoint status, model path, resources and replicas.  
-Example command:
+When an operation ends with success, it returns a statement (example for an endpoint with a name 
+`endpoint` in a `test` tenant with a `test-domain.com` domain):
 ```
-curl -X GET "https://<management_api_address>:443/tenants/<namespace>/endpoints/<endpoint-name>" \
--H "accept: application/json" -H "Authorization: <jwt_token>" -H "Content-Type: application/json"
+Endpoint created:
+{‘url’: ‘endpoint-test.test-domain.com:443’}
 ```
 
-#### Update endpoint
-Update endpoint allows to change model that endpoint points to.  
-Example command:
-```
-curl -X PATCH "https://<management_api_address>:443/tenants/<namespace>/endpoints/<endpoint-name>" \
--H "accept: application/json" -H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
--d "{\"modelName\": <string>, \"modelVersion\": <int>}"
-```
-#### Scale endpoint
-Scale endpoint allows to change the number of replicas of endpoint.  
-Example command:
-```
-curl -X PATCH "https://<management_api_address>:443/tenants/<namespace>/endpoints/<endpoint-name>/replicas" \
--H "accept: application/json" -H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
--d "{\"replicas\": <int>}"
-```
-#### Delete endpoint
-Delete endpoint will delete endpoint with given name.  
-Example command:
-```
-curl -X DELETE "https://<management_api_address>:443/tenants/<namespace>/endpoints" \
--H "accept: application/json" -H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
--d "{\"endpointName\": <string>}"
-``` 
 #### List endpoints
-List endpoints will list endpoints names created within given tenant.  
-Example command:
+Call a GET operation on `https://<management-api-address>/tenants/<tenant-name>/endpoints`:
 ```
-curl -X GET "https://<management_api_address>:443/tenants/<namespace>/endpoints" -H "accept: application/json" \
+curl -X GET "https://<management_api_address>/tenants/<tenant-name>/endpoints" -H "accept: application/json" \
 -H "Authorization: <jwt_token>" -H "Content-Type: application/json"
 ```
 
-### Models 
-Models are pretrained deep learning models able to be server via Tensoflow Serving.
-
-#### Upload model
-To upload model use `scripts/model_upload_cli.py`.  
-Run help to get information about usage:
+When an operation ends with success, it returns a statement (example for endpoins `endpoint1` and 
+`endpoint2` in a `test` tenant):
 ```
-python model_upload_cli.py -h
+Endpoints present in test tenant: 
+[{'name': 'endpoint1', 'status': 'Available', 'message': 'Endpoint is up and running'}, 
+{'name': 'endpoint2', 'status': 'Available', 'message': 'Endpoint is up and running'}]
 ```
 
-#### Listing the models
-Listing the models will display the information about the stored models. 
-Example command:
+#### Delete endpoint
+Call a DELETE operation on `https://<management-api-address>/tenants/<tenant-name>/endpoints`:
+```
+curl -X DELETE "https://<management_api_address>/tenants/<tenant-name>/endpoints" \
+-H "accept: application/json" -H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
+-d "{\"endpointName\": <string>}"
+``` 
+
+When an operation ends with success, it returns a statement (example for an `endpoint` with a name `test`):
+```
+Endpoint test deleted
+```
+
+#### View endpoint
+Call a GET operation on 
+`https://<management-api-address>/tenants/<tenant-name>/endpoints/<endpoint-name>`:
+```
+curl -X GET "https://<management_api_address>/tenants/<tenant-name>/endpoints/<endpoint-name>" \
+-H "accept: application/json" -H "Authorization: <jwt_token>" -H "Content-Type: application/json"
+```
+
+When an operation ends with success, it returns a statement (example for an endpoint with a name 
+`test-endpoint` from `test` tenant):
+```
+Endpoint test-endpoint in test tenant: 
+{'Endpoint status': {'Running pods': 1, 'Pending pods': 0, 'Failed pods': 0}, 
+'Model path': {'url': 'endpoint-test.example-domain.com:443'}, 'Subject name': 'client', 
+'Resources': {'limits': {'cpu': '2', 'memory': '2Gi'}, 'requests': {'cpu': '1', 'memory': '1Gi'}}, 
+'Replicas': {'Available': 1, 'Unavailable': None}}
+```
+
+#### Update endpoint
+Call a PATCH operation on `https://<management-api-address>/tenants/<tenant-name>/endpoints/<endpoint-name>:`
 
 ```
-curl -X GET "https://<management_api_address>:443/tenants/<namespace>/models" -H "accept: application/json" \
--H "Authorization: <jwt_token>" -H "Content-Type: application/json" }"
-```
-
-#### Delete model
-Delete model will delete model with given name and version.  
-Example command:
-
-```
-curl -X DELETE "https://<management_api_address>:443/tenants/<namespace>/models" -H "accept: application/json" \
--H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
+curl -X PATCH "https://<management_api_address>/tenants/<tenant-name>/endpoints/<endpoint-name>" \
+-H "accept: application/json" -H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
 -d "{\"modelName\": <string>, \"modelVersion\": <int>}"
+```
+When an operation ends with success, it returns a statement (example for an endpoint with a name 
+`endpoint` from `test`):
+```
+Endpoint {'url': 'endpoint-test.example-domain.com:443'} patched successfully. 
+New values: {'modelName': 'new-model', 'modelVersion': 1}
+```
+
+#### Scale endpoint
+
+Call a PATCH operation on `https://<management-api-address>/tenants/<tenant-name>/endpoints/<endpoint-name>/replicas`:
+
+```
+curl -X PATCH "https://<management_api_address>/tenants/<tenant-name>/endpoints/<endpoint-name>/replicas" \
+-H "accept: application/json" -H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
+-d "{\"replicas\": <int>}"
+```
+When an operation ends with success, it returns a statement (example for an endpoint with a name 
+`endpoint` from `test`):
+```
+Endpoint {'url': 'endpoint-test.example-domain.com:443'} patched successfully. New values: {'replicas': 2}
 ```
 
 ## Script for API calls
 
-You can refer to api_call.sh example CLI employing all API endpoints on [scripts](../scripts/)
+You can refer to `api_call.sh` example CLI employing all API endpoints on [scripts](../scripts/)
