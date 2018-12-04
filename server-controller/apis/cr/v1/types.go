@@ -33,18 +33,18 @@ const GroupName = "ai.intel.com"
 
 const Version = "v1"
 
-const ServerResourceKind = "InferenceEndpoint"
+const InferenceEndpointResourceKind = "InferenceEndpoint"
 
-const ServerResourceSingular = "inference-endpoint"
+const InferenceEndpointResourceSingular = "inference-endpoint"
 
-const ServerResourcePlural = "inference-endpoints"
+const InferenceEndpointResourcePlural = "inference-endpoints"
 
 var (
 	// GVK unambiguously identifies the stream predicition kind.
 	GVK = schema.GroupVersionKind{
 		Group:   GroupName,
 		Version: Version,
-		Kind:    ServerResourceKind,
+		Kind:    InferenceEndpointResourceKind,
 	}
 )
 
@@ -52,8 +52,8 @@ var (
 type InferenceEndpoint struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
-	Spec              ServerSpec   `json:"spec"`
-	Status            ServerStatus `json:"status,omitempty"`
+	Spec              InferenceEndpointSpec   `json:"spec"`
+	Status            InferenceEndpointStatus `json:"status,omitempty"`
 }
 
 func (e *InferenceEndpoint) Name() string {
@@ -86,7 +86,7 @@ func (e *InferenceEndpoint) SetStatusStateWithMessage(state states.State, msg st
 	e.Status.Message = msg
 }
 
-type ServerSpec struct {
+type InferenceEndpointSpec struct {
 	State           states.State             `json:"state"`
 	ModelName       string                   `json:"modelName"`
 	ModelVersion    int                      `json:"modelVersion"`
@@ -96,13 +96,13 @@ type ServerSpec struct {
 	Replicas        int                      `json:"replicas,omitempty"`
 }
 
-type ServerStatus struct {
+type InferenceEndpointStatus struct {
 	State   states.State `json:"state"`
 	Message string       `json:"message,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type ServerList struct {
+type InferenceEndpointList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata"`
 	Items           []InferenceEndpoint `json:"items"`
@@ -114,7 +114,7 @@ type ResourceSpec struct {
 }
 
 // GetItems returns the list of items to be used in the List api call for crs
-func (el *ServerList) GetItems() []runtime.Object {
+func (el *InferenceEndpointList) GetItems() []runtime.Object {
 	var result []runtime.Object
 	for _, item := range el.Items {
 		ecCopy := item
