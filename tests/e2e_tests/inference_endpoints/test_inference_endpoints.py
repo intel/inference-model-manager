@@ -243,6 +243,7 @@ def test_grpc_client():
     url = test_create_endpoint.endpoint_info
 
     output = main(grpc_address=url,
+                  target_name=None,
                   server_cert=CERT_SERVER,
                   client_cert=CERT_CLIENT,
                   client_key=CERT_CLIENT_KEY,

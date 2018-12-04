@@ -143,6 +143,8 @@ def run_inference():
         description='Do requests to Tensorflow Serving using jpg images or images in numpy format')
 
     parser.add_argument('--grpc_address', required=True, help='Specify url:port to gRPC service')
+    parser.add_argument('--target_name', required=False, default=None,
+                        help='Specify to override target name')
 
     parser.add_argument('--server_cert', help='Path to server certificate')
     parser.add_argument('--client_cert', help='Path to client certificate')
