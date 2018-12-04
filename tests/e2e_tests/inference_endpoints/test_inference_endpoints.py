@@ -25,7 +25,6 @@ import time
 import grpc
 import json
 
-sys.path.append(os.path.realpath(os.path.join(os.path.realpath(__file__), '../../../../common')))  # noqa
 sys.path.append(os.path.realpath(os.path.join(os.path.realpath(__file__), '../../../../scripts')))  # noqa
 sys.path.append(os.path.realpath(os.path.join(os.path.realpath(__file__), '../../../../examples/grpc_client')))  # noqa
 

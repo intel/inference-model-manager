@@ -23,8 +23,6 @@ import argparse
 import os
 import sys
 
-sys.path.append(os.path.realpath(os.path.join(os.path.realpath(__file__), '../../../common')))
-
 import classes
 from endpoint_utils import prepare_certs, prepare_stub_and_request
 from images_2_numpy import load_images_from_list
