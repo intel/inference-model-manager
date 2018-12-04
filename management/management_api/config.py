@@ -51,7 +51,7 @@ CRD_GROUP = 'ai.intel.com'
 CRD_VERSION = 'v1'
 CRD_PLURAL = 'inference-endpoints'
 CRD_API_VERSION = f'{CRD_GROUP}/{CRD_VERSION}'
-CRD_KIND = 'Inference-Endpoint'
+CRD_KIND = 'InferenceEndpoint'
 
 ING_NAME = 'ingress-nginx'
 ING_NAMESPACE = os.getenv('ING_NAMESPACE', 'ingress-nginx')

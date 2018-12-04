@@ -33,7 +33,7 @@ const GroupName = "ai.intel.com"
 
 const Version = "v1"
 
-const ServerResourceKind = "Inference-Endpoint"
+const ServerResourceKind = "InferenceEndpoint"
 
 const ServerResourceSingular = "inference-endpoint"
 
@@ -49,22 +49,22 @@ var (
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type Server struct {
+type InferenceEndpoint struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
 	Spec              ServerSpec   `json:"spec"`
 	Status            ServerStatus `json:"status,omitempty"`
 }
 
-func (e *Server) Name() string {
+func (e *InferenceEndpoint) Name() string {
 	return e.ObjectMeta.Name
 }
 
-func (e *Server) Namespace() string {
+func (e *InferenceEndpoint) Namespace() string {
 	return e.ObjectMeta.Namespace
 }
 
-func (e *Server) JSON() (string, error) {
+func (e *InferenceEndpoint) JSON() (string, error) {
 	data, err := json.Marshal(e)
 	if err != nil {
 		return "", err
@@ -73,15 +73,15 @@ func (e *Server) JSON() (string, error) {
 	return string(data), nil
 }
 
-func (e *Server) GetStatusState() states.State {
+func (e *InferenceEndpoint) GetStatusState() states.State {
 	return e.Status.State
 }
 
-func (e *Server) GetSpecState() states.State {
+func (e *InferenceEndpoint) GetSpecState() states.State {
 	return e.Spec.State
 }
 
-func (e *Server) SetStatusStateWithMessage(state states.State, msg string) {
+func (e *InferenceEndpoint) SetStatusStateWithMessage(state states.State, msg string) {
 	e.Status.State = state
 	e.Status.Message = msg
 }
@@ -105,7 +105,7 @@ type ServerStatus struct {
 type ServerList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata"`
-	Items           []Server `json:"items"`
+	Items           []InferenceEndpoint `json:"items"`
 }
 
 type ResourceSpec struct {

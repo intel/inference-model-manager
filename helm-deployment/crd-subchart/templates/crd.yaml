@@ -10,7 +10,7 @@ spec:
   names:
     plural: inference-endpoints
     singular: inference-endpoint
-    kind: Inference-Endpoint
+    kind: InferenceEndpoint
     shortNames:
     - ie
   validation:
