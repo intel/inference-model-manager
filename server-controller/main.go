@@ -36,7 +36,7 @@ import (
 	// authenticate against GKE clusters).
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
-	crv1 "github.com/NervanaSystems/inferno-platform/server-controller/apis/cr/v1"
+	crv1 "github.com/IntelAI/inference-model-manager/server-controller/apis/cr/v1"
 	"github.com/intel/crd-reconciler-for-kubernetes/pkg/controller"
 	"github.com/intel/crd-reconciler-for-kubernetes/pkg/crd"
 	"github.com/intel/crd-reconciler-for-kubernetes/pkg/resource"

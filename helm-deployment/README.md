@@ -1,4 +1,4 @@
-## Helm deployment of Inferno Platform
+## Helm deployment of Inference Model Manager
 
 #### Management API certificates
 Management API uses certificates to serve API using TLS. 
@@ -67,7 +67,7 @@ File "client.py", line 51, in <module>
 grpc.framework.interfaces.face.face.CancellationError: CancellationError(code=StatusCode.CANCELLED, details="Received http2 header with status: 400")
 ```
 
-**WARNING**: /inferno-platform/helm-deployment/certs directory contains example ca.conf 
+**WARNING**: /inference-model-manager/helm-deployment/certs directory contains example ca.conf 
 file required to create CRL list. Please adjust this configuration file to your environment before use in production.
 
 ##
