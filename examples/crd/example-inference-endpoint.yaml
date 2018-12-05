@@ -1,5 +1,5 @@
 apiVersion: "intel.com/v1"
-kind: Server
+kind: InferenceEndpoint
 metadata:
   name: example-endpoint
 spec:
