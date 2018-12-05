@@ -282,7 +282,7 @@ case "$OPERATION" in
 					exit 0
 					;;
 		esac
-		python ../examples/grpc_client/grpc_client.py --grpc_address ${RESOURCE} --model_name ${PARAM_1} \
+		python ../examples/grpc_client/grpc_client.py ${RESOURCE} ${PARAM_1} \
 		${INPUT_TYPE} ${PARAM_3} --batch_size ${PARAM_4} --server_cert ${PARAM_5} \
 		--client_cert ${PARAM_6} --client_key ${PARAM_7} 
 		;;
