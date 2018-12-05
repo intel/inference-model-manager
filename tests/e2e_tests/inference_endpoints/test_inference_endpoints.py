@@ -257,7 +257,7 @@ def test_grpc_client():
                   no_ssl=None,
                   transpose_input=None,
                   performance='',
-                  no_imagenet=None)
+                  no_imagenet_classes=None)
 
     assert output is not None
     assert isinstance(output, numpy.ndarray)

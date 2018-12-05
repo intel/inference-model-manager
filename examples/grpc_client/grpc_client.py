@@ -56,7 +56,6 @@ def inference(stub, request, imgs, kwargs):
     print("Start processing:")
     print(f"\tModel name: {kwargs['model_name']}")
     print(f"\tImages in shape: {imgs.shape}\n")
-
     processing_times = np.zeros((0), int)
     batch_size = int(kwargs['batch_size'])
     iteration = 0
@@ -79,7 +78,7 @@ def inference(stub, request, imgs, kwargs):
               f'Processing time: {round(np.average(duration), 2):.2f} ms; '
               f'speed {round(1000 * batch_size / np.average(duration), 2):.2f} fps')
 
-        if kwargs['no_imagenet']:
+        if kwargs['no_imagenet_classes']:
             continue
 
         print(f'\tImagenet top results in a single batch:')
@@ -143,7 +142,7 @@ def run_inference():
 
     parser.add_argument('--target_name', required=False, default=None,
                         help='Specify to override target name')
-    
+
     parser.add_argument('--server_cert', help='Path to server certificate')
     parser.add_argument('--client_cert', help='Path to client certificate')
     parser.add_argument('--client_key', help='Path to client key')
@@ -168,10 +167,10 @@ def run_inference():
     parser.add_argument('--no-ssl', action='store_true', help='Set for non-SSL calls')
     parser.add_argument('--transpose_input', action='store_true',
                         help='Set to make NCHW->NHWC input transposing')
-    parser.add_argument('--no_imagenet', action='store_true', help='Set for non-Imagenet datasets')
     parser.add_argument('--performance', action='store_true',
                         help='Enable processing performance info')
-
+    parser.add_argument('--no_imagenet_classes', action='store_true',
+                        help='Set to False for models without Imagenet classes')
     kwargs = vars(parser.parse_args())
 
     main(**kwargs)
