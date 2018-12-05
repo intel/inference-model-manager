@@ -1,9 +1,10 @@
 # Server controller
 
 CRD controller installation is extending the Kubernetes API definition to additional CRD record 
-type called ‘inference-endpoint’. 
+type called ‘inference-endpoints.ai.intel.com’. 
 Its definition is included in [crd.yaml](../helm-deployment/crd-subchart/templates/crd.yaml)
-The controller is monitoring the status of ‘inference-endpoint’ CRD records and applies required 
+The controller is monitoring the status of ‘inference-endpoints.ai.intel.com’ CRD records and 
+applies required 
 changes 
 in linked Kubernetes deployments, services and ingress resources. 
 
