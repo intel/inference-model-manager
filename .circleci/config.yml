@@ -24,6 +24,7 @@ jobs:
           name: Run unit tests
           command: |
             . ~/inference-model-manager/.venv/bin/activate
+            pip install -r requirements.txt
             cd ~/inference-model-manager/management/ && python setup.py test
   functional_tests:
     docker:
