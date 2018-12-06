@@ -85,13 +85,13 @@ func main() {
 
 	// Create new CRD handle for the server resource type.
 	crdHandle := crd.New(
-		&crv1.Server{},
-		&crv1.ServerList{},
+		&crv1.InferenceEndpoint{},
+		&crv1.InferenceEndpointList{},
 		crv1.GroupName,
 		crv1.Version,
-		crv1.ServerResourceKind,
-		crv1.ServerResourceSingular,
-		crv1.ServerResourcePlural,
+		crv1.InferenceEndpointResourceKind,
+		crv1.InferenceEndpointResourceSingular,
+		crv1.InferenceEndpointResourcePlural,
 		extv1beta1.NamespaceScoped,
 		"",
 	)
@@ -136,9 +136,9 @@ func main() {
 
 func waitForServerInstanceProcessed(crdClient rest.Interface, name string) error {
 	return wait.Poll(100*time.Millisecond, 10*time.Second, func() (bool, error) {
-		var server crv1.Server
+		var server crv1.InferenceEndpoint
 		err := crdClient.Get().
-			Resource(crv1.ServerResourcePlural).
+			Resource(crv1.InferenceEndpointResourcePlural).
 			Namespace(apiv1.NamespaceDefault).
 			Name(name).
 			Do().Into(&server)

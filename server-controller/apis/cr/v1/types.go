@@ -29,42 +29,42 @@ import (
 )
 
 // GroupName is the group name used in this package.
-const GroupName = "aipg.intel.com"
+const GroupName = "ai.intel.com"
 
 const Version = "v1"
 
-const ServerResourceKind = "Server"
+const InferenceEndpointResourceKind = "InferenceEndpoint"
 
-const ServerResourceSingular = "server"
+const InferenceEndpointResourceSingular = "inference-endpoint"
 
-const ServerResourcePlural = "servers"
+const InferenceEndpointResourcePlural = "inference-endpoints"
 
 var (
 	// GVK unambiguously identifies the stream predicition kind.
 	GVK = schema.GroupVersionKind{
 		Group:   GroupName,
 		Version: Version,
-		Kind:    ServerResourceKind,
+		Kind:    InferenceEndpointResourceKind,
 	}
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type Server struct {
+type InferenceEndpoint struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
-	Spec              ServerSpec   `json:"spec"`
-	Status            ServerStatus `json:"status,omitempty"`
+	Spec              InferenceEndpointSpec   `json:"spec"`
+	Status            InferenceEndpointStatus `json:"status,omitempty"`
 }
 
-func (e *Server) Name() string {
+func (e *InferenceEndpoint) Name() string {
 	return e.ObjectMeta.Name
 }
 
-func (e *Server) Namespace() string {
+func (e *InferenceEndpoint) Namespace() string {
 	return e.ObjectMeta.Namespace
 }
 
-func (e *Server) JSON() (string, error) {
+func (e *InferenceEndpoint) JSON() (string, error) {
 	data, err := json.Marshal(e)
 	if err != nil {
 		return "", err
@@ -73,20 +73,20 @@ func (e *Server) JSON() (string, error) {
 	return string(data), nil
 }
 
-func (e *Server) GetStatusState() states.State {
+func (e *InferenceEndpoint) GetStatusState() states.State {
 	return e.Status.State
 }
 
-func (e *Server) GetSpecState() states.State {
+func (e *InferenceEndpoint) GetSpecState() states.State {
 	return e.Spec.State
 }
 
-func (e *Server) SetStatusStateWithMessage(state states.State, msg string) {
+func (e *InferenceEndpoint) SetStatusStateWithMessage(state states.State, msg string) {
 	e.Status.State = state
 	e.Status.Message = msg
 }
 
-type ServerSpec struct {
+type InferenceEndpointSpec struct {
 	State           states.State             `json:"state"`
 	ModelName       string                   `json:"modelName"`
 	ModelVersion    int                      `json:"modelVersion"`
@@ -96,16 +96,16 @@ type ServerSpec struct {
 	Replicas        int                      `json:"replicas,omitempty"`
 }
 
-type ServerStatus struct {
+type InferenceEndpointStatus struct {
 	State   states.State `json:"state"`
 	Message string       `json:"message,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type ServerList struct {
+type InferenceEndpointList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata"`
-	Items           []Server `json:"items"`
+	Items           []InferenceEndpoint `json:"items"`
 }
 
 type ResourceSpec struct {
@@ -114,7 +114,7 @@ type ResourceSpec struct {
 }
 
 // GetItems returns the list of items to be used in the List api call for crs
-func (el *ServerList) GetItems() []runtime.Object {
+func (el *InferenceEndpointList) GetItems() []runtime.Object {
 	var result []runtime.Object
 	for _, item := range el.Items {
 		ecCopy := item

@@ -1,8 +1,11 @@
 # Server controller
 
-CRD controller installation is extending the Kubernetes API definition to additional CRD record type called ‘servers.aipg.intel.com’. 
+CRD controller installation is extending the Kubernetes API definition to additional CRD record 
+type called ‘inference-endpoints.ai.intel.com’. 
 Its definition is included in [crd.yaml](../helm-deployment/crd-subchart/templates/crd.yaml)
-The controller is monitoring the status of ‘servers.aipg.intel.com’ CRD records and applies required changes 
+The controller is monitoring the status of ‘inference-endpoints.ai.intel.com’ CRD records and 
+applies required 
+changes 
 in linked Kubernetes deployments, services and ingress resources. 
 
 This way managing all aspects of serving inference endpoints can be delegated to a single Kubernetes record. 
@@ -76,15 +79,15 @@ export PLATFORM_DOMAIN=some-domain.com
 #### Creation of new inference endpoint.
 In order to create new Inference Endpoint you need to provide description of it in a yaml 
 file.  There is one resource file
-with example called example-server.yaml.
+with example called example-inference-endpoint.yaml.
 In order to add it to existing kubernetes just type:
-```kubectl create -f example-server.yaml```
+```kubectl create -f example-inference-endpoint.yaml```
 
 Server-controller will spin new deployment, service and ingress record for you.
 
 ### Resources removal
 In order to remove all resources that sums up to your Inference Endpoint just remove CRD 
 resource you introduced:
-```kubectl delete servers.aipg.intel.com example-endpoint```
+```kubectl delete inference-endpoint example-endpoint```
 
 

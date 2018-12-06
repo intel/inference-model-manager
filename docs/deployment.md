@@ -36,7 +36,7 @@ Deployment steps of the CRD controller is arranged by a helm chart. Execute the 
 [chart doc](../helm-deployment/crd-subchart)  
 
 While the CRD controller is successfully deployed and configured you should be able to test inference endpoint
-provisioning by using the [example crd](../examples/crd/example-server.yaml)
+provisioning by using the [example crd](../examples/crd/example-inference-endpoint.yaml)
 
 ## DEX oauth2 server
 
