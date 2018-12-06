@@ -29,7 +29,7 @@ spec:
         - /bin/sh
         - -c
         args:
-        - tensorflow_model_server --port=9000 --model_name={{.Spec.ModelName}} --model_base_path="s3://{{.ObjectMeta.Namespace}}/{{.Spec.ModelName}}-{{.Spec.ModelVersion}}"
+        - tensorflow_model_server --port=9000 --model_name={{.Spec.ModelName}} --model_base_path="s3://{{.ObjectMeta.Namespace}}/{{.Spec.ModelName}}"
         ports:
         - containerPort: 9000
         env:
