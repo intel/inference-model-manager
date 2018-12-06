@@ -33,11 +33,13 @@ def prepare_certs(server_cert=None, client_key=None, client_ca=None):
     return server_cert, client_key, client_ca
 
 
-def prepare_stub_and_request(address, model_name, creds=None):
+def prepare_stub_and_request(address, model_name, creds=None, opts=None):
+    if opts is not None:
+        opts = (('grpc.ssl_target_name_override', opts),)
     if creds is not None:
-        channel = grpc.secure_channel(address, creds)
+        channel = grpc.secure_channel(address, creds, options=opts)
     else:
-        channel = grpc.insecure_channel(address)
+        channel = grpc.insecure_channel(address, options=opts)
 
     stub = prediction_service_pb2_grpc.PredictionServiceStub(channel)
     request = predict_pb2.PredictRequest()

@@ -25,13 +25,12 @@ import time
 import grpc
 import json
 
-sys.path.append(os.path.realpath(os.path.join(os.path.realpath(__file__), '../../../../common')))  # noqa
 sys.path.append(os.path.realpath(os.path.join(os.path.realpath(__file__), '../../../../scripts')))  # noqa
 sys.path.append(os.path.realpath(os.path.join(os.path.realpath(__file__), '../../../../examples/grpc_client')))  # noqa
 
 from grpc_client import main
 import classes
-from endpoint_utils import prepare_certs, prepare_stub_and_request
+from grpc_client_utils import prepare_certs, prepare_stub_and_request
 from model_upload import upload_model
 
 from e2e_tests.management_api_requests import create_endpoint, create_tenant, delete_tenant
@@ -170,7 +169,7 @@ def test_prediction_batch_with_certificates():
 
     prediction_response = "Failed"
     try:
-        prediction_response = stub.Predict(request, 10.0)
+        prediction_response = stub.Predict(request, 30.0)
     except: # noqa
         logging.info("Prediction failed")
 
@@ -243,6 +242,7 @@ def test_grpc_client():
     url = test_create_endpoint.endpoint_info
 
     output = main(grpc_address=url,
+                  target_name=None,
                   server_cert=CERT_SERVER,
                   client_cert=CERT_CLIENT,
                   client_key=CERT_CLIENT_KEY,
@@ -257,7 +257,7 @@ def test_grpc_client():
                   no_ssl=None,
                   transpose_input=None,
                   performance='',
-                  no_imagenet=None)
+                  no_imagenet_classes=None)
 
     assert output is not None
     assert isinstance(output, numpy.ndarray)
