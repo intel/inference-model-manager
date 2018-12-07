@@ -30,9 +30,15 @@ def save_to_file(file_path, data):
         json.dump(data, outfile)
 
 
-def get_dex_auth_token(address, port, auth_code, ca_cert_path):
-    conn = httplib.HTTPSConnection(address, port,
-                                   context=ssl.create_default_context(cafile=ca_cert_path))
+def get_dex_auth_token(address, port, auth_code, ca_cert_path, proxy_host=None, proxy_port=None):
+    conn = None
+    if proxy_host:
+        conn = httplib.HTTPSConnection(proxy_host, proxy_port,
+                                       context=ssl.create_default_context(cafile=ca_cert_path))
+        conn.set_tunnel(address, port)
+    else:
+        conn = httplib.HTTPSConnection(address, port,
+                                       context=ssl.create_default_context(cafile=ca_cert_path))
     headers = {"Content-type": "application/json", "Accept": "text/plain"}
     conn.request("POST", "/authenticate/token", json.dumps({'code': auth_code}), headers)
     response = conn.getresponse()

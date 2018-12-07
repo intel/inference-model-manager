@@ -31,7 +31,7 @@ ingress.hosts,ingress.tls.hosts - DNS name for the Management API external inter
 minio.accessKey - MinIo access key
 minio.secretKey - MinIo secret
 platformAdmin - the group with Platform admin permissions - should match JWT token groups scope
-```
+
 
 The group set in `platformAdmin` parameter is being granted kubernetes cluster role binding to enable managing 
 all inferenece tenanats and kubernetes namespaces.
@@ -40,14 +40,12 @@ In case `dexUrl` is pointing to dex internal service name which is protected usi
 you need to copy the dex CA certificate to `certs` folder with a name `ca-dex.crt`. This way Management API will be
 able to connect securely with the dex endpoints.
 When `dexUrl` is using external ingress URL with a trusted certificate this step is not required.
-
-
 Execute helm installation via:
 ```
 helm install .
 ```
 
-## MANUAL STEP REQUIRED TO USE MINIO WITH SELF-SIGNED CERTIFICATES
+## Manual steps required to use MinIo with self-signed certificates 
 
 Assumed that tls-ssl-minio is secret created as described in https://github.com/minio/minio/tree/master/docs/tls/kubernetes
 
@@ -55,7 +53,7 @@ Add following sections to management-api deployment
 
 
 ```
-kubectl edit depoyment management-api
+kubectl edit deployment management-api
 ```
 
 ```yaml
@@ -88,14 +86,14 @@ kubectl edit secret minio-access-info
 Replace current value of minio.endpoint_url with your minio url, started with https, base64 encoded.
 
 
-## MANUAL STEPS REQUIRED TO REPLACE MINIO WITH AWS S3
+## Manual steps required to replace MinIo with AWS S3
 
-Edit secret with minio access information:
+Edit secret with MinIo access information:
 ```
 kubectl edit secret minio-access-info
 ```
 
-Repalce current values of minio access details with your s3 access details.
+Repalce current values of MinIo access details with your s3 access details.
 ```
 AWS_ACCESS_KEY_ID=XXXXX
 AWS_SECRET_ACCESS_KEY=XXXXX
@@ -105,4 +103,3 @@ S3_USE_HTTPS=1
 S3_VERIFY_SSL=1
 ```
 NOTE: Do not use general aws s3 url: s3.amazonaws.com, location is needed
-

@@ -28,10 +28,10 @@ Options:
 Examples: 
 	.${0##*/} -a mgmt.example.com -p 443 -v create tenant mytenant
 	.${0##*/} create t mytenant myscope
-	.${0##*/} create e myendpoint mymodel
+	.${0##*/} create e myendpoint mymodel 1 mytenant subjectName
 	.${0##*/} -a 127.0.0.1 login
 	.${0##*/} logout
-	.${0##*/} run-inference 127.0.0.1 443 numpy imgs.npy 10 mymodel server.crt client.crt client.key
+	.${0##*/} run-inference myendpoint-mytenant.example.com:443 mymodel numpy ../images.npy  10 server.crt client.crt client.key
 Operations:
 	create (c), remove (rm), update (up), scale (s), list (ls), login, logout, upload (u), run-inference (ri)
 Resources:
@@ -121,11 +121,12 @@ case "$OPERATION" in
 				[[ -z ${PARAM_2} ]] && read -p "Please provide model name " PARAM_2
 				[[ -z ${PARAM_3} ]] && read -p "Please provide model version " PARAM_3
 				[[ -z ${PARAM_4} ]] && read -p "Please provide tenant name " PARAM_4
+				[[ -z ${PARAM_5} ]] && PARAM_5=client
 				CURL='curl -s -X POST \
 				"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_4}/endpoints" \
 				-H "accept: application/json" \
 				-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
-				-d "{\"modelName\":\"${PARAM_2}\", \"modelVersion\":${PARAM_3}, \"endpointName\":\"${PARAM_1}\", \"subjectName\": \"client\", \"resources\": ${ENDPOINT_RESOURCES}}"'
+				-d "{\"modelName\":\"${PARAM_2}\", \"modelVersion\":${PARAM_3}, \"endpointName\":\"${PARAM_1}\", \"subjectName\": \"${PARAM_5}\", \"resources\": ${ENDPOINT_RESOURCES}}"'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
 				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
 				eval "$CURL"
@@ -282,7 +283,7 @@ case "$OPERATION" in
 					exit 0
 					;;
 		esac
-		python ../examples/grpc_client/grpc_client.py --grpc_address ${RESOURCE} --model_name ${PARAM_1} \
+		python ../examples/grpc_client/grpc_client.py ${RESOURCE} ${PARAM_1} \
 		${INPUT_TYPE} ${PARAM_3} --batch_size ${PARAM_4} --server_cert ${PARAM_5} \
 		--client_cert ${PARAM_6} --client_key ${PARAM_7} 
 		;;

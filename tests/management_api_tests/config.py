@@ -53,11 +53,11 @@ USER2_HEADERS = {
     'Content-Type': 'application/json',
 }
 
-CRD_GROUP = 'aipg.intel.com'
+CRD_GROUP = 'ai.intel.com'
 CRD_VERSION = 'v1'
-CRD_PLURAL = 'servers'
+CRD_PLURAL = 'inference-endpoints'
 CRD_API_VERSION = f'{CRD_GROUP}/{CRD_VERSION}'
-CRD_KIND = 'Server'
+CRD_KIND = 'InferenceEndpoint'
 
 MANAGEMENT_API_URL = os.environ.get('MANAGEMENT_API_URL', 'http://127.0.0.1:5000')
 TENANTS_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants')

@@ -47,11 +47,11 @@ class AuthParameters:
 
 
 # CRD DEFINITIONS:
-CRD_GROUP = 'aipg.intel.com'
+CRD_GROUP = 'ai.intel.com'
 CRD_VERSION = 'v1'
-CRD_PLURAL = 'servers'
+CRD_PLURAL = 'inference-endpoints'
 CRD_API_VERSION = f'{CRD_GROUP}/{CRD_VERSION}'
-CRD_KIND = 'Server'
+CRD_KIND = 'InferenceEndpoint'
 
 ING_NAME = 'ingress-nginx'
 ING_NAMESPACE = os.getenv('ING_NAMESPACE', 'ingress-nginx')
@@ -78,7 +78,7 @@ minio_resource = boto3.resource('s3',
                                 region_name=MINIO_REGION)
 
 
-# To edit this object please first use deep copy
+# To edit this object please first use deep copy.
 DELETE_BODY = client.V1DeleteOptions()
 
 # -------------------------------------------

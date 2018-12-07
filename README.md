@@ -3,7 +3,6 @@
 *Inference Model Manager for Kubernetes* is an open source SW platform intended to provide convenient solution for 
 hosting, management and scaling inference processing endpoints exposed over gRPC protocol.
 
-
 It is built on top of Kubernetes and integrates with Tensorflow Serving for exposing the inference endpoints.
 In the plans is also support for integration with other model serving components like 
 [OpenVINO Model Server](https://github.com/IntelAI/OpenVINO-model-server).

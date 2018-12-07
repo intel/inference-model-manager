@@ -34,17 +34,17 @@ import (
 	runtimeserializer "k8s.io/apimachinery/pkg/runtime/serializer"
 )
 
-var _ runtime.Object = &Server{}
-var _ metav1.ObjectMetaAccessor = &Server{}
+var _ runtime.Object = &InferenceEndpoint{}
+var _ metav1.ObjectMetaAccessor = &InferenceEndpoint{}
 
-var _ runtime.Object = &ServerList{}
-var _ metav1.ListMetaAccessor = &ServerList{}
+var _ runtime.Object = &InferenceEndpointList{}
+var _ metav1.ListMetaAccessor = &InferenceEndpointList{}
 
-func serverFuzzerFuncs(codecs runtimeserializer.CodecFactory) []interface{} {
+func InferenceEndpointFuzzerFuncs(codecs runtimeserializer.CodecFactory) []interface{} {
 	return []interface{}{
-		func(obj *ServerList, c fuzz.Continue) {
+		func(obj *InferenceEndpointList, c fuzz.Continue) {
 			c.FuzzNoCustom(obj)
-			obj.Items = make([]Server, c.Intn(10))
+			obj.Items = make([]InferenceEndpoint, c.Intn(10))
 			for i := range obj.Items {
 				c.Fuzz(&obj.Items[i])
 			}
@@ -58,12 +58,12 @@ func TestRoundTrip(t *testing.T) {
 	schemaGroupVersion := schema.GroupVersion{Group: GroupName, Version: Version}
 	scheme := runtime.NewScheme()
 	codecs := serializer.NewCodecFactory(scheme)
-	scheme.AddKnownTypes(schemaGroupVersion, &Server{}, &ServerList{})
+	scheme.AddKnownTypes(schemaGroupVersion, &InferenceEndpoint{}, &InferenceEndpointList{})
 
 	seed := rand.Int63()
-	fuzzerFuncs := fuzzer.MergeFuzzerFuncs(metafuzzer.Funcs, serverFuzzerFuncs)
+	fuzzerFuncs := fuzzer.MergeFuzzerFuncs(metafuzzer.Funcs, InferenceEndpointFuzzerFuncs)
 	fuzzer := fuzzer.FuzzerFor(fuzzerFuncs, rand.NewSource(seed), codecs)
 
-	roundtrip.RoundTripSpecificKindWithoutProtobuf(t, schemaGroupVersion.WithKind("Server"), scheme, codecs, fuzzer, nil)
-	roundtrip.RoundTripSpecificKindWithoutProtobuf(t, schemaGroupVersion.WithKind("ServerList"), scheme, codecs, fuzzer, nil)
+	roundtrip.RoundTripSpecificKindWithoutProtobuf(t, schemaGroupVersion.WithKind("InferenceEndpoint"), scheme, codecs, fuzzer, nil)
+	roundtrip.RoundTripSpecificKindWithoutProtobuf(t, schemaGroupVersion.WithKind("InferenceEndpointList"), scheme, codecs, fuzzer, nil)
 }

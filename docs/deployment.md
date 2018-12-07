@@ -20,6 +20,7 @@ like *.<grpc_dns_domain>.
 
 Alternatively, there could be used just a single DNS domain name and certificate for all the platform endpoints but that
 would require adjustments in the grpc client code to include in the requests headers also the option 
+
 `grpc.ssl_target_name_override`. This way the clients would connect to a single DNS domain name but the ingress
 controller will route the requests to the correct backend services based on hostname specified in ssl_target_name_override
 parameter.
@@ -35,7 +36,7 @@ Deployment steps of the CRD controller is arranged by a helm chart. Execute the 
 [chart doc](../helm-deployment/crd-subchart)  
 
 While the CRD controller is successfully deployed and configured you should be able to test inference endpoint
-provisioning by using the [example crd](../examples/crd/example-server.yaml)
+provisioning by using the [example crd](../examples/crd/example-inference-endpoint.yaml)
 
 ## DEX oauth2 server
 
@@ -51,7 +52,6 @@ Before you start the installation you need to update the chart values.yaml with 
 
 Deploy DEX server using steps described in [helm chart](../helm-deployment/dex-subchart)
 
-
 	
 ## Kubernetes configuration for oid authentication
 
@@ -59,7 +59,7 @@ Because all the platform related changes in Kubernetes are done using user token
 to be configured to use OID authentication. The details of the process of enabling OID token authentication might
 depend on the installation process and specific configuration in the cluster. 
 The general steps are documented on 
-[K8S authnatication](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#openid-connect-tokens) 
+[K8S authentication](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#openid-connect-tokens).
 
 Specifically kube-apiserver component in kubernetes needs to have included additional parameters during the start up:
 
@@ -74,8 +74,8 @@ Specifically kube-apiserver component in kubernetes needs to have included addit
 | --oidc-groups-prefix | optional prefix to group name on K8S side | infer: |
 | --oidc-ca-file | CA certificate used in DEX endpoint | /etc/kubernetes/ssl/dex_ca.crt |
 
-`oidc-ca-file ` parameter is needed in case DEX URL is exposed via ingress with self-signed certificate 
-(needed to establish a trust with DEX service to validate the tokens) 
+`oidc-ca-file` parameter is needed in case DEX URL is exposed via ingress with self-signed certificate 
+(needed to establish a trust with DEX service to validate the tokens).
 
 ## Management API server
 

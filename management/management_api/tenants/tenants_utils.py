@@ -242,7 +242,8 @@ def create_role(name, id_token):
                                             verbs=["create", "list", "get", "delete"])
     deployment_rules = k8s_client.V1PolicyRule(api_groups=[""], resources=["deployments"],
                                                verbs=["create", "list", "get", "delete"])
-    server_rules = k8s_client.V1PolicyRule(api_groups=["aipg.intel.com"], resources=["servers"],
+    server_rules = k8s_client.V1PolicyRule(api_groups=["ai.intel.com"],
+                                           resources=["inference-endpoints"],
                                            verbs=["create", "get", "delete", "patch"])
     namespace_rules = k8s_client.V1PolicyRule(api_groups=[""], resources=["namespaces"],
                                               verbs=["get", "list", "watch"])

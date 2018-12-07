@@ -71,7 +71,7 @@ var resourcePath = "/spec/template/spec/containers/0/resources/{{.ResourcePath}}
 var argValue = "tensorflow_model_server --port=9000 --model_name={{.ModelName}} --model_base_path=s3://{{.Namespace}}/{{.ModelName}}-{{.ModelVersion}}"
 
 func (c *serverHooks) Add(obj interface{}) {
-	server := obj.(*crv1.Server)
+	server := obj.(*crv1.InferenceEndpoint)
 	fmt.Printf("[CONTROLLER] OnAdd %s\n", server)
 	// NEVER modify objects from the store. It's a read-only, local cache.
 	// You can use DeepCopy() to make a deep copy of original object and modify
@@ -80,7 +80,7 @@ func (c *serverHooks) Add(obj interface{}) {
 	serverCopy := server.DeepCopy()
 	ownerRef := metav1.NewControllerRef(server, crv1.GVK)
 	err := c.deploymentClient.Create(serverCopy.Namespace(), struct {
-		*crv1.Server
+		*crv1.InferenceEndpoint
 		metav1.OwnerReference
 	}{
 		serverCopy,
@@ -94,7 +94,7 @@ func (c *serverHooks) Add(obj interface{}) {
 	fmt.Printf("Deployment (%s) created successfully\n", serverCopy.Spec.EndpointName)
 
 	err = c.serviceClient.Create(serverCopy.Namespace(), struct {
-		*crv1.Server
+		*crv1.InferenceEndpoint
 		metav1.OwnerReference
 	}{
 		serverCopy,
@@ -108,7 +108,7 @@ func (c *serverHooks) Add(obj interface{}) {
 	fmt.Printf("Service (%s) created successfully\n", serverCopy.Spec.EndpointName)
 
 	err = c.ingressClient.Create(serverCopy.Namespace(), struct {
-		*crv1.Server
+		*crv1.InferenceEndpoint
 		metav1.OwnerReference
 	}{
 		serverCopy,
@@ -121,15 +121,15 @@ func (c *serverHooks) Add(obj interface{}) {
 	}
 	fmt.Printf("Ingress (%s) created successfully\n", serverCopy.Spec.EndpointName)
 
-	serverCopy.Status = crv1.ServerStatus{
+	serverCopy.Status = crv1.InferenceEndpointStatus{
 		State:   states.Completed,
 		Message: "Successfully processed by controller",
 	}
 }
 
 func (c *serverHooks) Update(oldObj, newObj interface{}) {
-	oldServer := oldObj.(*crv1.Server)
-	newServer := newObj.(*crv1.Server)
+	oldServer := oldObj.(*crv1.InferenceEndpoint)
+	newServer := newObj.(*crv1.InferenceEndpoint)
 	fmt.Printf("[CONTROLLER] OnUpdate\n")
 	fmt.Printf("New Server %s\n", newServer)
 	fmt.Printf("Old Server %s\n", oldServer)
@@ -185,7 +185,7 @@ func (c *serverHooks) Update(oldObj, newObj interface{}) {
 }
 
 func (c *serverHooks) Delete(obj interface{}) {
-	server := obj.(*crv1.Server)
+	server := obj.(*crv1.InferenceEndpoint)
 	fmt.Printf("[CONTROLLER] OnDelete %s\n", server.ObjectMeta.SelfLink)
 }
 
