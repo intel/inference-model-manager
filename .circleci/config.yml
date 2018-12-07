@@ -196,8 +196,6 @@ jobs:
             . ~/inference-model-manager/.venv/bin/activate
             cd ~/inference-model-manager/helm-deployment/management-api-subchart/certs
             export CERT=`cat ca-cert-tf.crt | base64 -w0`
-            echo "Creating cluster role binding for group admin"
-            kubectl create clusterrolebinding inferno-cluster-admin-binding --clusterrole cluster-admin  --group admin
             export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
             cd ~/inference-model-manager/tests
             pip install -q -r requirements.txt
