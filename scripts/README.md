@@ -143,4 +143,5 @@ Example:
 ```
 python model_upload_cli.py model-name model-version tenant-name
 ```
+
 More info: `python model_upload_cli.py -h`
