@@ -42,9 +42,15 @@ Now you can close this web browser window and return to the console.
 code = None
 
 
-def get_dex_auth_url(address, port, ca_cert_path):
-    conn = httplib.HTTPSConnection(address, port,
-                                   context=ssl.create_default_context(cafile=ca_cert_path))
+def get_dex_auth_url(address, port, ca_cert_path, proxy_host=None, proxy_port=None):
+    conn = None
+    if proxy_host:
+        conn = httplib.HTTPSConnection(proxy_host, proxy_port,
+                                       context=ssl.create_default_context(cafile=ca_cert_path))
+        conn.set_tunnel(address, port)
+    else:
+        conn = httplib.HTTPSConnection(address, port,
+                                       context=ssl.create_default_context(cafile=ca_cert_path))
     conn.request("GET", "/authenticate")
     r1 = conn.getresponse()
     dex_auth_url = r1.getheader('location')
@@ -122,7 +128,17 @@ def parse_args():
                         default=443)
     parser.add_argument('--ca_cert', type=str, help='path to cert file for management api',
                         required=False, default=None)
+    parser.add_argument('--proxy_host', type=str, help='proxy hostname',
+                        required=False, default=None)
+    parser.add_argument('--proxy_port', type=int, help='proxy port',
+                        required=False, default=None)
+
     args = parser.parse_args()
+    if args.proxy_host:
+        if not args.proxy_port:
+            print("--proxy_port must be specified")
+            sys.exit()
+
     return args
 
 
@@ -130,17 +146,18 @@ def main():
     args = parse_args()
     print(args.ca_cert)
     config_file_path = getenv('IMM_CONFIG_PATH', join(expanduser("~"), '.imm'))
-    auth_url = get_dex_auth_url(address=args.address, port=args.port, ca_cert_path=args.ca_cert)
+    auth_url = get_dex_auth_url(address=args.address, port=args.port, ca_cert_path=args.ca_cert,
+                                proxy_host=args.proxy_host, proxy_port=args.proxy_port)
     auth_url_with_refresh_token = enable_getting_refresh_token(auth_url)
-
     auth_url_unparsed = urlparse(auth_url)
     queries = parse_qs(auth_url_unparsed.query)
     redirect_port = urlparse(queries['redirect_uri'][0]).port
 
     run_server(redirect_port, auth_url_with_refresh_token)
-    print('Code recieved, waiting for token.')
+    print('Code received, waiting for token.')
     token = get_dex_auth_token(address=args.address, port=args.port, auth_code=code,
-                               ca_cert_path=args.ca_cert)
+                               ca_cert_path=args.ca_cert, proxy_host=args.proxy_host,
+                               proxy_port=args.proxy_port)
     token.update({'management_api_address': args.address, 'management_api_port': args.port,
                   'ca_cert_path': args.ca_cert})
     save_to_file(config_file_path, token)
