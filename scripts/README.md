@@ -22,6 +22,14 @@ By default, management_api runs on port 443 and this port is used in this script
 python webbrowser_authenticate.py --address <management_api ip> --port <management_api port>
 ```
 
+**Handling proxy**
+
+If you are behind proxy, use extra proxy parameters:
+
+```
+--proxy_host <host> --proxy_port <port>
+```
+
 ### Management API calls
 *api_call.sh* script allows to call Management API in a more convenient way.
 
