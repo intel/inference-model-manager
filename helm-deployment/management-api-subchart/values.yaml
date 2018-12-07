@@ -20,7 +20,7 @@ ingress:
      secretName: tls-management-secret
      hosts: <management_api_desired_dns>
 resources: {}
-platformDomain: <dns_for_manager>
+platformDomain: <dns_for_inference_endpoints>
 dexUrl: "https://dex.dex:443"
 dexTokenPath: "/dex/token"
 dexAuthPath: "/dex/auth"

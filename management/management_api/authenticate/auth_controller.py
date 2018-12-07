@@ -22,7 +22,7 @@ from jwt import jwk_from_dict
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 
 
-from management_api.config import AuthParameters, DEX_URL, PLATFORM_DOMAIN
+from management_api.config import AuthParameters, DEX_URL, DEX_EXTERNAL_URL
 from management_api.utils.errors_handling import MissingTokenException
 from management_api.utils.logger import get_logger
 
@@ -78,9 +78,8 @@ def _get_keys_from_dex():
 
 
 def get_dex_external_url():
-    host = "dex." + PLATFORM_DOMAIN
-    port = 443
-    url = f'https://{host}:{port}'
+    dex_external = DEX_EXTERNAL_URL
+    url = f'https://{dex_external}'
     return url
 
 
