@@ -190,6 +190,10 @@ jobs:
             cat ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-ing-mgt-api.crt
             echo "DEX CA"
             cat ~/inference-model-manager/helm-deployment/dex-subchart/certs/ca-ing-dex.crt
+      - store_artifacts:
+          path: ~/inference-model-manager/helm-deployment/dex-subchart/certs
+      - store_artifacts:
+          path: ~/inference-model-manager/helm-deployment/management-api-subchart/certs
       - run:
           name: Run tests
           command: |
