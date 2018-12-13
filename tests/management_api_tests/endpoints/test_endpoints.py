@@ -185,7 +185,7 @@ CORRECT_UPDATE_PARAMS = [
 
 @pytest.mark.parametrize("new_values", CORRECT_UPDATE_PARAMS)
 def test_update_endpoint(get_k8s_custom_obj_client, apps_api_instance,
-                         tenant_with_endpoint, new_values):
+                         api_instance, tenant_with_endpoint, new_values):
     namespace, body = tenant_with_endpoint
     crd_server_name = body['spec']['endpointName']
     data = json.dumps(new_values)
@@ -200,8 +200,8 @@ def test_update_endpoint(get_k8s_custom_obj_client, apps_api_instance,
     assert check_model_params_matching_provided(
         get_k8s_custom_obj_client, namespace, crd_server_name, provided_params=new_values
     ) == CheckResult.CONTENTS_MATCHING
-    assert check_server_update_result(apps_api_instance, namespace, crd_server_name, new_values
-                                      ) == CheckResult.CONTENTS_MATCHING
+    assert check_server_update_result(apps_api_instance, api_instance, namespace, crd_server_name,
+                                      new_values) == CheckResult.CONTENTS_MATCHING
 
 
 FAILING_UPDATE_PARAMS = [

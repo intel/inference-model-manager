@@ -14,7 +14,7 @@ rules:
   resources: ["deployments"]
   verbs: ["*"]
 - apiGroups: [""]
-  resources: ["services"]
+  resources: ["services", "configmaps"]
   verbs: ["*"]
 - apiGroups: ["extensions"]
   resources: ["ingresses"]

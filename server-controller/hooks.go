@@ -22,6 +22,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"time"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"reflect"
 	"text/template"
@@ -38,6 +39,7 @@ type serverHooks struct {
 	deploymentClient resource.Client
 	serviceClient    resource.Client
 	ingressClient    resource.Client
+	configMapClient  resource.Client
 }
 
 type patchData struct {
@@ -66,9 +68,8 @@ type patchStructMap struct {
 }
 
 var replicaPath = "/spec/replicas"
-var argPath = "/spec/template/spec/containers/0/args/0"
 var resourcePath = "/spec/template/spec/containers/0/resources/{{.ResourcePath}}"
-var argValue = "tensorflow_model_server --port=9000 --model_name={{.ModelName}} --model_base_path=s3://{{.Namespace}}/{{.ModelName}}-{{.ModelVersion}}"
+var configRollingPath = "/spec/template/metadata/labels/configDate"
 
 func (c *serverHooks) Add(obj interface{}) {
 	server := obj.(*crv1.InferenceEndpoint)
@@ -79,7 +80,22 @@ func (c *serverHooks) Add(obj interface{}) {
 
 	serverCopy := server.DeepCopy()
 	ownerRef := metav1.NewControllerRef(server, crv1.GVK)
-	err := c.deploymentClient.Create(serverCopy.Namespace(), struct {
+
+	err := c.configMapClient.Create(serverCopy.Namespace(), struct {
+		*crv1.InferenceEndpoint
+		metav1.OwnerReference
+	}{
+		serverCopy,
+		*ownerRef,
+	})
+
+	if err != nil {
+		fmt.Printf("ERROR during configMap creation: %v\n", err)
+		return
+	}
+	fmt.Printf("ConfigMap (%s) created successfully\n", serverCopy.Spec.EndpointName)
+
+	err = c.deploymentClient.Create(serverCopy.Namespace(), struct {
 		*crv1.InferenceEndpoint
 		metav1.OwnerReference
 	}{
@@ -92,6 +108,18 @@ func (c *serverHooks) Add(obj interface{}) {
 		return
 	}
 	fmt.Printf("Deployment (%s) created successfully\n", serverCopy.Spec.EndpointName)
+    // Patch below is required to create special label for triggering new deployments after configmap change
+	fmt.Printf("A special label for deployment 'configDate' will be added.\n")
+	t := time.Now().UTC()
+	configMapPatch := []patchStructString{{Op: "add", Path: configRollingPath, Value: t.Format("20060102150405")}}
+	patchBytes, err := json.Marshal(configMapPatch)
+	fmt.Printf("JsonPatch which will be applied: %s\n", string(patchBytes))
+	err = c.deploymentClient.Patch(server.Namespace(), server.Spec.EndpointName, patchBytes)
+	if err != nil {
+		fmt.Printf("ERROR during patch operation %v\n", err.Error())
+		fmt.Printf("Object updates will not be available.\n")
+		return
+	}
 
 	err = c.serviceClient.Create(serverCopy.Namespace(), struct {
 		*crv1.InferenceEndpoint
@@ -156,13 +184,24 @@ func (c *serverHooks) Update(oldObj, newObj interface{}) {
 	}
 	fmt.Printf("Check ModelName and ModelVersion fields.\n")
 	if oldServer.Spec.ModelName != newServer.Spec.ModelName || oldServer.Spec.ModelVersion != newServer.Spec.ModelVersion {
-		argValue, err := fillTemplate(argValue, p)
+		ownerRef := metav1.NewControllerRef(oldServer, crv1.GVK)
+		err := c.configMapClient.Update(oldServer.Namespace(), oldServer.Spec.EndpointName, struct {
+			*crv1.InferenceEndpoint
+			metav1.OwnerReference
+		}{
+			newServer,
+			*ownerRef,
+		})
+
 		if err != nil {
-			fmt.Printf("ERROR during modelName and modelVersion patch preparation: %v\n", err)
+			fmt.Printf("ERROR during configMap update: %v\n", err)
 			return
 		}
-		argPatch := patchStructString{Op: "replace", Path: argPath, Value: argValue}
-		patchLines = append(patchLines, argPatch)
+		fmt.Printf("ConfigMap (%s) updated successfully\n", newServer.Spec.EndpointName)
+		// Necessary patch to trigger new deployment after configmap change
+		t := time.Now().UTC()
+		configMapPatch := patchStructString{Op: "replace", Path: configRollingPath, Value: t.Format("20060102150405")}
+		patchLines = append(patchLines, configMapPatch)
 	}
 
 	if len(patchLines) > 0 {
@@ -173,7 +212,7 @@ func (c *serverHooks) Update(oldObj, newObj interface{}) {
 			return
 		}
 		fmt.Printf("JsonPatch which will be applied: %s\n", string(patchBytes))
-		err = c.deploymentClient.Update(oldServer.Namespace(), oldServer.Spec.EndpointName, patchBytes)
+		err = c.deploymentClient.Patch(oldServer.Namespace(), oldServer.Spec.EndpointName, patchBytes)
 		if err != nil {
 			fmt.Printf("ERROR during update operation %v\n", err.Error())
 			return

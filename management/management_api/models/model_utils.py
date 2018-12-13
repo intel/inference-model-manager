@@ -15,25 +15,18 @@
 #
 
 import argparse
-from kubernetes.client.rest import ApiException
 from botocore.exceptions import ClientError
 
 from management_api.config import minio_resource
-from management_api.utils.kubernetes_resources import get_k8s_apps_api_client
-from management_api.utils.errors_handling import KubernetesGetException, ModelDeleteException, \
-    ModelDoesNotExistException, TenantDoesNotExistException, MinioCallException
+from management_api.utils.errors_handling import ModelDoesNotExistException, \
+    TenantDoesNotExistException, MinioCallException
 from management_api.tenants.tenants_utils import tenant_exists
 
 
 def list_models(namespace: str, id_token):
+    # TODO Add checking if model is used by endpoint
     if not tenant_exists(namespace, id_token):
         raise TenantDoesNotExistException(namespace)
-
-    apps_api_client = get_k8s_apps_api_client(id_token)
-    try:
-        deployments = apps_api_client.list_namespaced_deployment(namespace)
-    except ApiException as apiException:
-        raise KubernetesGetException('deployment', apiException)
 
     try:
         bucket = minio_resource.Bucket(name=namespace)
@@ -47,8 +40,7 @@ def list_models(namespace: str, id_token):
             model_name = model_path[0]
             model_version = model_path[-1]
             model_size = object.size
-            deployment_count = len(endpoints_using_model(deployments, model_path))
-            models.append((model_name, model_version, model_size, deployment_count))
+            models.append((model_name, model_version, model_size))
 
     if not models:
         return f"There are no models present in {namespace} tenant\n"
@@ -58,6 +50,7 @@ def list_models(namespace: str, id_token):
 
 
 def delete_model(parameters: dict, namespace: str, id_token):
+    # TODO Add checking if model is used by endpoint
     if not tenant_exists(namespace, id_token):
         raise TenantDoesNotExistException(namespace)
 
@@ -67,16 +60,6 @@ def delete_model(parameters: dict, namespace: str, id_token):
 
     if not model_exists(model_in_bucket):
         raise ModelDoesNotExistException(model_path)
-
-    apps_api_client = get_k8s_apps_api_client(id_token)
-    try:
-        deployments = apps_api_client.list_namespaced_deployment(namespace)
-    except ApiException as apiException:
-        raise KubernetesGetException('deployment', apiException)
-
-    endpoint_names = endpoints_using_model(deployments, model_path)
-    if endpoint_names:
-        raise ModelDeleteException(f'model is used by endpoints: {endpoint_names}')
 
     for key in model_in_bucket:
         key.delete()

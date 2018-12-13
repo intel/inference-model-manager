@@ -34,8 +34,7 @@ def test_list_models(request, endpoint_fix, expected_status, expected_message):
 
 
 @pytest.mark.parametrize("endpoint_fix, expected_status, expected_message",
-                         [('fake_endpoint_with_fake_model', 200, 'Model deleted'),
-                          ('endpoint_with_fake_model', 409, 'Model delete error')])
+                         [('fake_endpoint_with_fake_model', 200, 'Model deleted')])
 def test_delete_model(request, endpoint_fix, expected_status, expected_message):
     namespace, body = request.getfixturevalue(endpoint_fix)
     model_name, model_version = body['spec']['modelName'], body['spec']['modelVersion']
