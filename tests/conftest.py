@@ -133,7 +133,7 @@ def create_endpoint(custom_obj_client, namespace, context, endpoint_name='predic
     endpoint_resources = transform_quota(resources)
     metadata = {"name": endpoint_name}
     model_name, model_version = 'resnet', 1
-    model_path = f'{model_name}-{model_version}'
+    model_path = f'{model_name}'
     spec = {
         'modelName': model_name,
         'modelVersion': model_version,
@@ -215,7 +215,7 @@ def fake_endpoint(session_tenant):
 def create_fake_model(endpoint, minio_client):
     namespace, body = endpoint
     model_name, model_version = body['spec']['modelName'], body['spec']['modelVersion']
-    model_path = f'{model_name}-{model_version}/0/model.pb'
+    model_path = f'{model_name}/{model_version}/model.pb'
     minio_client.put_object(Bucket=namespace, Body=b'Some model content', Key=model_path)
     return namespace, body
 

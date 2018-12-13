@@ -115,7 +115,7 @@ def check_server_update_result(apps_api_instance, api_instance, namespace, endpo
     model_config = api_response_configmap.data['tf.conf']
     quota = container.resources.limits
     quota.update(container.resources.requests)
-    model_path = f'{namespace}/{new_values["modelName"]}-{new_values["modelVersion"]}'
+    model_path = f'{namespace}/{new_values["modelName"]}'
     if 'resources' in new_values:
         new_values['resources'] = transform_quota(new_values['resources'])
         for key, value in new_values['resources']:

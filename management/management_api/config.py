@@ -79,7 +79,7 @@ minio_resource = boto3.resource('s3',
                                 region_name=MINIO_REGION)
 
 
-# To edit this object please first use deep copy.
+# To edit this object please first use deep copy
 DELETE_BODY = client.V1DeleteOptions()
 
 # -------------------------------------------

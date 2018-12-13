@@ -36,9 +36,9 @@ def list_models(namespace: str, id_token):
     models = []
     for object in bucket.objects.all():
         if object.size > 0:
-            model_path = object.key.split('/')[0].rsplit('-', 1)
+            model_path = object.key.split('/', 2)
             model_name = model_path[0]
-            model_version = model_path[-1]
+            model_version = model_path[1]
             model_size = object.size
             models.append((model_name, model_version, model_size))
 
@@ -54,7 +54,7 @@ def delete_model(parameters: dict, namespace: str, id_token):
     if not tenant_exists(namespace, id_token):
         raise TenantDoesNotExistException(namespace)
 
-    model_path = f"{parameters['modelName']}-{parameters['modelVersion']}"
+    model_path = f"{parameters['modelName']}/{parameters['modelVersion']}/"
     bucket = minio_resource.Bucket(name=namespace)
     model_in_bucket = bucket.objects.filter(Prefix=model_path)
 

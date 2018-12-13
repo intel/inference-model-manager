@@ -16,7 +16,7 @@ data:
     model_config_list: {
           config:{
             name:"{{.Spec.ModelName}}",
-            base_path:"s3://{{.ObjectMeta.Namespace}}/{{.Spec.ModelName}}-{{.Spec.ModelVersion}}",
+            base_path:"s3://{{.ObjectMeta.Namespace}}/{{.Spec.ModelName}}",
             model_platform:"tensorflow",
             model_version_policy: {
                   all: {}
