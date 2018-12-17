@@ -20,13 +20,13 @@ import requests
 
 
 def upload_part(url, params, headers, data, parts):
-    print(f"Sending part nr {params['partNumber']} of current upload...")
+    print("Sending part nr {} of current upload...".format(params['partNumber']))
     response = requests.put(url + "/upload", data, headers=headers, params=params)
     if response.status_code != 200:
-        print(f"Could not upload part nr : {params['partNumber']}")
+        print("Could not upload part nr : {}".format(params['partNumber']))
         raise Exception
 
-    print(f"Part nr {params['partNumber']} of current upload sent successfully")
+    print("Part nr {} of current upload sent successfully".format(params['partNumber']))
     part_etag = response.json()['ETag']
     parts.append({'ETag': part_etag, 'PartNumber': params['partNumber']})
 
@@ -41,10 +41,10 @@ def upload_model(url, params, headers, part_size):
     data = {'modelName': model_name, 'modelVersion': model_version, 'fileName': file_name}
     response = requests.post(url + "/upload/start", json=data, headers=headers)
     if response.status_code != 200:
-        print(f"Could not initiate upload: {response.text}")
+        print("Could not initiate upload: {}".format(response.text))
         return
     upload_id = response.json()['uploadId']
-    print(f"Model upload initiated successfully. Upload id = {upload_id}")
+    print("Model upload initiated successfully. Upload id = {}".format(upload_id))
 
     # --- Uploading parts
     try:
@@ -58,11 +58,13 @@ def upload_model(url, params, headers, part_size):
                   'fileName': file_name,
                   }
         with open(file_path, 'rb') as file:
-            print(f"Preparing data for part nr {part_number} of current upload...")
+            print("Preparing data for part nr {} of current upload...".format(part_number))
             data = file.read(PART_SIZE)
             upload_part(url, params, headers, data, parts)
             while len(data) == PART_SIZE:
-                print(f"Preparing data for part nr {part_number + 1} of current upload...")
+                print("Preparing data for part nr {} of current upload...".format(
+                    part_number + 1))
+
                 file.seek(part_number * PART_SIZE)
                 data = file.read(PART_SIZE)
                 part_number += 1
@@ -70,14 +72,14 @@ def upload_model(url, params, headers, part_size):
                 upload_part(url, params, headers, data, parts)
     except (KeyboardInterrupt, Exception) as e:
         # -- Aborting upload
-        print(f"Exception: {e}")
-        print(f"Aborting upload with id: {upload_id} ...")
+        print("Exception: {}".format(e))
+        print("Aborting upload with id: {} ...".format(upload_id))
         data = {'modelName': model_name, 'modelVersion': model_version, 'fileName': file_name,
                 'uploadId': upload_id}
         response = requests.post(url + "/upload/abort", json=data, headers=headers)
         if response.status_code != 200:
-            print(f"Could not abort upload: {response.text}")
-        print(f"Upload with id: {upload_id} aborted successfully")
+            print("Could not abort upload: {}".format(response.text))
+        print("Upload with id: {} aborted successfully".format(upload_id))
         return
 
     # --- Completing upload
@@ -87,7 +89,7 @@ def upload_model(url, params, headers, part_size):
     response = requests.post(url + "/upload/done", json=data, headers=headers)
 
     if response.status_code != 200:
-        print(f"Could not complete upload: {response.text}")
+        print("Could not complete upload: {}".format(response.text))
         return
 
-    print(f"Upload with id: {upload_id} completed successfully")
+    print("Upload with id: {} completed successfully".format(upload_id))

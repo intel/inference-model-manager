@@ -70,8 +70,8 @@ def main():
         'model_version': args.model_version,
         'file_path': os.path.abspath(args.file_path),
     }
-    url = f"https://{config['management_api_address']}:{config['management_api_port']}" \
-          f"/tenants/{args.tenant}"
+    url = "https://{}:{}/tenants/{}".format(config['management_api_address'],
+                                            config['management_api_port'], args.tenant)
 
     start_time = time.time()
     upload_model(url, params, headers, args.part)
