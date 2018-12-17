@@ -77,7 +77,7 @@ kubectl create secret docker-registry gcr-json-key \
 Patch service account used for imagePullSecret option:
 
 ```
-kubectl patch serviceaccount server-controller \
+kubectl patch serviceaccount mgt-api \
  -p "{\"imagePullSecrets\": [{\"name\": \"gcr-json-key\"}]}" \
 -n mgt-api
 ```
