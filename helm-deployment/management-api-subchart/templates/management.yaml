@@ -14,6 +14,7 @@ spec:
       imagePullSecrets:
         - name: gcr-json-key
 {{ end }}
+      serviceAccount: mgt-api
       containers:
       - name: management-api
         image: {{ .Values.image }}:{{ .Values.tag }}
@@ -106,4 +107,9 @@ spec:
   selector:
     app: management-api
   type: ClusterIP
-
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mgt-api
+  namespace: {{ .Values.namespace }}
