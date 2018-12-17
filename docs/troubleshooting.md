@@ -24,14 +24,14 @@ Please provide scope (group name) sun
 ```
 Above message can indicate on MinIO -- Management Api connections issues, credentials or wrong port included in minio-access-info kubernetes secret.
 
-Unexpected error occurred: Failed to parse: minioplatform.defaul:9000\n
+Unexpected error occurred: Failed to parse: minioplatform.default:9000\n
 
 ```console
 ./api_call.sh c t
 Create tenant
 Please provide tenant name abbb
 Please provide scope (group name) sun
-{"title": "Unexpected error occurred: Failed to parse: minioplatform.defaul:9000\n"}
+{"title": "Unexpected error occurred: Failed to parse: minioplatform.default:9000\n"}
 ```
 minio.endpoint_url variable in minio-access-info was base64 encoded with additional newline sign. 
 
@@ -58,10 +58,14 @@ default-http-backend   ClusterIP                   <none>        80/TCP
 ingress-nginx          NodePort                    <none>        80:31641/TCP,443:30258/TCP   
 ```
 Node port used for https connection can be found next to ingress-nginx kubernetes service.
-Add port number to KubeApi server connection to Dex details oidc issuer url.
+
+Add port number to KubeApi server connection to Dex details to oidc issuer url option.
+
+Replace 443 port with node port when using any script that requires connection to Management Api or Dex, ex. scripts/api_call.sh. 
 
 Private Docker Registry:
-Create secret docker-registry
+Create secret docker-registry.
+
 Example secret creation, Google Cloud Registry assumed: 
 ```
 kubectl create secret docker-registry gcr-json-key \
@@ -74,12 +78,12 @@ Patch service account used for imagePullSecret option:
 
 ```
 kubectl patch serviceaccount server-controller \
- -p "{\"imagePullSecrets\": [{\"name\": \"gcr-json-key\"}]}"
+ -p "{\"imagePullSecrets\": [{\"name\": \"gcr-json-key\"}]}" \
 -n mgt-api
 ```
 ```
 kubectl patch serviceaccount server-controller \
- -p "{\"imagePullSecrets\": [{\"name\": \"gcr-json-key\"}]}"
+ -p "{\"imagePullSecrets\": [{\"name\": \"gcr-json-key\"}]}" \
 -n crd
 ```
 
