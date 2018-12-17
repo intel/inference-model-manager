@@ -16,4 +16,9 @@ Add port number to KubeApi server connection to Dex details to oidc issuer url o
 
 Replace 443 port with node port when using any script that requires connection to Management Api or Dex, ex. scripts/api_call.sh.
 
+Fill in value of DEX_EXTERNAL_URL variable in values.yaml file to end dex url, followed by node port number.
+Example:
+```
+dex.domain.com:30258
+```
 Note: Remember to deploy ingress-nginx pod to the same host where dns is set to.
