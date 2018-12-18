@@ -41,3 +41,9 @@ subject_name = {
     "title": "Subject name",
     "pattern": "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$"  # noqa
 }
+
+template_name = {
+    "type": "string",
+    "title": "Template name",
+    "minLength": 3
+}

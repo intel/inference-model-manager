@@ -15,7 +15,7 @@
 #
 
 from management_api.schemas.elements.models import model_name, model_version
-from management_api.schemas.elements.names import endpoint_name, subject_name
+from management_api.schemas.elements.names import endpoint_name, subject_name, template_name
 from management_api.schemas.elements.resources import replicas, resources
 
 
@@ -26,7 +26,8 @@ endpoint_post_schema = {
         "endpointName",
         "modelName",
         "modelVersion",
-        "subjectName"
+        "subjectName",
+        "templateName",
     ],
     "properties": {
         "endpointName": endpoint_name,
@@ -34,7 +35,8 @@ endpoint_post_schema = {
         "modelVersion": model_version,
         "subjectName": subject_name,
         "replicas": replicas,
-        "resources": resources
+        "resources": resources,
+        "templateName": template_name
     }
 }
 

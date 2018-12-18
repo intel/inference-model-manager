@@ -114,6 +114,7 @@ To create an endpoint we need to provide following parameters:
 - subjectName - Common Name in the client certificate authorized to access the gRPC Inference Endpoint,
 - modelName – model to serve
 - modelVersion – version of a model to serve
+- templateName - define which template will be used to create endpoint
 We can also specify additional parameters:
 - replicas – number of replicas to be provisioned
 - resources – see Resources for endpoint

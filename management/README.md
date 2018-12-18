@@ -138,8 +138,8 @@ Call a POST operation on `https://<management-api-address>/tenants/<tenant-name>
 curl -X POST "https://<management_api_address>/tenants/<tenant-name>/endpoints" -H "accept: 
 application/json" \
 -H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
--d "{\"endpointName\": <string>, \"modelName\": <string>, \"modelVersion\": <int>, \"subjectName\": <string>
-\"resources\": <dict>}"
+-d "{\"endpointName\": <string>, \"modelName\": <string>, \"modelVersion\": <int>, \"templateName\": <string>,
+ \"subjectName\": <string>, \"resources\": <dict>}"
 ```
 
 When an operation ends with success, it returns a statement (example for an endpoint with a name 

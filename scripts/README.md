@@ -56,11 +56,11 @@ If you are behind proxy, use extra proxy parameters:
     ./api_call.sh create tenant mytenant users
     ```
 - endpoint (e)
-  - Required parameters: endpointName, modelName, modelVersion, tenantName, subjectName (default: client)
+  - Required parameters: endpointName, modelName, modelVersion, tenantName, templateName, subjectName (default: client)
   - Additional parameters provided with environment variables: quota with ENDPOINT_RESOURCES env
   - Usage example:
     ```
-    ./api_call.sh create e myendpoint mymodel 1 mytenant 
+    ./api_call.sh create e myendpoint mymodel 1 mytenant tf_serving
     ```
 ##### remove (rm)
 - tenant (t)
