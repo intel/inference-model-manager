@@ -3,6 +3,9 @@ kind: ConfigMap
 metadata:
   name: "{{.Spec.EndpointName}}"
   namespace: "{{.ObjectMeta.Namespace}}"
+  labels:
+    id: "{{.Spec.EndpointName}}"
+    endpoint: "{{.Spec.EndpointName}}"
   ownerReferences:
   - apiVersion: {{.APIVersion}}
     kind: {{.Kind}}
@@ -10,7 +13,6 @@ metadata:
     uid: {{.UID}}
     controller: {{.Controller}}
     blockOwnerDeletion: {{.BlockOwnerDeletion}}
-
 data:
   tf.conf: |
     model_config_list: {

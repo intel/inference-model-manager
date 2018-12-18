@@ -94,6 +94,7 @@ type InferenceEndpointSpec struct {
 	SubjectName     string                   `json:"subjectName"`
 	Resources       ResourceSpec             `json:"resources,omitempty"`
 	Replicas        int                      `json:"replicas,omitempty"`
+	TemplateName    string                   `json:"templateName"`
 }
 
 type InferenceEndpointStatus struct {

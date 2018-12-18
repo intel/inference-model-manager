@@ -39,7 +39,8 @@ def test_create_endpoint(function_context, apps_api_instance, get_k8s_custom_obj
         'endpointName': crd_server_name,
         'subjectName': 'client',
         'replicas': replicas,
-        'resources': ENDPOINT_RESOURCES
+        'resources': ENDPOINT_RESOURCES,
+        'templateName': 'tf_serving'
     })
     url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=namespace)
 
@@ -98,7 +99,8 @@ def test_create_endpoint_with_2_replicas(get_k8s_custom_obj_client, apps_api_ins
         'endpointName': crd_server_name,
         'subjectName': 'client',
         'replicas': replicas,
-        'resources': ENDPOINT_RESOURCES
+        'resources': ENDPOINT_RESOURCES,
+        'templateName': 'tf_serving'
     })
 
     url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=namespace)
@@ -262,7 +264,8 @@ def test_not_create_endpoint_with_incompliant_resource_quota(session_tenant, inc
         'endpointName': crd_server_name,
         'subjectName': 'client',
         'replicas': replicas,
-        'resources': incompliant_quota
+        'resources': incompliant_quota,
+        'templateName': 'tf_serving'
     })
 
     url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=namespace)
@@ -314,7 +317,8 @@ def test_not_create_endpoint_tenant_not_exist():
         'endpointName': crd_server_name,
         'subjectName': 'client',
         'replicas': replicas,
-        'resources': ENDPOINT_RESOURCES
+        'resources': ENDPOINT_RESOURCES,
+        'templateName': 'tf_serving'
     })
     url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=namespace)
 

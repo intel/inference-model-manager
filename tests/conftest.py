@@ -140,7 +140,8 @@ def create_endpoint(custom_obj_client, namespace, context, endpoint_name='predic
         'endpointName': endpoint_name,
         'subjectName': 'client',
         'replicas': 1,
-        'resources': endpoint_resources
+        'resources': endpoint_resources,
+        'templateName': 'tf_serving',
     }
     body = {"spec": spec, 'kind': CRD_KIND, "replicas": 1,
             "apiVersion": CRD_API_VERSION, "metadata": metadata}

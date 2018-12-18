@@ -27,13 +27,13 @@ spec:
             name: "{{.Spec.EndpointName}}"
       containers:
       - name: tf-serving
-        image: "{{ GlobalTemplateValue "servingImage" }}"
+        image: "intelaipg/openvino-model-server"
         imagePullPolicy: IfNotPresent
         command:
         - /bin/sh
         - -c
         args:
-        - tensorflow_model_server --port=9000 --model_config_file=/config/tf.conf
+        - ie_serving config --config_path /config/ovms.json --port 9000
         ports:
         - containerPort: 9000
         volumeMounts:

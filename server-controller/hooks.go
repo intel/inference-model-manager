@@ -22,24 +22,26 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"time"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"reflect"
 	"text/template"
+	"time"
 
 	crv1 "github.com/IntelAI/inference-model-manager/server-controller/apis/cr/v1"
-	"github.com/intel/crd-reconciler-for-kubernetes/pkg/crd"
 	"github.com/intel/crd-reconciler-for-kubernetes/pkg/resource"
 	"github.com/intel/crd-reconciler-for-kubernetes/pkg/states"
 )
 
-// serverHooks implements controller.Hooks.
-type serverHooks struct {
-	crdClient        crd.Client
+type templateClients struct {
 	deploymentClient resource.Client
 	serviceClient    resource.Client
 	ingressClient    resource.Client
 	configMapClient  resource.Client
+}
+
+// serverHooks implements controller.Hooks.
+type serverHooks struct {
+	templates map[string]templateClients
 }
 
 type patchData struct {
@@ -80,8 +82,13 @@ func (c *serverHooks) Add(obj interface{}) {
 
 	serverCopy := server.DeepCopy()
 	ownerRef := metav1.NewControllerRef(server, crv1.GVK)
+	templateName := serverCopy.Spec.TemplateName
+	if _, ok := c.templates[templateName]; !ok {
+		fmt.Printf("There is no such template: %s\n", templateName)
+		return
+	}
 
-	err := c.configMapClient.Create(serverCopy.Namespace(), struct {
+	err := c.templates[templateName].configMapClient.Create(serverCopy.Namespace(), struct {
 		*crv1.InferenceEndpoint
 		metav1.OwnerReference
 	}{
@@ -95,7 +102,7 @@ func (c *serverHooks) Add(obj interface{}) {
 	}
 	fmt.Printf("ConfigMap (%s) created successfully\n", serverCopy.Spec.EndpointName)
 
-	err = c.deploymentClient.Create(serverCopy.Namespace(), struct {
+	err = c.templates[templateName].deploymentClient.Create(serverCopy.Namespace(), struct {
 		*crv1.InferenceEndpoint
 		metav1.OwnerReference
 	}{
@@ -108,20 +115,20 @@ func (c *serverHooks) Add(obj interface{}) {
 		return
 	}
 	fmt.Printf("Deployment (%s) created successfully\n", serverCopy.Spec.EndpointName)
-    // Patch below is required to create special label for triggering new deployments after configmap change
+	// Patch below is required to create special label for triggering new deployments after configmap change
 	fmt.Printf("A special label for deployment 'configDate' will be added.\n")
 	t := time.Now().UTC()
 	configMapPatch := []patchStructString{{Op: "add", Path: configRollingPath, Value: t.Format("20060102150405")}}
 	patchBytes, err := json.Marshal(configMapPatch)
 	fmt.Printf("JsonPatch which will be applied: %s\n", string(patchBytes))
-	err = c.deploymentClient.Patch(server.Namespace(), server.Spec.EndpointName, patchBytes)
+	err = c.templates[templateName].deploymentClient.Patch(server.Namespace(), server.Spec.EndpointName, patchBytes)
 	if err != nil {
 		fmt.Printf("ERROR during patch operation %v\n", err.Error())
 		fmt.Printf("Object updates will not be available.\n")
 		return
 	}
 
-	err = c.serviceClient.Create(serverCopy.Namespace(), struct {
+	err = c.templates[templateName].serviceClient.Create(serverCopy.Namespace(), struct {
 		*crv1.InferenceEndpoint
 		metav1.OwnerReference
 	}{
@@ -135,7 +142,7 @@ func (c *serverHooks) Add(obj interface{}) {
 	}
 	fmt.Printf("Service (%s) created successfully\n", serverCopy.Spec.EndpointName)
 
-	err = c.ingressClient.Create(serverCopy.Namespace(), struct {
+	err = c.templates[templateName].ingressClient.Create(serverCopy.Namespace(), struct {
 		*crv1.InferenceEndpoint
 		metav1.OwnerReference
 	}{
@@ -162,6 +169,12 @@ func (c *serverHooks) Update(oldObj, newObj interface{}) {
 	fmt.Printf("New Server %s\n", newServer)
 	fmt.Printf("Old Server %s\n", oldServer)
 	var err error
+	if oldServer.Spec.TemplateName != newServer.Spec.TemplateName {
+		c.Add(newServer)
+		fmt.Printf("Updating succeeded for the server %v\n", oldServer.ObjectMeta.SelfLink)
+		return
+	}
+	templateName := newServer.Spec.TemplateName
 	patchLines := make([]interface{}, 0)
 	p := patchData{ModelName: newServer.Spec.ModelName, ModelVersion: newServer.Spec.ModelVersion, Namespace: oldServer.Namespace()}
 	fmt.Printf("Check resource field.\n")
@@ -185,7 +198,7 @@ func (c *serverHooks) Update(oldObj, newObj interface{}) {
 	fmt.Printf("Check ModelName and ModelVersion fields.\n")
 	if oldServer.Spec.ModelName != newServer.Spec.ModelName || oldServer.Spec.ModelVersion != newServer.Spec.ModelVersion {
 		ownerRef := metav1.NewControllerRef(oldServer, crv1.GVK)
-		err := c.configMapClient.Update(oldServer.Namespace(), oldServer.Spec.EndpointName, struct {
+		err := c.templates[templateName].configMapClient.Update(oldServer.Namespace(), oldServer.Spec.EndpointName, struct {
 			*crv1.InferenceEndpoint
 			metav1.OwnerReference
 		}{
@@ -212,7 +225,7 @@ func (c *serverHooks) Update(oldObj, newObj interface{}) {
 			return
 		}
 		fmt.Printf("JsonPatch which will be applied: %s\n", string(patchBytes))
-		err = c.deploymentClient.Patch(oldServer.Namespace(), oldServer.Spec.EndpointName, patchBytes)
+		err = c.templates[templateName].deploymentClient.Patch(oldServer.Namespace(), oldServer.Spec.EndpointName, patchBytes)
 		if err != nil {
 			fmt.Printf("ERROR during update operation %v\n", err.Error())
 			return

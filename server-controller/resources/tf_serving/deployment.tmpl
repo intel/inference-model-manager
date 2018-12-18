@@ -1,0 +1,82 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: "{{.Spec.EndpointName}}"
+  namespace: "{{.ObjectMeta.Namespace}}"
+  labels:
+    id: "{{.Spec.EndpointName}}"
+    endpoint: "{{.Spec.EndpointName}}"
+  ownerReferences:
+  - apiVersion: {{.APIVersion}}
+    kind: {{.Kind}}
+    name: {{.Name}}
+    uid: {{.UID}}
+    controller: {{.Controller}}
+    blockOwnerDeletion: {{.BlockOwnerDeletion}}
+spec:
+  replicas: {{or .Spec.Replicas 1}}
+  minReadySeconds: 60
+  template:
+    metadata:
+      labels:
+        endpoint: "{{.Spec.EndpointName}}"
+    spec:
+      volumes:
+      - name: configmap
+        configMap:
+            name: "{{.Spec.EndpointName}}"
+      containers:
+      - name: tf-serving
+        image: "tensorflow/serving:1.11.1"
+        imagePullPolicy: IfNotPresent
+        command:
+        - /bin/sh
+        - -c
+        args:
+        - tensorflow_model_server --port=9000 --model_config_file=/config/tf.conf
+        ports:
+        - containerPort: 9000
+        volumeMounts:
+        - mountPath: /config/
+          name: configmap
+        env:
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: minio-access-info
+                key: minio.access_key_id
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: minio-access-info
+                key: minio.access_secret_key
+          - name: S3_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: minio-access-info
+                key: minio.endpoint
+          - name: AWS_ENDPOINT_URL
+            valueFrom:
+              secretKeyRef:
+                name: minio-access-info
+                key: minio.endpoint_url
+          - name: AWS_REGION
+            valueFrom:
+              secretKeyRef:
+                name: minio-access-info
+                key: minio.minio_region
+          - name: BUCKET_NAME
+            value: {{.ObjectMeta.Namespace}}
+          - name: S3_USE_HTTPS
+            value: "{{ GlobalTemplateValue "s3UseHttps" }}"
+          - name: S3_VERIFY_SSL
+            value: "{{ GlobalTemplateValue "s3VerifySsl" }}"
+        resources:
+          limits: 
+{{ range $resource, $request := .Spec.Resources.Limits }}
+            {{ $resource }}: "{{ $request }}"
+{{ end }}
+          requests:
+{{ range $resource, $request := .Spec.Resources.Requests }}
+            {{ $resource }}: "{{ $request }}"
+{{ end }}
