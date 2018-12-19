@@ -137,9 +137,18 @@ NOTE: minio_endpoint should contain port number if different than 443
 - <minio_secret_key> Minio compatible storage secret key
 - <minio_endpoint> set to s3.\<region\>.amazonaws.com in case of AWS S3, set to minioplatfrom.default:9000 in case of minio from our default deployment
 - <minio_endpoint_url> set to s3.\<region\>.amazonaws.com in case of AWS S3, set to http://minioplatfrom.default:9000 in case of minio from our default deployment
-- adjust <groupName>, <adminScope> and <platformAdmin> to match administrative group from Identity Provider
+- adjust \<groupName\>, \<adminScope\> and \<platformAdmin\> to match administrative group from Identity Provider
   ,like "admin"
   Users belonging to administrative group will have permissions for tenant administration.
+
+Run our scripts to generete self-signed certificates inference-model-manager/helm-deployment/management-api-subchart/certs/generate-ing-management-api-certs.sh, generate-management-api-certs.sh and scriptcert.sh.
+Remember to export following environment variables before MGMT_DOMAIN_NAME, MGT_NAMESPACE, DOMAIN_NAME.
+```
+export MGMT_DOMAIN_NAME=mgt.imm.example.com
+export MGT_NAMESPACE=mgt-api # change only if you understand consequences
+export DOMAIN_NAME=imm.example.com
+```
+
 ```
 cd inference-model-manager/helm-deployment/management-api-subchart
 vim values.yaml
