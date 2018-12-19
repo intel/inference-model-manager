@@ -46,6 +46,7 @@ obtain IMAGE_ID using
 docker images
 ```
 tag and push the image
+NOTE: in case of private docker registry, please take a look on our documentation /docs/privateregistry.md
 ```
 docker tag $IMAGE_ID $REGISTRY_URL/server-controller-prod:latest
 docker push $REGISTRY_URL/server-controller-prod:latest
@@ -74,11 +75,26 @@ server-controller-c989895b7-pvh55   1/1       Running   0                   17s
 ### 5. Install DEX Oauth2Server [dex doc]
 In this step you need to configure DEX connection to identity provider, like LDAP.
 Sample dex configuration for LDAP: https://github.com/dexidp/dex/blob/master/examples/config-ldap.yaml
+Create certificates using inference-model-manager/helm-deployment/dex-subchart/generate-dex-certs.sh and generate-ing-dex-certs.sh scripts. Remember to export DEX_NAMESPACE, DEX_DOMAIN_NAME and ISSUER environment variables, before running those scripts.
+Format of above variables should fit following patterns:
+```
+export ISSUER=https://dex.imm.example.com:443/dex # change 443 port if using kubernetes node port instead of load balancer
+export DEX_NAMESPACE=dex # change value of this variable only if you understand consequences
+export DEX_DOMAIN_NAME=dex.imm.example.com
+```
+Deploy dex component with following commands if you need custom dex configuration:
+
 ```
 cd inference-model-manager/helm-deployment/dex-subchart
 vim values.yaml
 # enter dex configuration here, use link above if necessary
 helm install .
+```
+or use follwing commands for simplification:
+```
+cd inference-model-manager/tests/deployment/
+helm install -f dex_config.yaml --set issuer=${ISSUER} --set ingress.hosts=${DEX_DOMAIN_NAME} --set ingress.tls.hosts=${DEX_DOMAIN_NAME} ../../helm-deployment/dex-subchart/
+
 ```
 After this step dex pod should be running in dex namespace:
 
@@ -102,13 +118,16 @@ get the IMAGE_ID using
 docker images
 ```
 Tag and push the image to registry
+NOTE: in case of private docker registry, please take a look on our documentation /docs/privateregistry.md
 ```
 docker tag $IMAGE_ID $REGISTRY_URL/management-api:latest
 docker push $REGISTRY_URL/management-api:latest
 ```
 
 ### 7. Install Management API [management api doc]
-In this step it's important to setup following variables in values.yaml file:
+In this step it's important to setup following variables in values.yaml file.
+NOTE: minio_endpoint_url should contain http or https and port number if different than 443.
+NOTE: minio_endpoint should contain port number if different than 443
 
 - <image_path> $REGISTRY_URL/management-api
 - <image tag> use "latest"
@@ -116,8 +135,8 @@ In this step it's important to setup following variables in values.yaml file:
 - <dns_for_inference_endpoints> could be your domain name, like imm.example.com
 - <minio_access_key>  Minio compatible storage access key
 - <minio_secret_key> Minio compatible storage secret key
-- <minio_endpoint> not used, set to s3.<region>.amazonaws.com
-- <minio_endpoint_url> s3.<region>.amazonaws.com
+- <minio_endpoint> set to s3.\<region\>.amazonaws.com in case of AWS S3, set to minioplatfrom.default:9000 in case of minio from our default deployment
+- <minio_endpoint_url> set to s3.\<region\>.amazonaws.com in case of AWS S3, set to http://minioplatfrom.default:9000 in case of minio from our default deployment
 - adjust <groupName>, <adminScope> and <platformAdmin> to match administrative group from Identity Provider
   ,like "admin"
   Users belonging to administrative group will have permissions for tenant administration.
@@ -133,9 +152,9 @@ kubectl get pods -n mgt-api
 NAME                              READY     STATUS    RESTARTS   AGE
 management-api-5c45d856c7-4kzv4   1/1       Running   0          8s
 ```
-### 8. Enable openId authentication in kubernetes api 
-You need to restart   
-Use this link ahttps://github.com/IntelAI/inference-model-manager/blob/update-docs/docs/deployment.md#kubernetes-configuration-for-oid-authentication
+### 8. Enable openId authentication in kubernetes api server
+You need to restart kubeapi-server afet changes.
+Use this link for details https://github.com/IntelAI/inference-model-manager/blob/update-docs/docs/deployment.md#kubernetes-configuration-for-oid-authentication
   
 ### 9. Verify installation
 Obtain token from dex
