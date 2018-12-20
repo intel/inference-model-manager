@@ -71,6 +71,22 @@ Expected output:
 NAME                                READY     STATUS             RESTARTS   AGE
 server-controller-c989895b7-pvh55   1/1       Running   0                   17s
 ```
+### 5. Install ingress-nginx
+Go to inference-model-manager/helm-deployment/ing-subchart/, open values.yaml file and fill in your environment type (cloud or bare metal).
+Run
+```
+helm install .
+```
+If your environment is bare metal and you want to use Kubernetes Node Port, please take a look on docs/nodeport.md file.
+
+### 6. Choose storage provider
+For storing AI models you can choose any S3 compatible provider. If you already have MinIo/S3 or other component, Management Api installation guide will show you how to integrate it with our pltform. If not, command below show how to deploy example MinIo component.
+
+```
+cd inference-model-manager/helm-deployment/minio-subchart/
+vi values.yaml #type desired credentials
+helm install .
+```
 
 ### 5. Install DEX Oauth2Server [dex doc]
 In this step you need to configure DEX connection to identity provider, like LDAP.
