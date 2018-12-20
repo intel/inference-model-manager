@@ -85,6 +85,7 @@ For storing AI models you can choose any S3 compatible provider. If you already 
 ```
 cd inference-model-manager/helm-deployment/minio-subchart/
 vi values.yaml #type desired credentials
+helm dep up .
 helm install .
 ```
 
