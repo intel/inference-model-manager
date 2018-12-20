@@ -46,7 +46,9 @@ obtain IMAGE_ID using
 docker images
 ```
 tag and push the image
+
 NOTE: in case of private docker registry, please take a look on our documentation /docs/privateregistry.md
+
 ```
 docker tag $IMAGE_ID $REGISTRY_URL/server-controller-prod:latest
 docker push $REGISTRY_URL/server-controller-prod:latest
@@ -79,6 +81,7 @@ helm install .
 ```
 If your environment is bare metal and you want to use Kubernetes Node Port, please take a look on docs/nodeport.md file.
 
+
 ### 6. Choose storage provider
 For storing AI models you can choose any S3 compatible provider. If you already have MinIo/S3 or other component, Management Api installation guide will show you how to integrate it with our pltform. If not, command below show how to deploy example MinIo component.
 
@@ -89,7 +92,7 @@ helm dep up .
 helm install .
 ```
 
-### 5. Install DEX Oauth2Server [dex doc]
+### 7. Install DEX Oauth2Server [dex doc]
 In this step you need to configure DEX connection to identity provider, like LDAP.
 Sample dex configuration for LDAP: https://github.com/dexidp/dex/blob/master/examples/config-ldap.yaml
 Create certificates using inference-model-manager/helm-deployment/dex-subchart/generate-dex-certs.sh and generate-ing-dex-certs.sh scripts. Remember to export DEX_NAMESPACE, DEX_DOMAIN_NAME and ISSUER environment variables, before running those scripts.
@@ -110,9 +113,20 @@ helm install .
 or use follwing commands for simplification:
 ```
 cd inference-model-manager/tests/deployment/
+helm install --name imm-ldap -f ldap/values.yaml stable/openldap
+```
+After successful deployment (pod is up and running) of ldap run:
+
+```
+cd inference-model-manager/tests/deployment/
+sed -i "s@toreplacedbyissuer@${ISSUER}@g" dex_config.yaml
+export OPENLDAP_SVC=`kubectl get svc|grep "openldap   "| awk '{ print $1 }'`
+export OPENLDAP_SVC_ADDRESS="$OPENLDAP_SVC.default:389"
+sed -i "s@toreplacebyldapaddress@${OPENLDAP_SVC_ADDRESS}@g" dex_config.yaml
 helm install -f dex_config.yaml --set issuer=${ISSUER} --set ingress.hosts=${DEX_DOMAIN_NAME} --set ingress.tls.hosts=${DEX_DOMAIN_NAME} ../../helm-deployment/dex-subchart/
 
 ```
+
 After this step dex pod should be running in dex namespace:
 
 Execute:
@@ -125,7 +139,7 @@ Expected output:
 NAME                   READY     STATUS    RESTARTS   AGE
 dex-6f8d94bd5f-9vlvm   1/1       Running   1          1m
 ```
-### 6. Build Management API and push image to registry
+### 8. Build Management API and push image to registry
 ```
 cd inference-model-manager/management
 make docker_build
@@ -135,15 +149,19 @@ get the IMAGE_ID using
 docker images
 ```
 Tag and push the image to registry
+
 NOTE: in case of private docker registry, please take a look on our documentation /docs/privateregistry.md
+
 ```
 docker tag $IMAGE_ID $REGISTRY_URL/management-api:latest
 docker push $REGISTRY_URL/management-api:latest
 ```
 
-### 7. Install Management API [management api doc]
+### 9. Install Management API [management api doc]
 In this step it's important to setup following variables in values.yaml file.
+
 NOTE: minio_endpoint_url should contain http or https and port number if different than 443.
+
 NOTE: minio_endpoint should contain port number if different than 443
 
 - <image_path> $REGISTRY_URL/management-api
@@ -159,11 +177,17 @@ NOTE: minio_endpoint should contain port number if different than 443
   Users belonging to administrative group will have permissions for tenant administration.
 
 Run our scripts to generete self-signed certificates inference-model-manager/helm-deployment/management-api-subchart/certs/generate-ing-management-api-certs.sh, generate-management-api-certs.sh and scriptcert.sh.
-Remember to export following environment variables before MGMT_DOMAIN_NAME, MGT_NAMESPACE, DOMAIN_NAME.
+Remember to export following environment variables before running those scripts: MGMT_DOMAIN_NAME, MGT_NAMESPACE, DOMAIN_NAME.
 ```
 export MGMT_DOMAIN_NAME=mgt.imm.example.com
 export MGT_NAMESPACE=mgt-api # change only if you understand consequences
 export DOMAIN_NAME=imm.example.com
+```
+```
+cd inference-model-manager/helm-deployment/management-api-subchart/certs
+./generate-ing-management-api-certs.sh
+./generate-management-api-certs.sh 
+./scriptcert.sh
 ```
 
 ```
@@ -178,11 +202,11 @@ kubectl get pods -n mgt-api
 NAME                              READY     STATUS    RESTARTS   AGE
 management-api-5c45d856c7-4kzv4   1/1       Running   0          8s
 ```
-### 8. Enable openId authentication in kubernetes api server
-You need to restart kubeapi-server afet changes.
+### 10. Enable openId authentication in kubernetes api server
+You need to restart kubeapi-server after changes.
 Use this link for details https://github.com/IntelAI/inference-model-manager/blob/update-docs/docs/deployment.md#kubernetes-configuration-for-oid-authentication
   
-### 9. Verify installation
+### 11. Verify installation
 Obtain token from dex
 ```
 cd scripts
