@@ -187,6 +187,7 @@ cd inference-model-manager/helm-deployment/management-api-subchart/certs
 ./generate-ing-management-api-certs.sh
 ./generate-management-api-certs.sh 
 ./scriptcert.sh
+cp ../../dex-subchart/certs/ca-dex.crt .
 ```
 
 ```
