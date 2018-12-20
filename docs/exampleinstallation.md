@@ -1,4 +1,4 @@
-
+# Example installation guide for IMM deployment with Ldap
 ## Requirements checklist
 - Kubernetes cluster 1.8 or above, with RBAC enabled and access to api-server
 - Access to Minio compatible storage 
@@ -102,15 +102,14 @@ export ISSUER=https://dex.imm.example.com:443/dex # change 443 port if using kub
 export DEX_NAMESPACE=dex # change value of this variable only if you understand consequences
 export DEX_DOMAIN_NAME=dex.imm.example.com
 ```
-Deploy dex component with following commands if you need custom dex configuration:
+Generate certificates:
+```
+cd inference-model-manager/helm-deployment/dex-subchart/certs
+./generate-dex-certs.sh 
+./generate-ing-dex-certs.sh
+```
 
-```
-cd inference-model-manager/helm-deployment/dex-subchart
-vim values.yaml
-# enter dex configuration here, use link above if necessary
-helm install .
-```
-or use follwing commands for simplification:
+Following commands deploy Dex and Ldap with our example configuration.
 ```
 cd inference-model-manager/tests/deployment/
 helm install --name imm-ldap -f ldap/values.yaml stable/openldap
