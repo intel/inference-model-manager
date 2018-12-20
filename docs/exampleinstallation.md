@@ -1,4 +1,4 @@
-# Example installation guide for IMM deployment with Ldap
+# Example installation guide for IMM deployment with Ldap, MinIo and self-signed certificates
 ## Requirements checklist
 - Kubernetes cluster 1.8 or above, with RBAC enabled and access to api-server
 - Access to Minio compatible storage 
@@ -34,7 +34,7 @@ helm init --service-account tiller
 
 ### 2.Clone inference-model-manager repo
 ```
-git clone git@github.com:IntelAI/inference-model-manager.git
+git clone https://github.com/IntelAI/inference-model-manager.git
 ```
 ### 3.Build CRD controller image and push to docker registry
 ```
@@ -83,7 +83,7 @@ If your environment is bare metal and you want to use Kubernetes Node Port, plea
 
 
 ### 6. Choose storage provider
-For storing AI models you can choose any S3 compatible provider. If you already have MinIo/S3 or other component, Management Api installation guide will show you how to integrate it with our pltform. If not, command below show how to deploy example MinIo component.
+For storing AI models you can choose any S3 compatible provider. If you already have Minio/S3 or other component, Management Api installation guide will show you how to integrate it with our pltform. If not, commands below show how to deploy example Minio component.
 
 ```
 cd inference-model-manager/helm-deployment/minio-subchart/
