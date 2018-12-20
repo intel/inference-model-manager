@@ -6,6 +6,8 @@ Generate K8S cluster internal TLS certificates to be used in Management API comp
 ```
 cd helm-deployment/management-api-subchart/certs/
 export MGT_NAMESPACE=<namespace for mgt api>
+export DOMAIN_NAME=<your domain>
+export MGMT_DOMAIN_NAME=<your domain with subdomain specific for management api>
 ./generate-management-api-certs.sh
 ```
 

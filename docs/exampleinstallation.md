@@ -176,7 +176,8 @@ NOTE: minio_endpoint should contain port number if different than 443
   Users belonging to administrative group will have permissions for tenant administration.
 
 Run our scripts to generete self-signed certificates inference-model-manager/helm-deployment/management-api-subchart/certs/generate-ing-management-api-certs.sh, generate-management-api-certs.sh and scriptcert.sh.
-Remember to export following environment variables before running those scripts: MGMT_DOMAIN_NAME, MGT_NAMESPACE, DOMAIN_NAME.
+
+Remember to export following environment variables before running those scripts: MGMT_DOMAIN_NAME, MGT_NAMESPACE, DOMAIN_NAME. Values of those variables should fit following format:
 ```
 export MGMT_DOMAIN_NAME=mgt.imm.example.com
 export MGT_NAMESPACE=mgt-api # change only if you understand consequences
