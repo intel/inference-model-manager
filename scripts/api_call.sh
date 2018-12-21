@@ -35,7 +35,7 @@ Examples:
 Operations:
 	create (c), remove (rm), update (up), scale (s), list (ls), login, logout, upload (u), run-inference (ri)
 Resources:
-	tenant (t), endpoint (e), model (m)
+	tenant (t), endpoint (e), model (m), servings (s)
 Environment variables:
 	IMM_CONFIG_PATH - Inference Model Manager config file
 	MANAGEMENT_API_ADDRESS - management api address
@@ -121,13 +121,13 @@ case "$OPERATION" in
 				[[ -z ${PARAM_2} ]] && read -p "Please provide model name " PARAM_2
 				[[ -z ${PARAM_3} ]] && read -p "Please provide model version " PARAM_3
 				[[ -z ${PARAM_4} ]] && read -p "Please provide tenant name " PARAM_4
-				[[ -z ${PARAM_5} ]] && read -p "Please provide template name " PARAM_5
+				[[ -z ${PARAM_5} ]] && read -p "Please provide serving name " PARAM_5
 				[[ -z ${PARAM_6} ]] && PARAM_6=client
 				CURL='curl -s -X POST \
 				"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_4}/endpoints" \
 				-H "accept: application/json" \
 				-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
-				-d "{\"modelName\":\"${PARAM_2}\", \"modelVersion\":${PARAM_3}, \"endpointName\":\"${PARAM_1}\", \"templateName\":\"${PARAM_5}\", \"subjectName\": \"${PARAM_6}\", \"resources\": ${ENDPOINT_RESOURCES}}"'
+				-d "{\"modelName\":\"${PARAM_2}\", \"modelVersion\":${PARAM_3}, \"endpointName\":\"${PARAM_1}\", \"servingName\":\"${PARAM_5}\", \"subjectName\": \"${PARAM_6}\", \"resources\": ${ENDPOINT_RESOURCES}}"'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
 				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
 				eval "$CURL"
@@ -254,8 +254,15 @@ case "$OPERATION" in
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
 				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
 				eval "$CURL"
-
 				;;
+            serving | servings | s)
+				CURL='curl -X GET -s -H "accept: application/json" \
+				-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
+				https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/servings'
+				[[ ${VERBOSE} == 1 ]] && echo $CURL
+				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
+				eval "$CURL"
+				;;   
 		esac
 		;;
 	upload | u)

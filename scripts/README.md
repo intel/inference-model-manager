@@ -56,7 +56,7 @@ If you are behind proxy, use extra proxy parameters:
     ./api_call.sh create tenant mytenant users
     ```
 - endpoint (e)
-  - Required parameters: endpointName, modelName, modelVersion, tenantName, templateName, subjectName (default: client)
+  - Required parameters: endpointName, modelName, modelVersion, tenantName, servingName, subjectName (default: client)
   - Additional parameters provided with environment variables: quota with ENDPOINT_RESOURCES env
   - Usage example:
     ```
@@ -99,6 +99,11 @@ If you are behind proxy, use extra proxy parameters:
     ```
     ./api_call.sh ls m mytenant
     ```
+- servings (serving | s)
+  - Usage example:
+  ```
+  ./api_call.sh ls s
+  ```
 ##### update (up)
 - endpoint
   - Required parameters: endpointName, modelName, modelVersion, tenantName

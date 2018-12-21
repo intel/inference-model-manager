@@ -114,7 +114,7 @@ To create an endpoint we need to provide following parameters:
 - subjectName - Common Name in the client certificate authorized to access the gRPC Inference Endpoint,
 - modelName – model to serve
 - modelVersion – version of a model to serve
-- templateName - define which template will be used to create endpoint
+- servingName - define which serving will be used to create endpoint
 We can also specify additional parameters:
 - replicas – number of replicas to be provisioned
 - resources – see Resources for endpoint
@@ -203,3 +203,13 @@ or in the cluster.
 It is possible to scale down an endpoint to 0, which means that the endpoint is not in a running state. 
 That is a way of “turning off” an endpoint. 
 For “turning on” just call a scale operation and change replicas number for a desired number.
+
+## Servings
+
+### List servings
+
+Servings can be listed using a REST endpoint exposed by Management API with an address:
+
+```https://<management-api-address>/servings```
+
+List servings is returning the list of the servings available in CRD namespace.

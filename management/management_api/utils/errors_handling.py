@@ -93,6 +93,19 @@ class MinioCallException(ManagementApiException):
         raise falcon.HTTPInternalServerError(str(ex))
 
 
+class ResourceIsNotAvailableException(ManagementApiException):
+    def __init__(self, resource, name):
+        super().__init__()
+        self.resource = resource
+        self.name = name
+
+    @staticmethod
+    def handler(ex, req, resp, params):
+        message = "{} {} is not available".format(ex.name, ex.resource)
+        logger.error(message)
+        raise falcon.HTTPInternalServerError(message)
+
+
 class TenantAlreadyExistsException(ManagementApiException):
     def __init__(self, tenant_name):
         super().__init__()
