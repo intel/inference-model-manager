@@ -60,7 +60,7 @@ func checkPath(path string) error {
 	return nil
 }
 
-func prepareTemplateClients(templateName string, globalTemplateValues resource.GlobalTemplateValues, k8sclientset *kubernetes.Clientset) (error, templateClients) {
+func prepareTemplateClients(templateName string, globalTemplateValues resource.GlobalTemplateValues, k8sclientset *kubernetes.Clientset) (templateClients, error) {
 	k8sClients := templateClients{}
 	templateFileDir := fmt.Sprintf("%s/%s", templatesDir, templateName)
 	deploymentTemplateFileDir := fmt.Sprintf("%s/%s", templateFileDir, "deployment.tmpl")
@@ -70,46 +70,46 @@ func prepareTemplateClients(templateName string, globalTemplateValues resource.G
 
 	err := checkPath(deploymentTemplateFileDir)
 	if err != nil {
-		return err, k8sClients
+		return k8sClients, err
 	}
 	deploymentClient := resource.NewDeploymentClient(globalTemplateValues, k8sclientset, deploymentTemplateFileDir)
 
 	err = checkPath(serviceTemplateFileDir)
 	if err != nil {
-		return err, k8sClients
+		return k8sClients, err
 	}
 	serviceClient := resource.NewServiceClient(globalTemplateValues, k8sclientset, serviceTemplateFileDir)
 
 	err = checkPath(ingressTemplateFileDir)
 	if err != nil {
-		return err, k8sClients
+		return k8sClients, err
 	}
 	ingressClient := resource.NewIngressClient(globalTemplateValues, k8sclientset, ingressTemplateFileDir)
 
 	err = checkPath(configMapTemplateFileDir)
 	if err != nil {
-		return err, k8sClients
+		return k8sClients, err
 	}
 	configMapClient := resource.NewConfigMapClient(globalTemplateValues, k8sclientset, configMapTemplateFileDir)
 
 	k8sClients = templateClients{deploymentClient, serviceClient, ingressClient, configMapClient}
 
-	return nil, k8sClients
+	return k8sClients, nil
 
 }
 func main() {
 	kubeconfig := flag.String("kubeconfig", "", "Path to a kube config. Only required if out-of-cluster.")
 	platformDomain, ok := os.LookupEnv("PLATFORM_DOMAIN")
 	if !ok {
-		panic(errors.New("PLATFORM_DOMAIN environment variable not set. Controller was unable to start."))
+		panic(errors.New("PLATFORM_DOMAIN environment variable not set. Controller was unable to start.\n"))
 	}
-	s3UseHttps, ok := os.LookupEnv("S3_USE_HTTPS")
+	s3UseHTTPS, ok := os.LookupEnv("S3_USE_HTTPS")
 	if !ok {
-		panic(errors.New("S3_USE_HTTPS environment variable not set. Controller was unable to start."))
+		panic(errors.New("S3_USE_HTTPS environment variable not set. Controller was unable to start.\n"))
 	}
 	s3VerifySsl, ok := os.LookupEnv("S3_VERIFY_SSL")
 	if !ok {
-		panic(errors.New("S3_VERIFY_SSL environment variable not set. Controller was unable to start."))
+		panic(errors.New("S3_VERIFY_SSL environment variable not set. Controller was unable to start.\n"))
 	}
 	if _, err := os.Stat(templatesDir); err != nil {
 		if os.IsNotExist(err) {
@@ -171,7 +171,7 @@ func main() {
 
 	globalTemplateValues := resource.GlobalTemplateValues{}
 	globalTemplateValues["platformDomain"] = platformDomain
-	globalTemplateValues["s3UseHttps"] = s3UseHttps
+	globalTemplateValues["s3UseHttps"] = s3UseHTTPS
 	globalTemplateValues["s3VerifySsl"] = s3VerifySsl
 	files, err := ioutil.ReadDir(templatesDir)
 	if err != nil {
@@ -180,11 +180,11 @@ func main() {
 	}
 	updateMap := make(map[string]templateClients)
 	for _, f := range files {
-		err, test := prepareTemplateClients(f.Name(), globalTemplateValues, k8sclientset)
+		templateClients, err := prepareTemplateClients(f.Name(), globalTemplateValues, k8sclientset)
 		if err != nil {
 			fmt.Printf("Cannot create clients for templates: %s", f.Name())
 		} else {
-			updateMap[f.Name()] = test
+			updateMap[f.Name()] = templateClients
 		}
 	}
 

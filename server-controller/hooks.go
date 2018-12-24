@@ -116,15 +116,9 @@ func (c *serverHooks) Add(obj interface{}) {
 	}
 	fmt.Printf("Deployment (%s) created successfully\n", serverCopy.Spec.EndpointName)
 	// Patch below is required to create special label for triggering new deployments after configmap change
-	fmt.Printf("A special label for deployment 'configDate' will be added.\n")
-	t := time.Now().UTC()
-	configMapPatch := []patchStructString{{Op: "add", Path: configRollingPath, Value: t.Format("20060102150405")}}
-	patchBytes, err := json.Marshal(configMapPatch)
-	fmt.Printf("JsonPatch which will be applied: %s\n", string(patchBytes))
-	err = c.templates[templateName].deploymentClient.Patch(server.Namespace(), server.Spec.EndpointName, patchBytes)
+	err = c.addConfigDateToDeploy(templateName, serverCopy)
 	if err != nil {
-		fmt.Printf("ERROR during patch operation %v\n", err.Error())
-		fmt.Printf("Object updates will not be available.\n")
+		fmt.Printf("ERROR during adding configDate label to deployment: %v\n", err)
 		return
 	}
 
@@ -169,21 +163,25 @@ func (c *serverHooks) Update(oldObj, newObj interface{}) {
 	fmt.Printf("New Server %s\n", newServer)
 	fmt.Printf("Old Server %s\n", oldServer)
 	var err error
+	templateName := newServer.Spec.TemplateName
 	if oldServer.Spec.TemplateName != newServer.Spec.TemplateName {
-		c.Add(newServer)
+		if _, ok := c.templates[templateName]; !ok {
+			fmt.Printf("There is no such template: %s\n", templateName)
+			return
+		}
+		c.updateTemplate(oldServer, newServer)
 		fmt.Printf("Updating succeeded for the server %v\n", oldServer.ObjectMeta.SelfLink)
 		return
 	}
-	templateName := newServer.Spec.TemplateName
 	patchLines := make([]interface{}, 0)
 	p := patchData{ModelName: newServer.Spec.ModelName, ModelVersion: newServer.Spec.ModelVersion, Namespace: oldServer.Namespace()}
 	fmt.Printf("Check resource field.\n")
-	patchLines, err = prepareJsonPatchFromMap("limits", patchLines, oldServer.Spec.Resources.Limits, newServer.Spec.Resources.Limits, p)
+	patchLines, err = prepareJSONPatchFromMap("limits", patchLines, oldServer.Spec.Resources.Limits, newServer.Spec.Resources.Limits, p)
 	if err != nil {
 		fmt.Printf("ERROR during resource/limits changes preparation: %v\n", err)
 		return
 	}
-	patchLines, err = prepareJsonPatchFromMap("requests", patchLines, oldServer.Spec.Resources.Requests, newServer.Spec.Resources.Requests, p)
+	patchLines, err = prepareJSONPatchFromMap("requests", patchLines, oldServer.Spec.Resources.Requests, newServer.Spec.Resources.Requests, p)
 	if err != nil {
 		fmt.Printf("ERROR during resource/requests changes preparation: %v\n", err)
 		return
@@ -241,7 +239,106 @@ func (c *serverHooks) Delete(obj interface{}) {
 	fmt.Printf("[CONTROLLER] OnDelete %s\n", server.ObjectMeta.SelfLink)
 }
 
-func prepareJsonPatchFromMap(resourceType string, mapPatch []interface{}, oldData map[string]string, newData map[string]string, p patchData) ([]interface{}, error) {
+func (c *serverHooks) addConfigDateToDeploy(templateName string, obj interface{}) error {
+	server := obj.(*crv1.InferenceEndpoint)
+	fmt.Printf("A special label for deployment 'configDate' will be added.\n")
+	t := time.Now().UTC()
+	configMapPatch := []patchStructString{{Op: "add", Path: configRollingPath, Value: t.Format("20060102150405")}}
+	patchBytes, err := json.Marshal(configMapPatch)
+	if err != nil {
+		fmt.Printf("ERROR during preparing bytes to send %v\n", err.Error())
+		return err
+	}
+	fmt.Printf("JsonPatch which will be applied: %s\n", string(patchBytes))
+	err = c.templates[templateName].deploymentClient.Patch(server.Namespace(), server.Spec.EndpointName, patchBytes)
+	if err != nil {
+		fmt.Printf("ERROR during patch operation %v\n", err.Error())
+		fmt.Printf("Object updates will not be available.\n")
+		return err
+	}
+	return nil
+}
+
+func (c *serverHooks) updateTemplate(oldObj, newObj interface{}) {
+	oldServer := oldObj.(*crv1.InferenceEndpoint)
+	newServer := newObj.(*crv1.InferenceEndpoint)
+	ownerRef := metav1.NewControllerRef(oldServer, crv1.GVK)
+	templateName := oldServer.Spec.TemplateName
+	if _, ok := c.templates[templateName]; !ok {
+		fmt.Printf("There is no such template: %s\n", templateName)
+		return
+	}
+
+	err := c.templates[templateName].configMapClient.Update(oldServer.Namespace(), oldServer.Spec.EndpointName, struct {
+		*crv1.InferenceEndpoint
+		metav1.OwnerReference
+	}{
+		newServer,
+		*ownerRef,
+	})
+
+	if err != nil {
+		fmt.Printf("ERROR during configMap update: %v\n", err)
+		return
+	}
+	fmt.Printf("ConfigMap (%s) updated successfully\n", oldServer.Spec.EndpointName)
+
+	err = c.templates[templateName].deploymentClient.Update(oldServer.Namespace(), oldServer.Spec.EndpointName, struct {
+		*crv1.InferenceEndpoint
+		metav1.OwnerReference
+	}{
+		newServer,
+		*ownerRef,
+	})
+
+	if err != nil {
+		fmt.Printf("ERROR during deployment update: %v\n", err)
+		return
+	}
+	fmt.Printf("Deployment (%s) updated successfully\n", oldServer.Spec.EndpointName)
+	// Patch below is required to create special label for triggering new deployments after configmap change
+	err = c.addConfigDateToDeploy(templateName, newServer)
+	if err != nil {
+		fmt.Printf("ERROR during adding configDate label to deployment: %v\n", err)
+		return
+	}
+
+	err = c.templates[templateName].serviceClient.Delete(oldServer.Namespace(), oldServer.Spec.EndpointName)
+	if err != nil {
+		fmt.Printf("ERROR during service delete: %v\n", err)
+		return
+	}
+	fmt.Printf("Service (%s) deleted successfully\n", oldServer.Spec.EndpointName)
+	err = c.templates[templateName].serviceClient.Create(oldServer.Namespace(), struct {
+		*crv1.InferenceEndpoint
+		metav1.OwnerReference
+	}{
+		newServer,
+		*ownerRef,
+	})
+
+	if err != nil {
+		fmt.Printf("ERROR during service create: %v\n", err)
+		return
+	}
+	fmt.Printf("Service (%s) created successfully\n", oldServer.Spec.EndpointName)
+
+	err = c.templates[templateName].ingressClient.Update(oldServer.Namespace(), oldServer.Spec.EndpointName, struct {
+		*crv1.InferenceEndpoint
+		metav1.OwnerReference
+	}{
+		newServer,
+		*ownerRef,
+	})
+
+	if err != nil {
+		fmt.Printf("ERROR during ingress update: %v\n", err)
+		return
+	}
+	fmt.Printf("Ingress (%s) updated successfully\n", oldServer.Spec.EndpointName)
+}
+
+func prepareJSONPatchFromMap(resourceType string, mapPatch []interface{}, oldData map[string]string, newData map[string]string, p patchData) ([]interface{}, error) {
 	eq := reflect.DeepEqual(newData, oldData)
 	if !eq {
 		fmt.Printf("%s are unequal.\n", resourceType)
@@ -251,13 +348,13 @@ func prepareJsonPatchFromMap(resourceType string, mapPatch []interface{}, oldDat
 			return nil, err
 		}
 		_, oldMemoryOK := oldData["memory"]
-		_, oldCpuOK := oldData["cpu"]
+		_, oldCPUOK := oldData["cpu"]
 
 		memoryValue, memoryOK := newData["memory"]
 		cpuValue, cpuOK := newData["cpu"]
 		updateMap := make(map[string]string)
 		var jsonPatchAction string
-		if !memoryOK && !cpuOK && (oldCpuOK || oldMemoryOK) {
+		if !memoryOK && !cpuOK && (oldCPUOK || oldMemoryOK) {
 			jsonPatchAction = "remove"
 		} else {
 			if cpuOK {
