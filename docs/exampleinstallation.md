@@ -99,7 +99,7 @@ Create certificates using inference-model-manager/helm-deployment/dex-subchart/g
 Format of above variables should fit following patterns:
 ```
 export ISSUER=https://dex.imm.example.com:443/dex # change 443 port if using kubernetes node port instead of load balancer
-export DEX_NAMESPACE=dex # change value of this variable only if you understand consequences
+export DEX_NAMESPACE=dex
 export DEX_DOMAIN_NAME=dex.imm.example.com
 ```
 Generate certificates:
@@ -180,7 +180,7 @@ Run our scripts to generete self-signed certificates inference-model-manager/hel
 Remember to export following environment variables before running those scripts: MGMT_DOMAIN_NAME, MGT_NAMESPACE, DOMAIN_NAME. Values of those variables should fit following format:
 ```
 export MGMT_DOMAIN_NAME=mgt.imm.example.com
-export MGT_NAMESPACE=mgt-api # change only if you understand consequences
+export MGT_NAMESPACE=mgt-api
 export DOMAIN_NAME=imm.example.com
 ```
 ```

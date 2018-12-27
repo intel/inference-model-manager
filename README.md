@@ -20,7 +20,7 @@ security features like:
 - preventing unauthorized access to management API
 - limiting access to tenant data based on group membership information from external identity provider.
 
-[Installation quicksheet (beta)](docs/installation.md)
+[Installation quicksheet (beta)](docs/exampleinstallation.md)
 
 [Architecture overview](docs/architecture.md)
 
