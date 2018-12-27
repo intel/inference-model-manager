@@ -84,3 +84,8 @@ deployed (CRD, DEX, K8S API with OID, Minio)
 
 Management API can be deployed using a helm chart. Follow the steps described on
 [chart](../helm-deployment/management-api-subchart)
+
+### Troubleshooting
+Please refer to:
+[Troubleshooting](docs/troubleshooting.md)
+
