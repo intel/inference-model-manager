@@ -5,6 +5,7 @@
 - Access to docker registry 
 - Identity provider supported by DEX connectors
 - DNS records for Management API, oauth2 server and Inference Endpoints
+  Inference Model Manager requires DNS CNAME records pointing to ingress-nginx service. Later in this procedure this domain will be called imm.example.com. This example installation guide needs mgt.imm.example.com for Management API, dex.example.com for Dex, and wildcard *.grpc.example.com for inference endpoints.
 - helm installed https://docs.helm.sh/using_helm/
 
 Before installation of IMM, make sure to have following:
