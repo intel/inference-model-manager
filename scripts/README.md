@@ -60,7 +60,7 @@ If you are behind proxy, use extra proxy parameters:
   - Additional parameters provided with environment variables: quota with ENDPOINT_RESOURCES env
   - Usage example:
     ```
-    ./api_call.sh create e myendpoint mymodel 1 mytenant tf_serving
+    ./api_call.sh create e myendpoint mymodel 1 mytenant tf-serving
     ```
 ##### remove (rm)
 - tenant (t)

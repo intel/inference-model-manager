@@ -81,3 +81,16 @@ spec:
             value: "{{ .Values.s3_use_https }}"
           - name: S3_VERIFY_SSL
             value: "{{ .Values.s3_verify_ssl }}"
+        volumeMounts:
+{{- range $path, $bytes := .Files.Glob "serving-templates/*/deployment.tmpl" }}
+{{- $folder := base (dir $path) }}
+          - name: {{ $folder }}
+            mountPath: /serving-templates/{{ $folder }}
+{{- end }}
+      volumes:
+{{- range $path, $bytes := .Files.Glob "serving-templates/*/deployment.tmpl" }}
+{{- $folder := base (dir $path) }}
+        - configMap:
+            name: {{ $folder }}
+          name: {{ $folder }}
+{{- end }}

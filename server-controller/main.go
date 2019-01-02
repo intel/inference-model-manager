@@ -46,7 +46,7 @@ import (
 	"github.com/intel/crd-reconciler-for-kubernetes/pkg/util"
 )
 
-var templatesDir = "./resources"
+var templatesDir = "./serving-templates"
 
 func checkPath(path string) error {
 	if _, err := os.Stat(templatesDir); err != nil {

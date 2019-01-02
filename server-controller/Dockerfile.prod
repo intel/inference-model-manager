@@ -10,6 +10,5 @@ FROM alpine:3.8
 
 USER 1000
 COPY --from=first /go/bin/server-controller /
-ADD resources /resources/
 WORKDIR /
 CMD ./server-controller

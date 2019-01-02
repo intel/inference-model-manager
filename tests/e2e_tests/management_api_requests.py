@@ -55,7 +55,7 @@ def create_endpoint(headers=DEFAULT_HEADERS, name=MODEL_NAME,
         'endpointName': name + 'endpoint',
         'subjectName': 'client',
         'resources': resources,
-        'templateName': 'tf_serving',
+        'templateName': 'tf-serving',
     })
     url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=tenant)
 
