@@ -9,8 +9,15 @@ You have to set all values specify in this chapter to properly run this chart
    resources: {} - it`s optionall, if you want you can specify resources for dex
 ```
 
-Inference Model Manager requires TSL for internal traffic. We recommend to use for this purpose our script ```generate-dex-certs.sh``` located in ```certs``` directory.
-Before running the script mentioned above, set the environment variable ```DEX_NAMESPACE```
+Inference Model Manager requires TLS certficates to secure internal K8S endpoints. We recommend to use for this purpose our script ```generate-dex-certs.sh``` located in ```certs``` directory.
+We also provide script to generate self-signed certificates for dex for external traffic. It can be found in following path: ```inference-model-manager/helm-deployment/dex-subchart/certs/generate-ing-dex-certs.sh```
+Before running scripts mentioned above, set the environment variable ```DEX_NAMESPACE, DEX_DOMAIN_NAME, ISSUER```
+Format of above variables should fit following patterns:
+```
+export ISSUER=https://dex.<your domain>:443/dex # change 443 port if using kubernetes node port instead of load balancer
+export DEX_NAMESPACE=dex
+export DEX_DOMAIN_NAME=dex.<your domain>
+```
 
 
 ### Installation
