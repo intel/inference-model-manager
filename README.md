@@ -39,3 +39,6 @@ security features like:
 [Troubleshooting](docs/troubleshooting.md)
 
 [Serving templates](docs/serving_templates.md)
+
+[Troubleshooting](docs/troubleshooting.md)
+
