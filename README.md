@@ -37,3 +37,6 @@ security features like:
 [Example grpc client](examples/grpc_client)
 
 [Security recommendation for Kubernetes](docs/security_recommendations.md)
+
+[Troubleshooting](docs/troubleshooting.md)
+
