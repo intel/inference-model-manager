@@ -19,9 +19,9 @@ import os
 import requests
 
 
-def upload_part(url, params, headers, data, parts):
+def upload_part(url, params, headers, data, parts, verify):
     print("Sending part nr {} of current upload...".format(params['partNumber']))
-    response = requests.put(url + "/upload", data, headers=headers, params=params)
+    response = requests.put(url + "/upload", data, headers=headers, params=params, verify=verify)
     if response.status_code != 200:
         print("Could not upload part nr : {}".format(params['partNumber']))
         raise Exception
@@ -31,7 +31,7 @@ def upload_part(url, params, headers, data, parts):
     parts.append({'ETag': part_etag, 'PartNumber': params['partNumber']})
 
 
-def upload_model(url, params, headers, part_size):
+def upload_model(url, params, headers, part_size, verify=False):
     model_name = params['model_name']
     model_version = params['model_version']
     file_path = params['file_path']
@@ -39,7 +39,7 @@ def upload_model(url, params, headers, part_size):
 
     # --- Initiating upload
     data = {'modelName': model_name, 'modelVersion': model_version, 'fileName': file_name}
-    response = requests.post(url + "/upload/start", json=data, headers=headers)
+    response = requests.post(url + "/upload/start", json=data, headers=headers, verify=verify)
     if response.status_code != 200:
         print("Could not initiate upload: {}".format(response.text))
         return
@@ -60,7 +60,7 @@ def upload_model(url, params, headers, part_size):
         with open(file_path, 'rb') as file:
             print("Preparing data for part nr {} of current upload...".format(part_number))
             data = file.read(PART_SIZE)
-            upload_part(url, params, headers, data, parts)
+            upload_part(url, params, headers, data, parts, verify=verify)
             while len(data) == PART_SIZE:
                 print("Preparing data for part nr {} of current upload...".format(
                     part_number + 1))
@@ -69,14 +69,14 @@ def upload_model(url, params, headers, part_size):
                 data = file.read(PART_SIZE)
                 part_number += 1
                 params['partNumber'] = part_number
-                upload_part(url, params, headers, data, parts)
+                upload_part(url, params, headers, data, parts, verify=verify)
     except (KeyboardInterrupt, Exception) as e:
         # -- Aborting upload
         print("Exception: {}".format(e))
         print("Aborting upload with id: {} ...".format(upload_id))
         data = {'modelName': model_name, 'modelVersion': model_version, 'fileName': file_name,
                 'uploadId': upload_id}
-        response = requests.post(url + "/upload/abort", json=data, headers=headers)
+        response = requests.post(url + "/upload/abort", json=data, headers=headers, verify=verify)
         if response.status_code != 200:
             print("Could not abort upload: {}".format(response.text))
         print("Upload with id: {} aborted successfully".format(upload_id))
@@ -86,7 +86,7 @@ def upload_model(url, params, headers, part_size):
     print("Completing update with id: {} ...".format(upload_id))
     data = {'modelName': model_name, 'modelVersion': model_version, 'fileName': file_name,
             'uploadId': upload_id, 'parts': parts}
-    response = requests.post(url + "/upload/done", json=data, headers=headers)
+    response = requests.post(url + "/upload/done", json=data, headers=headers, verify=verify)
 
     if response.status_code != 200:
         print("Could not complete upload: {}".format(response.text))

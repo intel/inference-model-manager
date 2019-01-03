@@ -25,6 +25,7 @@ Options:
 	a - management api address (could be provided with MANAGEMENT_API_ADDRESS env or from config file)
 	p - management api port (could be provided with MANAGEMENT_API_PORT env or from config file)
 	c - path to config file
+	k - allowing connection to management api endpoints with not trusted certificates
 Examples: 
 	.${0##*/} -a mgmt.example.com -p 443 -v create tenant mytenant
 	.${0##*/} create t mytenant myscope
@@ -47,12 +48,16 @@ Environment variables:
 EOF
 }
 
+generate_client_certs() {
+ . ./generate_certs.sh
+}
+
 VERBOSE=0
 OPTIND=1
 DEFAULT_CFG_FILE=~/.imm
 IMM_CONFIG_PATH=${IMM_CONFIG_PATH:=${DEFAULT_CFG_FILE}}
 
-while getopts "hva:p:c:" opt; do
+while getopts "khva:p:c:" opt; do
 	case $opt in
 		h)	show_help
 			exit 0
@@ -67,6 +72,8 @@ while getopts "hva:p:c:" opt; do
 			;;
 		c)	IMM_CONFIG_PATH=$OPTARG
 			echo "Config file: ${IMM_CONFIG_PATH}"
+			;;
+		k)	INSECURE=-k
 			;;
 		*)	show_help >&2
 			exit 1
@@ -99,8 +106,11 @@ MANAGEMENT_API_ADDRESS=${MANAGEMENT_API_ADDRESS:-'127.0.0.1'}
 MANAGEMENT_API_PORT=${MANAGEMENT_API_PORT:-443}
 
 CERT=${CERT}
-TENANT_RESOURCES=${TENANT_RESOURCES:="{\"requests.cpu\": \"2\", \"requests.memory\": \"2Gi\", \"limits.cpu\": \"2\", \"limits.memory\": \"2Gi\", \"maxEndpoints\": 15}"}
-ENDPOINT_RESOURCES=${ENDPOINT_RESOURCES:="{\"requests.cpu\": \"1\", \"requests.memory\": \"1Gi\", \"limits.cpu\": \"1\", \"limits.memory\": \"1Gi\"}"}
+
+TENANT_RESOURCES=${TENANT_RESOURCES:="{\"requests.cpu\": \"2\", \"requests.memory\": \"2Gi\", \"maxEndpoints\": 15}"}
+
+ENDPOINT_RESOURCES=${ENDPOINT_RESOURCES:="{\"requests.cpu\": \"0\", \"requests.memory\": \"0\"}"}
+
 
 case "$OPERATION" in
 	create | c) 
@@ -108,7 +118,9 @@ case "$OPERATION" in
 			tenant | t) echo "Create tenant"
 				[[ -z ${PARAM_1} ]] && read -p "Please provide tenant name " PARAM_1
 				[[ -z ${PARAM_2} ]] && read -p "Please provide scope (group name) " PARAM_2
-				CURL='curl -s -H "accept: application/json" \
+				read -p "Do you want to generate client certificates Y/n?" GENERATE_CERTS
+				[[ $GENERATE_CERTS != "n" ]] && generate_client_certs
+				CURL='curl $INSECURE -s -H "accept: application/json" \
 					-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
 					-d "{\"name\": \"${PARAM_1}\", \"cert\": \"${CERT}\", \"scope\":\"${PARAM_2}\",\"quota\": ${TENANT_RESOURCES}}" \
 					-X POST "https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants"'
@@ -123,14 +135,14 @@ case "$OPERATION" in
 				[[ -z ${PARAM_4} ]] && read -p "Please provide tenant name " PARAM_4
 				[[ -z ${PARAM_5} ]] && read -p "Please provide serving name " PARAM_5
 				[[ -z ${PARAM_6} ]] && PARAM_6=client
-				CURL='curl -s -X POST \
+				CURL='curl $INSECURE -s -X POST \
 				"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_4}/endpoints" \
 				-H "accept: application/json" \
 				-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
 				-d "{\"modelName\":\"${PARAM_2}\", \"modelVersion\":${PARAM_3}, \"endpointName\":\"${PARAM_1}\", \"servingName\":\"${PARAM_5}\", \"subjectName\": \"${PARAM_6}\", \"resources\": ${ENDPOINT_RESOURCES}}"'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
 				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
-				eval "$CURL"
+				eval "$CURL"	
 				;;
 		esac
 		;;
@@ -138,7 +150,7 @@ case "$OPERATION" in
 		case "$RESOURCE" in
 			tenant | t)
 				[[ -z ${PARAM_1} ]] && read -p "Please provide tenant name " PARAM_1
-				CURL='curl -s -H "accept: application/json" \
+				CURL='curl $INSECURE -s -H "accept: application/json" \
 					-H "Authorization: ${TOKEN}" -H "Content-Type: application/json"  \
 					-d "{\"name\": \"${PARAM_1}\"}" -X DELETE \
 					"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants"'
@@ -149,7 +161,7 @@ case "$OPERATION" in
 			endpoint | e)
 				[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
 				[[ -z ${PARAM_2} ]] && read -p "Please provide tenant name " PARAM_2
-				CURL='curl -s -H "accept: application/json" \
+				CURL='curl $INSECURE -s -H "accept: application/json" \
 					-H "Authorization: ${TOKEN}" -H "Content-Type: application/json"  \
 					-d "{\"endpointName\": \"${PARAM_1}\"}" -X DELETE \
 					"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_2}/endpoints"'
@@ -161,7 +173,7 @@ case "$OPERATION" in
 				[[ -z ${PARAM_1} ]] && read -p "Please provide model name " PARAM_1
 				[[ -z ${PARAM_2} ]] && read -p "Please provide model version " PARAM_2
 				[[ -z ${PARAM_3} ]] && read -p "Please provide tenant name " PARAM_3
-				CURL='curl -X DELETE -s \
+				CURL='curl $INSECURE -X DELETE -s \
 					"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_3}/models" -H "accept: application/json" \
 					-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
 					-d "{\"modelName\": \"${PARAM_1}\", \"modelVersion\": ${PARAM_2}}"'
@@ -178,7 +190,7 @@ case "$OPERATION" in
 				[[ -z ${PARAM_2} ]] && read -p "Please provide new model name " PARAM_2
 				[[ -z ${PARAM_3} ]] && read -p "Please provide model version " PARAM_3
 				[[ -z ${PARAM_4} ]] && read -p "Please provide tenant name " PARAM_4
-				CURL='curl -X PATCH -s  \
+				CURL='curl $INSECURE -X PATCH -s  \
 				"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_4}/endpoints/${PARAM_1}" -H "accept: application/json" \
 					-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
 					-d "{\"modelName\": ${PARAM_2}, \"modelVersion\":${PARAM_3}}"'
@@ -194,7 +206,7 @@ case "$OPERATION" in
 				[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
 				[[ -z ${PARAM_2} ]] && read -p "Please provide number of replicas " PARAM_2
 				[[ -z ${PARAM_3} ]] && read -p "Please provide tenant name " PARAM_3
-				CURL='curl -X PATCH -s  \
+				CURL='curl $INSECURE -X PATCH -s  \
 				"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_3}/endpoints/${PARAM_1}/replicas" -H "accept: application/json" \
 					-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
 					-d "{\"replicas\": ${PARAM_2}}"'
@@ -230,7 +242,7 @@ case "$OPERATION" in
 	list | ls)	
 		case "$RESOURCE" in
 			tenant | tenants | t)
-				CURL='curl -X GET -s -H "accept: application/json" \
+				CURL='curl $INSECURE -X GET -s -H "accept: application/json" \
 				-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
 				https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
@@ -239,7 +251,7 @@ case "$OPERATION" in
 				;;
 			endpoint | endpoints | e)
 				[[ -z ${PARAM_1} ]] && read -p "Please provide tenant name " PARAM_1
-				CURL='curl -X GET -s \
+				CURL='curl $INSECURE -X GET -s \
 				"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_1}/endpoints" \
 				-H "accept: application/json" -H "Authorization: ${TOKEN}" -H "Content-Type: application/json"'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
@@ -248,7 +260,7 @@ case "$OPERATION" in
 				;;
 			model | models | m)
 				[[ -z ${PARAM_1} ]] && read -p "Please provide tenant name " PARAM_1
-				CURL='curl -X GET -s \
+				CURL='curl $INSECURE -X GET -s \
 				"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_1}/models" \
 				-H "accept: application/json" -H "Authorization: ${TOKEN}" -H "Content-Type: application/json"'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
