@@ -128,7 +128,7 @@ If you are behind proxy, use extra proxy parameters:
 - `IMM_CONFIG_PATH` - Inference Model Manager config file, default: `~/.imm`
 - `MANAGEMENT_API_ADDRESS` - management api address, can be provided with `-a` option, default: `127.0.0.1`
 - `MANAGEMENT_API_PORT` - management api port, can be provided with `-p` option, default: `443`
-- `CERT` - path to certificate for tenant creation, **required**
+- `CERT` - base64 encoded certificate for tenant creation, **required**
 - `MANAGEMENT_CA_CERT_PATH` - path to ca-man-api.crt used for login
 - `TENANT_RESOURCES` - quota used for tenant creation, default: `"{\"requests.cpu\": \"2\", \"requests.memory\": \"2Gi\", \"limits.cpu\": \"2\", \"limits.memory\": \"2Gi\", \"maxEndpoints\": 15}"`
 - `ENDPOINT_RESOURCES` - quota used for endpoint creation, default: `"{\"requests.cpu\": \"1\", \"requests.memory\": \"1Gi\", \"limits.cpu\": \"1\", \"limits.memory\": \"1Gi\"}"`

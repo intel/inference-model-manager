@@ -40,7 +40,7 @@ Environment variables:
 	IMM_CONFIG_PATH - Inference Model Manager config file
 	MANAGEMENT_API_ADDRESS - management api address
 	MANAGEMENT_API_PORT - management api port
-	CERT - path to certificate for tenant creation
+	CERT - base64 encoded certificate for tenant creation
 	MANAGEMENT_CA_CERT_PATH = path to ca-man-api.crt used for login
 	TENANT_RESOURCES - quota used for tenant creation
 	ENDPOINT_RESOURCES - quota used for endpoint creation
