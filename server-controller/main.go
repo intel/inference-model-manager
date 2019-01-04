@@ -60,9 +60,9 @@ func checkPath(path string) error {
 	return nil
 }
 
-func prepareTemplateClients(templateName string, globalTemplateValues resource.GlobalTemplateValues, k8sclientset *kubernetes.Clientset) (templateClients, error) {
+func prepareTemplateClients(servingName string, globalTemplateValues resource.GlobalTemplateValues, k8sclientset *kubernetes.Clientset) (templateClients, error) {
 	k8sClients := templateClients{}
-	templateFileDir := fmt.Sprintf("%s/%s", templatesDir, templateName)
+	templateFileDir := fmt.Sprintf("%s/%s", templatesDir, servingName)
 	deploymentTemplateFileDir := fmt.Sprintf("%s/%s", templateFileDir, "deployment.tmpl")
 	serviceTemplateFileDir := fmt.Sprintf("%s/%s", templateFileDir, "service.tmpl")
 	ingressTemplateFileDir := fmt.Sprintf("%s/%s", templateFileDir, "ingress.tmpl")

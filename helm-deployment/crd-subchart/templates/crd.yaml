@@ -22,7 +22,7 @@ spec:
             - modelVersion
             - endpointName
             - subjectName
-            - templateName
+            - servingName
           properties:
             modelName:
               type: string
@@ -46,6 +46,6 @@ spec:
               type: integer
               format: int32
               minimum: 0
-            templateName:
+            servingName:
               type: string
               minLength: 1

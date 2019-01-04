@@ -39,7 +39,7 @@ def get_keys():
 
 @pytest.mark.parametrize("body, tenant_name, expected_status",
                          [({'modelName': 'test', 'modelVersion': 3, 'endpointName': 'test',
-                            'subjectName': 'test', 'templateName': 'test'}, 'test',
+                            'subjectName': 'test', 'servingName': 'test'}, 'test',
                            falcon.HTTP_OK)])
 def test_add_endpoint_auth_valid_user_token(mocker, client_with_auth, body, tenant_name,
                                             expected_status):

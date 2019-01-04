@@ -27,7 +27,7 @@ endpoint_post_schema = {
         "modelName",
         "modelVersion",
         "subjectName",
-        "templateName",
+        "servingName",
     ],
     "properties": {
         "endpointName": endpoint_name,
@@ -36,7 +36,7 @@ endpoint_post_schema = {
         "subjectName": subject_name,
         "replicas": replicas,
         "resources": resources,
-        "templateName": template_name
+        "servingName": template_name
     }
 }
 

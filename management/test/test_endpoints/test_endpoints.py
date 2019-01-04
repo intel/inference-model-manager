@@ -20,9 +20,9 @@ import falcon
 
 @pytest.mark.parametrize("body, expected_status",
                          [({'modelName': 'test', 'modelVersion': 3, 'endpointName': 'test',
-                            'subjectName': 'test', 'templateName': 'test'}, falcon.HTTP_OK),
+                            'subjectName': 'test', 'servingName': 'test'}, falcon.HTTP_OK),
                           ({'modelName': 'test', 'modelVersion': 3, 'endpointName': 'test',
-                            'subjectName': 'test', 'templateName': 'test',
+                            'subjectName': 'test', 'servingName': 'test',
                             'resources': {'requests.cpu': '1'}}, falcon.HTTP_OK)])
 def test_endpoints_post(mocker, client, body, expected_status):
     create_endpoint_mock = mocker.patch('management_api.endpoints.endpoints.create_endpoint')
