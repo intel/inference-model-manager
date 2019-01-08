@@ -26,7 +26,7 @@
 
 
 [[constraint]]
-  revision = "0e347faee91b90ca04112cc5436c4d1113e0edba"
+  revision = "d338676af9989addaea935d4fc094ce147b43f84"
   name = "github.com/intel/crd-reconciler-for-kubernetes"
 
 [[constraint]]
