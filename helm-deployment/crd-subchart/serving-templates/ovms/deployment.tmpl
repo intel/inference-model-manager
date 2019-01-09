@@ -54,11 +54,6 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: minio-access-info
-                key: minio.endpoint
-          - name: AWS_ENDPOINT_URL
-            valueFrom:
-              secretKeyRef:
-                name: minio-access-info
                 key: minio.endpoint_url
           - name: AWS_REGION
             valueFrom:

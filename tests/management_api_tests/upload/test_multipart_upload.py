@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,8 +17,7 @@
 import json
 import requests
 import pytest
-from management_api_tests.config import DEFAULT_HEADERS, USER1_HEADERS, \
-    START_MULTIPART_UPLOAD_API_URL, USER2_HEADERS
+from config import DEFAULT_HEADERS, USER1_HEADERS, START_MULTIPART_UPLOAD_API_URL, USER2_HEADERS
 
 
 @pytest.mark.parametrize("tenant_fix, auth, body, expected_status",

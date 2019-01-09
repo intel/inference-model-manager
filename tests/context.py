@@ -17,8 +17,8 @@
 from tenacity import retry, stop_after_attempt, wait_fixed
 import logging
 from kubernetes import client
-from management_api_tests.config import CRD_GROUP, CRD_VERSION, CRD_PLURAL, OperationStatus, \
-    CheckResult
+from config import CRD_GROUP, CRD_VERSION, CRD_PLURAL
+from management_api_tests.config import OperationStatus, CheckResult
 from management_api_tests.endpoints.endpoint_utils import check_server_existence, \
     check_server_pods_existence
 from management_api_tests.tenants.tenant_utils import check_bucket_existence, \

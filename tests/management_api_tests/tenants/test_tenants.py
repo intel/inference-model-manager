@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@ import pytest
 import requests
 import json
 
-from management_api_tests.config import TENANT_NAME, ADMIN_HEADERS, CERT, SCOPE_NAME, \
-    QUOTA, QUOTA_WRONG_VALUES, QUOTA_REGEX, TENANTS_MANAGEMENT_API_URL, PORTABLE_SECRETS_PATHS, \
-    WRONG_CERTS, WRONG_BODIES, CheckResult
+from config import ADMIN_HEADERS, TENANTS_MANAGEMENT_API_URL
+from management_api_tests.config import TENANT_NAME, CheckResult, CERT, SCOPE_NAME, \
+    QUOTA, QUOTA_WRONG_VALUES, QUOTA_REGEX, WRONG_BODIES, PORTABLE_SECRETS_PATHS, \
+    WRONG_CERTS
 from management_api_tests.tenants.tenant_utils import check_namespaced_secret_existence, \
     check_copied_secret_data_matching_original, check_bucket_existence, \
     check_namespace_availability, check_resource_quota_matching_provided, check_role_existence, \

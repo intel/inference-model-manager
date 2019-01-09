@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 import boto3
+import json
+import os
 import pytest
 import requests
 import time
@@ -24,11 +25,12 @@ from kubernetes import config, client
 from kubernetes.client.rest import ApiException
 from urllib.parse import urljoin, urlparse, parse_qs
 
-from management_api_tests.config import MINIO_SECRET_ACCESS_KEY, MINIO_ACCESS_KEY_ID, \
+from config import MINIO_SECRET_ACCESS_KEY, MINIO_ACCESS_KEY_ID, \
     MINIO_REGION, MINIO_ENDPOINT_ADDR, SIGNATURE_VERSION, CRD_VERSION, CRD_PLURAL, CRD_KIND, \
     CRD_GROUP, CRD_API_VERSION, TENANT_NAME, TENANT_RESOURCES, ENDPOINT_RESOURCES, \
-    AUTH_MANAGEMENT_API_URL, GENERAL_TENANT_NAME
-from management_api_tests.context import Context
+    AUTH_MANAGEMENT_API_URL, GENERAL_TENANT_NAME, SENSIBLE_ENDPOINT_RESOURCES, \
+    ENDPOINTS_MANAGEMENT_API_URL, DEFAULT_HEADERS
+from context import Context
 from management_api_tests.reused import transform_quota
 from management_api_tests.authenticate import VENUS_CREDENTIALS
 
@@ -120,6 +122,30 @@ def minio_resource():
                           region_name=MINIO_REGION)
 
 
+def get_model_from_google_storage(model_name):
+    model_url_base = "https://storage.googleapis.com/inference-eu/models_zoo/" \
+                     + model_name + "/frozen_" + model_name
+
+    print("Downloading " + model_name + " model...")
+    response = requests.get(model_url_base + '.bin', stream=True)
+    with open(model_name + '.bin', 'wb') as output:
+        output.write(response.content)
+    response = requests.get(model_url_base + '.xml', stream=True)
+    with open(model_name + '.xml', 'wb') as output:
+        output.write(response.content)
+    return model_name + '.bin', model_name + '.xml'
+
+
+def upload_model_to_minio(minio_resource, tenant, model_name):
+    path_to_bin_file, path_to_xml_file = get_model_from_google_storage("resnet_V1_50")
+    bin_key = f"{model_name}/1/{path_to_bin_file}"
+    xml_key = f"{model_name}/1/{path_to_xml_file}"
+    minio_resource.meta.client.upload_file(path_to_bin_file, tenant, bin_key)
+    minio_resource.meta.client.upload_file(path_to_xml_file, tenant, xml_key)
+    os.remove(path_to_bin_file)
+    os.remove(path_to_xml_file)
+
+
 def create_tenant(name, quota, context):
     response = api_requests.create_tenant(name=name, resources=quota)
     context.add_object(object_type='tenant', object_to_delete={'name': name})
@@ -161,6 +187,42 @@ def session_tenant(api_instance, minio_client, session_context):
     name = GENERAL_TENANT_NAME
     quota = TENANT_RESOURCES
     return create_tenant(name, quota, session_context)
+
+
+@pytest.fixture(scope="function")
+def ovms_tenant(api_instance, minio_client, function_context, minio_resource):
+    name = "ovms"
+    quota = TENANT_RESOURCES
+    model_name = "ovms_resnet"
+    name, qouta = create_tenant(name, quota, function_context)
+    upload_model_to_minio(minio_resource, name, model_name)
+    return name, ""
+
+
+@pytest.fixture(scope="function")
+def ovms_endpoint(function_context, ovms_tenant):
+    crd_server_name = 'ovms'
+    namespace, _ = ovms_tenant
+    replicas = 1
+    data = json.dumps({
+        'modelName': 'ovms_resnet',
+        'modelVersion': 1,
+        'endpointName': crd_server_name,
+        'subjectName': 'client',
+        'replicas': replicas,
+        'resources': SENSIBLE_ENDPOINT_RESOURCES,
+        'templateName': 'ovms'
+    })
+    url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=namespace)
+
+    response = requests.post(url, data=data, headers=DEFAULT_HEADERS, verify=False)
+
+    assert response.status_code == 200
+    assert "created" in response.text
+
+    function_context.add_object(object_type='CRD', object_to_delete={'name': crd_server_name,
+                                                                     'namespace': namespace})
+    return response, namespace
 
 
 @pytest.fixture(scope="function")

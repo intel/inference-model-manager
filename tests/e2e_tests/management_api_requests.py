@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,10 +17,11 @@
 import requests
 import json
 
-from management_api_tests.config import DEFAULT_HEADERS, ADMIN_HEADERS, SCOPE_NAME, \
-    TENANT_RESOURCES, SENSIBLE_ENDPOINT_RESOURCES, TENANTS_MANAGEMENT_API_URL, \
-    ENDPOINTS_MANAGEMENT_API_URL
-from e2e_tests.config import TENANT_NAME, MODEL_NAME, CERT
+from config import DEFAULT_HEADERS, ADMIN_HEADERS, SCOPE_NAME, TENANT_RESOURCES, \
+    SENSIBLE_ENDPOINT_RESOURCES, TENANTS_MANAGEMENT_API_URL, ENDPOINTS_MANAGEMENT_API_URL
+
+from e2e_tests.config import TENANT_NAME, MODEL_NAME
+from config import CERT
 
 
 def create_tenant(name=TENANT_NAME, headers=ADMIN_HEADERS,

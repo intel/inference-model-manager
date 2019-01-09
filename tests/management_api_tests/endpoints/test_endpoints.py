@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@ import requests
 import json
 import time
 
-from management_api_tests.config import DEFAULT_HEADERS,\
-    USER2_HEADERS, ENDPOINT_MANAGEMENT_API_URL, ENDPOINTS_MANAGEMENT_API_URL, CheckResult, \
-    ENDPOINT_RESOURCES, ENDPOINT_MANAGEMENT_API_URL_SCALE, OperationStatus
+from config import DEFAULT_HEADERS, USER2_HEADERS, ENDPOINT_MANAGEMENT_API_URL,\
+    ENDPOINTS_MANAGEMENT_API_URL, ENDPOINT_RESOURCES, ENDPOINT_MANAGEMENT_API_URL_SCALE
+from management_api_tests.config import CheckResult, OperationStatus
 
 from management_api_tests.endpoints.endpoint_utils import check_replicas_number_matching_provided, \
     check_model_params_matching_provided, wait_server_setup, check_server_existence, \

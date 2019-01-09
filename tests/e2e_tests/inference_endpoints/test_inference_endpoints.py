@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,11 +35,11 @@ from model_upload import upload_model
 
 from e2e_tests.management_api_requests import create_endpoint, create_tenant, delete_tenant
 
-from e2e_tests.config import MODEL_NAME, TENANT_NAME, \
-    CERT_BAD_CLIENT, CERT_BAD_CLIENT_KEY, CERT_CLIENT, CERT_CLIENT_KEY, CERT_SERVER
+from e2e_tests.config import MODEL_NAME, TENANT_NAME
 from e2e_tests.tf_serving_utils.load_numpy import IMAGES, LABELS
 from management_api_tests.authenticate import get_user_token
-from management_api_tests.config import MANAGEMENT_API_URL
+from config import MANAGEMENT_API_URL, CERT_BAD_CLIENT, CERT_BAD_CLIENT_KEY, CERT_CLIENT, \
+    CERT_CLIENT_KEY, CERT_SERVER
 from conftest import get_all_pods_in_namespace, get_logs_of_pod, list_namespaces
 
 
