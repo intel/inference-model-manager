@@ -211,7 +211,7 @@ def ovms_endpoint(function_context, ovms_tenant):
         'subjectName': 'client',
         'replicas': replicas,
         'resources': SENSIBLE_ENDPOINT_RESOURCES,
-        'templateName': 'ovms'
+        'servingName': 'ovms'
     })
     url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=namespace)
 
