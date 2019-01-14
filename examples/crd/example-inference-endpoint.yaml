@@ -4,6 +4,6 @@ metadata:
   name: example-endpoint
 spec:
   modelName: "resnet_v1_50"
-  modelVersion: 1
+  modelVersionPolicy: "{latest{}}"
   subjectName: "client-name"
   endpointName: "resnet"

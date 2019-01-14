@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import re
 
 from management_api_tests.config import PORTABLE_SECRETS_PATHS
 
@@ -42,3 +43,9 @@ def propagate_secret(api_instance, source_secret_path, target_namespace):
 def propagate_portable_secrets(api_instance, target_namespace):
     for portable_secret_path in PORTABLE_SECRETS_PATHS:
         propagate_secret(api_instance, portable_secret_path, target_namespace)
+
+
+def normalize_version_policy(version_policy):
+    normalized_version_policy = re.sub(r'\s+', '', version_policy)
+    normalized_version_policy = re.sub(r'(\d)', r'\1 ', normalized_version_policy)
+    return normalized_version_policy

@@ -56,7 +56,7 @@ def test_ovms_serving_status(ovms_endpoint):
         CERT_CLIENT)
     creds = grpc.ssl_channel_credentials(root_certificates=trusted_cert, private_key=trusted_key,
                                          certificate_chain=trusted_ca)
-    stub, _ = prepare_stub_and_request(url, "", creds)
+    stub, _ = prepare_stub_and_request(url, "", creds=creds)
     request = get_model_metadata_request("ovms_resnet")
     response = stub.GetModelMetadata(request, 10)
     assert "ovms_resnet" == response.model_spec.name

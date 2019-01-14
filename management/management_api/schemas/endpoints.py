@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-from management_api.schemas.elements.models import model_name, model_version
+from management_api.schemas.elements.models import model_name, model_version_policy
 from management_api.schemas.elements.names import endpoint_name, subject_name, template_name
 from management_api.schemas.elements.resources import replicas, resources
 
@@ -25,14 +25,13 @@ endpoint_post_schema = {
     "required": [
         "endpointName",
         "modelName",
-        "modelVersion",
         "subjectName",
         "servingName",
     ],
     "properties": {
         "endpointName": endpoint_name,
         "modelName": model_name,
-        "modelVersion": model_version,
+        "modelVersionPolicy": model_version_policy,
         "subjectName": subject_name,
         "replicas": replicas,
         "resources": resources,
@@ -63,15 +62,14 @@ endpoint_patch_schema = {
     },
         {
             "required": [
-                "modelName",
-                "modelVersion"
+                "modelName"
             ]
         }
     ],
     "properties": {
         "replicas": replicas,
         "modelName": model_name,
-        "modelVersion": model_version,
+        "modelVersionPolicy": model_version_policy,
         "resources": resources
     }
 }

@@ -26,7 +26,7 @@ Options:
 	p - management api port (could be provided with MANAGEMENT_API_PORT env or from config file)
 	c - path to config file
 	k - allowing connection to management api endpoints with not trusted certificates
-Examples: 
+Examples:
 	.${0##*/} -a mgmt.example.com -p 443 -v create tenant mytenant
 	.${0##*/} create t mytenant myscope
 	.${0##*/} create e myendpoint mymodel 1 mytenant subjectName
@@ -131,7 +131,7 @@ case "$OPERATION" in
 			endpoint | e) echo "Create endpoint"
 				[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
 				[[ -z ${PARAM_2} ]] && read -p "Please provide model name " PARAM_2
-				[[ -z ${PARAM_3} ]] && read -p "Please provide model version " PARAM_3
+				[[ -z ${PARAM_3} ]] && read -p "Please provide model version policy " PARAM_3
 				[[ -z ${PARAM_4} ]] && read -p "Please provide tenant name " PARAM_4
 				[[ -z ${PARAM_5} ]] && read -p "Please provide serving name " PARAM_5
 				[[ -z ${PARAM_6} ]] && PARAM_6=client
@@ -139,10 +139,11 @@ case "$OPERATION" in
 				"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_4}/endpoints" \
 				-H "accept: application/json" \
 				-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
-				-d "{\"modelName\":\"${PARAM_2}\", \"modelVersion\":${PARAM_3}, \"endpointName\":\"${PARAM_1}\", \"servingName\":\"${PARAM_5}\", \"subjectName\": \"${PARAM_6}\", \"resources\": ${ENDPOINT_RESOURCES}}"'
+				-d "{\"modelName\":\"${PARAM_2}\", \"modelVersionPolicy\":\"${PARAM_3}\",
+				\"endpointName\":\"${PARAM_1}\", \"servingName\":\"${PARAM_5}\", \"subjectName\": \"${PARAM_6}\", \"resources\": ${ENDPOINT_RESOURCES}}"'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
 				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
-				eval "$CURL"	
+				eval "$CURL"
 				;;
 		esac
 		;;
@@ -188,12 +189,12 @@ case "$OPERATION" in
 			endpoint | e)
 				[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
 				[[ -z ${PARAM_2} ]] && read -p "Please provide new model name " PARAM_2
-				[[ -z ${PARAM_3} ]] && read -p "Please provide model version " PARAM_3
+				[[ -z ${PARAM_3} ]] && read -p "Please provide model version policy " PARAM_3
 				[[ -z ${PARAM_4} ]] && read -p "Please provide tenant name " PARAM_4
 				CURL='curl $INSECURE -X PATCH -s  \
 				"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_4}/endpoints/${PARAM_1}" -H "accept: application/json" \
 					-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
-					-d "{\"modelName\": ${PARAM_2}, \"modelVersion\":${PARAM_3}}"'
+					-d "{\"modelName\": \"${PARAM_2}\", \"modelVersionPolicy\":\"${PARAM_3}\"}"'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
 				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
 				eval "$CURL"
@@ -274,7 +275,7 @@ case "$OPERATION" in
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
 				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
 				eval "$CURL"
-				;;   
+				;;
 		esac
 		;;
 	upload | u)

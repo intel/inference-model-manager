@@ -18,3 +18,5 @@ import os
 
 TENANT_NAME = os.environ.get('E2E_TENANT_NAME', 'test')
 MODEL_NAME = os.environ.get('E2E_MODEL_NAME', 'e2emodel')
+CREATE_ENDPOINT_VP = '{specific {versions: 1}}'
+UPDATE_ENDPOINT_VP = '{specific {versions: 2}}'

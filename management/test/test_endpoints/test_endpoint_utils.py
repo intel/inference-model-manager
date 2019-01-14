@@ -85,7 +85,8 @@ def test_delete_endpoint(custom_client_mock_endpoint_utils,
 
 
 call_data = [(scale_endpoint, {'replicas': 2}),
-             (update_endpoint, {'modelName': 'test', 'modelVersion': 2})]
+             (update_endpoint, {'modelName': 'test',
+                                'modelVersionPolicy': '{specific {versions: 2}}'})]
 
 
 @pytest.mark.parametrize("method, arguments", call_data)

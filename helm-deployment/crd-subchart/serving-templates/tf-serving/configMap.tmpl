@@ -20,8 +20,6 @@ data:
             name:"{{.Spec.ModelName}}",
             base_path:"s3://{{.ObjectMeta.Namespace}}/{{.Spec.ModelName}}",
             model_platform:"tensorflow",
-            model_version_policy: {
-                  all: {}
-            }
+            model_version_policy: {{ .Spec.ModelVersionPolicy }}
         }
     }

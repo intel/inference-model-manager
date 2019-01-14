@@ -15,6 +15,8 @@
 #
 
 import os
+import re
+
 from kubernetes.client.rest import ApiException
 
 from management_api.utils.errors_handling import KubernetesCreateException, \
@@ -26,12 +28,19 @@ from management_api.utils.kubernetes_resources import get_crd_subject_name_and_r
     get_k8s_api_custom_client, get_k8s_api_client, get_k8s_apps_api_client,\
     validate_quota_compliance, transform_quota, get_replicas, endpoint_exists, \
     get_endpoint_status
-from management_api.config import CRD_GROUP, CRD_VERSION, CRD_PLURAL,\
-    CRD_API_VERSION, CRD_KIND, PLATFORM_DOMAIN, DELETE_BODY, REPLICA_FAILURE
+from management_api.config import CRD_GROUP, CRD_VERSION, CRD_PLURAL, \
+    CRD_API_VERSION, CRD_KIND, PLATFORM_DOMAIN, DELETE_BODY, REPLICA_FAILURE, \
+    DEFAULT_MODEL_VERSION_POLICY
 from management_api.tenants.tenants_utils import tenant_exists
 
 
 logger = get_logger(__name__)
+
+
+def normalize_version_policy(version_policy):
+    normalized_version_policy = re.sub(r'\s+', '', version_policy)
+    normalized_version_policy = re.sub(r'(\d)', r'\1 ', normalized_version_policy)
+    return normalized_version_policy
 
 
 def create_endpoint(parameters: dict, namespace: str, id_token: str):
@@ -42,6 +51,13 @@ def create_endpoint(parameters: dict, namespace: str, id_token: str):
     body = {"apiVersion": CRD_API_VERSION, "kind": CRD_KIND,
             "spec": parameters, "metadata": metadata}
     api_instance = get_k8s_api_client(id_token)
+
+    if 'modelVersionPolicy' not in parameters:
+        parameters['modelVersionPolicy'] = DEFAULT_MODEL_VERSION_POLICY
+    else:
+        parameters['modelVersionPolicy'] = \
+            normalize_version_policy(parameters['modelVersionPolicy'])
+
     if 'resources' in parameters:
         validate_quota_compliance(api_instance, namespace=namespace,
                                   endpoint_quota=parameters['resources'])
@@ -119,7 +135,9 @@ def update_endpoint(parameters: dict, namespace: str, endpoint_name: str, id_tok
         raise KubernetesGetException('endpoint', apiException)
 
     endpoint_object['spec']['modelName'] = parameters['modelName']
-    endpoint_object['spec']['modelVersion'] = parameters['modelVersion']
+    if 'modelVersionPolicy' in parameters:
+        endpoint_object['spec']['modelVersionPolicy'] = \
+            normalize_version_policy(parameters['modelVersionPolicy'])
     if 'resources' in parameters:
         endpoint_object['spec']['resources'] = transform_quota(parameters['resources'])
 

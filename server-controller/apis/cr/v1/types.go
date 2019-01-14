@@ -87,14 +87,14 @@ func (e *InferenceEndpoint) SetStatusStateWithMessage(state states.State, msg st
 }
 
 type InferenceEndpointSpec struct {
-	State           states.State             `json:"state"`
-	ModelName       string                   `json:"modelName"`
-	ModelVersion    int                      `json:"modelVersion"`
-	EndpointName    string                   `json:"endpointName,omitempty"`
-	SubjectName     string                   `json:"subjectName"`
-	Resources       ResourceSpec             `json:"resources,omitempty"`
-	Replicas        int                      `json:"replicas,omitempty"`
-	TemplateName    string                   `json:"servingName"`
+	State                 states.State             `json:"state"`
+	ModelName             string                   `json:"modelName"`
+	ModelVersionPolicy    string                   `json:"modelVersionPolicy"`
+	EndpointName          string                   `json:"endpointName,omitempty"`
+	SubjectName           string                   `json:"subjectName"`
+	Resources             ResourceSpec             `json:"resources,omitempty"`
+	Replicas              int                      `json:"replicas,omitempty"`
+	TemplateName          string                   `json:"servingName"`
 }
 
 type InferenceEndpointStatus struct {

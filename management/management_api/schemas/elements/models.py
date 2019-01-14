@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 
+VERSION_POLICY_REGEX = "^\s*{\s*(specific\s*{\s*(versions:\s*\d+\s+)*versions:\s*\d+\s*}|all\s*{\s*}|latest\s*{\s*})\s*}\s*$"  # noqa
+
 model_name = {
     "type": "string",
     "title": "Model name",
@@ -24,6 +26,12 @@ model_version = {
     "type": "integer",
     "title": "Model version",
     "minimum": 1
+}
+
+model_version_policy = {
+    "type": "string",
+    "title": "Model version policy",
+    "pattern": VERSION_POLICY_REGEX,
 }
 
 file_name = {

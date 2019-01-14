@@ -17,11 +17,12 @@
 import requests
 import json
 
-from config import DEFAULT_HEADERS, ADMIN_HEADERS, SCOPE_NAME, TENANT_RESOURCES, \
-    SENSIBLE_ENDPOINT_RESOURCES, TENANTS_MANAGEMENT_API_URL, ENDPOINTS_MANAGEMENT_API_URL
+from management_api_tests.config import SCOPE_NAME
 
-from e2e_tests.config import TENANT_NAME, MODEL_NAME
-from config import CERT
+from e2e_tests.config import TENANT_NAME, MODEL_NAME, CREATE_ENDPOINT_VP, UPDATE_ENDPOINT_VP
+from config import CERT, ADMIN_HEADERS, TENANT_RESOURCES, TENANTS_MANAGEMENT_API_URL, \
+    DEFAULT_HEADERS, SENSIBLE_ENDPOINT_RESOURCES, ENDPOINTS_MANAGEMENT_API_URL, \
+    ENDPOINT_MANAGEMENT_API_URL
 
 
 def create_tenant(name=TENANT_NAME, headers=ADMIN_HEADERS,
@@ -52,7 +53,7 @@ def create_endpoint(headers=DEFAULT_HEADERS, name=MODEL_NAME,
                     tenant=TENANT_NAME):
     data = json.dumps({
         'modelName': name,
-        'modelVersion': 1,
+        'modelVersionPolicy': CREATE_ENDPOINT_VP,
         'endpointName': name + 'endpoint',
         'subjectName': 'client',
         'resources': resources,
@@ -61,4 +62,16 @@ def create_endpoint(headers=DEFAULT_HEADERS, name=MODEL_NAME,
     url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=tenant)
 
     response = requests.post(url, data=data, headers=headers, verify=False)
+    return response
+
+
+def update_endpoint(headers=DEFAULT_HEADERS, name=MODEL_NAME,
+                    tenant=TENANT_NAME):
+    data = json.dumps({
+        'modelName': name,
+        'modelVersionPolicy': UPDATE_ENDPOINT_VP,
+    })
+    url = ENDPOINT_MANAGEMENT_API_URL.format(tenant_name=tenant, endpoint_name=name + 'endpoint')
+
+    response = requests.patch(url, data=data, headers=headers, verify=False)
     return response

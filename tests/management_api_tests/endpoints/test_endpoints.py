@@ -26,6 +26,7 @@ from management_api_tests.config import CheckResult, OperationStatus
 from management_api_tests.endpoints.endpoint_utils import check_replicas_number_matching_provided, \
     check_model_params_matching_provided, wait_server_setup, check_server_existence, \
     check_server_update_result
+from management_api_tests.reused import normalize_version_policy
 
 
 def test_create_endpoint(function_context, apps_api_instance, get_k8s_custom_obj_client,
@@ -35,7 +36,7 @@ def test_create_endpoint(function_context, apps_api_instance, get_k8s_custom_obj
     replicas = 1
     data = json.dumps({
         'modelName': 'resnet',
-        'modelVersion': 1,
+        'modelVersionPolicy': '{specific {versions: 1}}',
         'endpointName': crd_server_name,
         'subjectName': 'client',
         'replicas': replicas,
@@ -91,11 +92,11 @@ def test_create_endpoint_with_2_replicas(get_k8s_custom_obj_client, apps_api_ins
     crd_server_name = 'predict'
     namespace, _ = session_tenant
     model_name = 'resnet2'
-    model_version = 1
+    model_version_policy = '{specific {versions: 1}}'
     replicas = 2
     data = json.dumps({
         'modelName': model_name,
-        'modelVersion': model_version,
+        'modelVersionPolicy': model_version_policy,
         'endpointName': crd_server_name,
         'subjectName': 'client',
         'replicas': replicas,
@@ -178,8 +179,8 @@ def test_fail_to_scale_endpoint(auth, tenant_with_endpoint, endpoint_name, scale
 
 
 CORRECT_UPDATE_PARAMS = [
-    {'modelName': 'new-name', 'modelVersion': 2},
-    {'modelName': 'new-name', 'modelVersion': 2, 'resources':
+    {'modelName': 'new-name', 'modelVersionPolicy': '{specific {versions: 2}}'},
+    {'modelName': 'new-name', 'modelVersionPolicy': '{specific {versions: 2}}', 'resources':
         {'limits.cpu': '500m', 'limits.memory': '500Mi', 'requests.cpu': '200m',
          'requests.memory': '200Mi'}}
 ]
@@ -191,6 +192,7 @@ def test_update_endpoint(get_k8s_custom_obj_client, apps_api_instance,
     namespace, body = tenant_with_endpoint
     crd_server_name = body['spec']['endpointName']
     data = json.dumps(new_values)
+    new_values['modelVersionPolicy'] = normalize_version_policy(new_values['modelVersionPolicy'])
 
     url = ENDPOINT_MANAGEMENT_API_URL.format(endpoint_name=crd_server_name, tenant_name=namespace)
 
@@ -207,16 +209,12 @@ def test_update_endpoint(get_k8s_custom_obj_client, apps_api_instance,
 
 
 FAILING_UPDATE_PARAMS = [
-    (DEFAULT_HEADERS, "wrong_name", {'modelName': 'super-model', 'modelVersion': 3}, 400,
-     "Not Found"),
-    (DEFAULT_HEADERS, "predict", {'modelName': 0, 'modelVersion': 3}, 400,
-     "0 is not of type 'string'"),
-    (DEFAULT_HEADERS, "predict", {'modelName': 'super-model', 'modelVersion': "str"}, 400,
-     "'str' is not of type 'integer'"),
-    (DEFAULT_HEADERS, "predict", {'modelVersion': 3}, 400, "{'modelVersion': 3} is not valid "
-                                                           "under any of the given schemas"),
-    (DEFAULT_HEADERS, "predict", {'modelName': 'super-model'}, 400,
-     "{'modelName': 'super-model'} is not valid under any of the given schema"),
+    (DEFAULT_HEADERS, "wrong_name",
+     {'modelName': 'super-model', 'modelVersionPolicy': '{specific {versions: 3}}'},
+     400, "Not Found"),
+    (DEFAULT_HEADERS, "predict",
+     {'modelName': 0, 'modelVersionPolicy': '{specific {versions: 3}}'},
+     400, "0 is not of type 'string'"),
 ]
 
 
@@ -256,11 +254,11 @@ def test_not_create_endpoint_with_incompliant_resource_quota(session_tenant, inc
     namespace, _ = session_tenant
 
     model_name = 'resnet'
-    model_version = 1
+    model_version_policy = '{specific {versions: 1}}'
     replicas = 1
     data = json.dumps({
         'modelName': model_name,
-        'modelVersion': model_version,
+        'modelVersionPolicy': model_version_policy,
         'endpointName': crd_server_name,
         'subjectName': 'client',
         'replicas': replicas,
@@ -313,7 +311,7 @@ def test_not_create_endpoint_tenant_not_exist():
     replicas = 1
     data = json.dumps({
         'modelName': 'resnet',
-        'modelVersion': 1,
+        'modelVersionPolicy': '{specific {versions: 1}}',
         'endpointName': crd_server_name,
         'subjectName': 'client',
         'replicas': replicas,

@@ -158,11 +158,11 @@ def create_endpoint(custom_obj_client, namespace, context, endpoint_name='predic
                     resources=ENDPOINT_RESOURCES):
     endpoint_resources = transform_quota(resources)
     metadata = {"name": endpoint_name}
-    model_name, model_version = 'resnet', 1
+    model_name, model_version_policy = 'resnet', '{specific {versions: 1}}'
     model_path = f'{model_name}'
     spec = {
         'modelName': model_name,
-        'modelVersion': model_version,
+        'modelVersionPolicy': model_version_policy,
         'endpointName': endpoint_name,
         'subjectName': 'client',
         'replicas': 1,
@@ -269,16 +269,16 @@ def create_dummy_tenant(session_tenant):
 @pytest.fixture(scope="function")
 def fake_endpoint(session_tenant):
     namespace, _ = session_tenant
-    model_name, model_version = 'fake', 1
+    model_name, model_version_policy = 'fake', '{specific {versions: 1}}'
     body = {'spec': {'modelName': model_name,
-                     'modelVersion': model_version}}
+                     'modelVersionPolicy': model_version_policy}}
     return namespace, body
 
 
 def create_fake_model(endpoint, minio_client):
     namespace, body = endpoint
-    model_name, model_version = body['spec']['modelName'], body['spec']['modelVersion']
-    model_path = f'{model_name}/{model_version}/model.pb'
+    model_name = body['spec']['modelName']
+    model_path = f'{model_name}/1/model.pb'
     minio_client.put_object(Bucket=namespace, Body=b'Some model content', Key=model_path)
     return namespace, body
 
@@ -291,6 +291,12 @@ def endpoint_with_fake_model(tenant_with_endpoint, minio_client):
 @pytest.fixture(scope="function")
 def fake_endpoint_with_fake_model(fake_endpoint, minio_client):
     return create_fake_model(fake_endpoint, minio_client)
+
+
+def download_saved_model_from_path(path):
+    response = requests.get(path)
+    with open('saved_model.pb', 'wb') as f:
+        f.write(response.content)
 
 
 def list_namespaces():

@@ -34,6 +34,8 @@ PLATFORM_ADMIN = os.getenv('PLATFORM_ADMIN', 'platform_admin')
 DEX_URL = os.getenv('DEX_URL', 'https://dex:443')
 DEX_EXTERNAL_URL = os.getenv('DEX_EXTERNAL_URL', f'dex.{PLATFORM_DOMAIN}:443')
 
+DEFAULT_MODEL_VERSION_POLICY = '{latest{}}'
+
 
 # AUTH CONTROLLER DEFINITIONS:
 class AuthParameters:

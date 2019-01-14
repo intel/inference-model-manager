@@ -129,7 +129,7 @@ def check_server_update_result(apps_api_instance, api_instance, namespace, endpo
 
 @retry(stop=stop_after_attempt(50))
 def wait_server_setup(api_instance, namespace, endpoint_name, replicas):
-    sleep(3)
+    sleep(5)
     try:
         api_response = api_instance.read_namespaced_deployment_status(endpoint_name,
                                                                       namespace,

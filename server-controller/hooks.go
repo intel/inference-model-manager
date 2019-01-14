@@ -45,10 +45,10 @@ type serverHooks struct {
 }
 
 type patchData struct {
-	ModelName    string
-	ModelVersion int
-	Namespace    string
-	ResourcePath string
+	ModelName           string
+	ModelVersionPolicy  string
+	Namespace           string
+	ResourcePath        string
 }
 
 type patchStructInt struct {
@@ -174,7 +174,7 @@ func (c *serverHooks) Update(oldObj, newObj interface{}) {
 		return
 	}
 	patchLines := make([]interface{}, 0)
-	p := patchData{ModelName: newServer.Spec.ModelName, ModelVersion: newServer.Spec.ModelVersion, Namespace: oldServer.Namespace()}
+	p := patchData{ModelName: newServer.Spec.ModelName, ModelVersionPolicy: newServer.Spec.ModelVersionPolicy, Namespace: oldServer.Namespace()}
 	fmt.Printf("Check resource field.\n")
 	patchLines, err = prepareJSONPatchFromMap("limits", patchLines, oldServer.Spec.Resources.Limits, newServer.Spec.Resources.Limits, p)
 	if err != nil {
@@ -193,8 +193,9 @@ func (c *serverHooks) Update(oldObj, newObj interface{}) {
 		patchLines = append(patchLines, replicaPatch)
 
 	}
-	fmt.Printf("Check ModelName and ModelVersion fields.\n")
-	if oldServer.Spec.ModelName != newServer.Spec.ModelName || oldServer.Spec.ModelVersion != newServer.Spec.ModelVersion {
+	fmt.Printf("Check ModelName and ModelVersionPolicy fields.\n")
+	if oldServer.Spec.ModelName != newServer.Spec.ModelName ||
+		oldServer.Spec.ModelVersionPolicy != newServer.Spec.ModelVersionPolicy {
 		ownerRef := metav1.NewControllerRef(oldServer, crv1.GVK)
 		err := c.templates[servingName].configMapClient.Update(oldServer.Namespace(), oldServer.Spec.EndpointName, struct {
 			*crv1.InferenceEndpoint

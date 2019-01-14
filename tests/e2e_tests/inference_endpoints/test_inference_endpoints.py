@@ -19,7 +19,6 @@ import sys
 import logging
 import numpy
 import pytest
-import requests
 import tensorflow as tf
 import time
 import grpc
@@ -33,14 +32,16 @@ import classes
 from grpc_client_utils import prepare_certs, prepare_stub_and_request
 from model_upload import upload_model
 
-from e2e_tests.management_api_requests import create_endpoint, create_tenant, delete_tenant
+from e2e_tests.management_api_requests import create_tenant, delete_tenant, create_endpoint, \
+    update_endpoint
 
 from e2e_tests.config import MODEL_NAME, TENANT_NAME
 from e2e_tests.tf_serving_utils.load_numpy import IMAGES, LABELS
 from management_api_tests.authenticate import get_user_token
 from config import MANAGEMENT_API_URL, CERT_BAD_CLIENT, CERT_BAD_CLIENT_KEY, CERT_CLIENT, \
     CERT_CLIENT_KEY, CERT_SERVER
-from conftest import get_all_pods_in_namespace, get_logs_of_pod, list_namespaces
+from conftest import get_all_pods_in_namespace, get_logs_of_pod, list_namespaces, \
+    download_saved_model_from_path
 
 
 images = IMAGES
@@ -58,13 +59,8 @@ def test_create_tenant():
     time.sleep(30)
 
 
-def test_upload_model():
+def test_upload_models():
     try:
-        response = requests.get('https://storage.googleapis.com/inference-eu/models_zoo/'
-                                'resnet_V1_50/saved_model/saved_model.pb')
-        with open('saved_model.pb', 'wb') as f:
-            f.write(response.content)
-
         headers = {'Authorization': get_user_token()['id_token']}
         params = {
             'model_name': MODEL_NAME,
@@ -73,9 +69,19 @@ def test_upload_model():
         }
         url = f"{MANAGEMENT_API_URL}/tenants/{TENANT_NAME}"
 
+        # resnet_v1_50 upload
+        download_saved_model_from_path('https://storage.googleapis.com/inference-eu/models_zoo/'
+                                       'resnet_V1_50/saved_model/saved_model.pb')
+
         upload_model(url, params, headers, 30)
         os.remove('saved_model.pb')
 
+        # resnet_v2_50 upload
+        download_saved_model_from_path('https://storage.googleapis.com/inference-eu/models_zoo/'
+                                       'resnet_V2_50/saved_model/saved_model.pb')
+        params['model_version'] = 2
+        upload_model(url, params, headers, 30)
+        os.remove('saved_model.pb')
     except Exception as e:
         pytest.fail(f"Unexpected error during upload test {e}")
 
@@ -88,10 +94,7 @@ def filter_serving_logs(raw_log):
     return logs
 
 
-def test_create_endpoint():
-    endpoint_response = create_endpoint()
-    assert "created" in endpoint_response.text
-    assert endpoint_response.status_code == 200
+def wait_endpoint_setup():
     start_time = time.time()
     tick = start_time
     running = False
@@ -100,6 +103,7 @@ def test_create_endpoint():
         tick = time.time()
         try:
             all_pods = get_all_pods_in_namespace(TENANT_NAME)
+            all_pods.items.sort(key=lambda pod: pod.status.start_time, reverse=True)
             pod_name = all_pods.items[0].metadata.name
             logging.info("Pod name :", pod_name)
             logs = get_logs_of_pod(TENANT_NAME, pod_name)
@@ -111,6 +115,14 @@ def test_create_endpoint():
         except Exception as e:
             logging.info(e)
             time.sleep(10)
+    return running, pod_name
+
+
+def test_create_endpoint():
+    endpoint_response = create_endpoint()
+    assert "created" in endpoint_response.text
+    assert endpoint_response.status_code == 200
+    running, pod_name = wait_endpoint_setup()
     assert running is True
     test_create_endpoint.endpoint_info = get_url_from_response(endpoint_response)
     test_create_endpoint.pod_name = pod_name
@@ -119,30 +131,40 @@ def test_create_endpoint():
 
 test_create_endpoint.endpoint_info = None
 test_create_endpoint.pod_name = None
+test_create_endpoint.url = None
+test_create_endpoint.creds = None
 
 
-def test_prediction_with_certificates():
-    url = test_create_endpoint.endpoint_info
-
-    trusted_cert, trusted_key, trusted_ca = prepare_certs(
-        CERT_SERVER,
-        CERT_CLIENT_KEY,
-        CERT_CLIENT)
-    creds = grpc.ssl_channel_credentials(root_certificates=trusted_cert,
-                                         private_key=trusted_key, certificate_chain=trusted_ca)
-    stub, request = prepare_stub_and_request(url, MODEL_NAME, creds)
+def perform_inference(rpc_timeout: float):
+    stub, request = prepare_stub_and_request(test_create_endpoint.url, MODEL_NAME,
+                                             creds=test_create_endpoint.creds)
 
     request.inputs[model_input].CopyFrom(
         tf.contrib.util.make_tensor_proto(image, shape=image.shape))
     prediction_response = "Failed"
     try:
-        prediction_response = stub.Predict(request, 10.0)
-    except: # noqa
-        logging.info("Prediction failed")
+        prediction_response = stub.Predict(request, rpc_timeout)
+    except Exception as e:  # noqa
+        logging.info("Prediction failed: " + str(e))
+        print(str(e))
         pass
     logs = get_logs_of_pod(TENANT_NAME, test_create_endpoint.pod_name)
     logging.info(filter_serving_logs(logs))
+    return prediction_response
 
+
+def test_prediction_with_certificates():
+    time.sleep(10)
+    test_create_endpoint.url = test_create_endpoint.endpoint_info
+    trusted_cert, trusted_key, trusted_ca = prepare_certs(
+        CERT_SERVER,
+        CERT_CLIENT_KEY,
+        CERT_CLIENT)
+    test_create_endpoint.creds = grpc.ssl_channel_credentials(root_certificates=trusted_cert,
+                                                              private_key=trusted_key,
+                                                              certificate_chain=trusted_ca)
+    # resnet_v1 test
+    prediction_response = perform_inference(10.0)
     assert not prediction_response == "Failed"
     response = numpy.array(prediction_response.outputs[model_output].float_val)
 
@@ -151,31 +173,12 @@ def test_prediction_with_certificates():
     test_label = classes.imagenet_classes[first_label]
     assert max_output == first_label
     assert num_label == test_label
+    assert response.size == 1000
 
 
 def test_prediction_batch_with_certificates():
-    url = test_create_endpoint.endpoint_info
-
-    trusted_cert, trusted_key, trusted_ca = prepare_certs(
-        CERT_SERVER,
-        CERT_CLIENT_KEY,
-        CERT_CLIENT)
-    creds = grpc.ssl_channel_credentials(root_certificates=trusted_cert,
-                                         private_key=trusted_key, certificate_chain=trusted_ca)
-    stub, request = prepare_stub_and_request(url, MODEL_NAME, creds)
-
-    request.inputs[model_input].CopyFrom(
-        tf.contrib.util.make_tensor_proto(images, shape=images.shape))
-
-    prediction_response = "Failed"
-    try:
-        prediction_response = stub.Predict(request, 30.0)
-    except: # noqa
-        logging.info("Prediction failed")
-
-    logs = get_logs_of_pod(TENANT_NAME, test_create_endpoint.pod_name)
-    logging.info(filter_serving_logs(logs))
-
+    time.sleep(10)
+    prediction_response = perform_inference(30.0)
     response = numpy.array(prediction_response.outputs[model_output].float_val)
 
     offset = 1001
@@ -193,6 +196,43 @@ def test_prediction_batch_with_certificates():
         assert label == test_label
 
 
+def test_update_endpoint():
+    endpoint_response = update_endpoint()
+    assert "patched" in endpoint_response.text
+    assert endpoint_response.status_code == 200
+    time.sleep(10)
+    running, pod_name = wait_endpoint_setup()
+    test_create_endpoint.pod_name = pod_name
+    assert running is True
+    return endpoint_response
+
+
+def test_prediction_with_certificates_v2():
+    time.sleep(10)
+    # resnet_v2_test
+    prediction_response = perform_inference(10.0)
+
+    assert not prediction_response == "Failed"
+    response = numpy.array(prediction_response.outputs[model_output].float_val)
+    assert response.size == 1001
+
+
+def test_version_not_served():
+    stub, request = prepare_stub_and_request(test_create_endpoint.url, MODEL_NAME,
+                                             model_version=1,
+                                             creds=test_create_endpoint.creds)
+
+    request.inputs[model_input].CopyFrom(
+        tf.contrib.util.make_tensor_proto(image, shape=image.shape))
+    with pytest.raises(grpc.RpcError) as context:
+        stub.Predict(request, 10.0)
+
+    logs = get_logs_of_pod(TENANT_NAME, test_create_endpoint.pod_name)
+    logging.info(filter_serving_logs(logs))
+
+    assert "Servable not found" in context.value.details()
+
+
 def test_wrong_certificates():
     url = test_create_endpoint.endpoint_info
 
@@ -202,7 +242,7 @@ def test_wrong_certificates():
         CERT_BAD_CLIENT)
     creds = grpc.ssl_channel_credentials(root_certificates=trusted_cert,
                                          private_key=wrong_key, certificate_chain=wrong_ca)
-    stub, request = prepare_stub_and_request(url, MODEL_NAME, creds)
+    stub, request = prepare_stub_and_request(url, MODEL_NAME, creds=creds)
 
     numpy_input = numpy.zeros((1, 224, 224, 3), numpy.dtype('<f'))
 
@@ -211,9 +251,6 @@ def test_wrong_certificates():
 
     with pytest.raises(grpc.RpcError) as context:
         stub.Predict(request, 10.0)
-
-    logs = get_logs_of_pod(TENANT_NAME, test_create_endpoint.pod_name)
-    logging.info(filter_serving_logs(logs))
 
     assert context.value.details() == 'Received http2 header with status: 403'
 
@@ -222,7 +259,7 @@ def test_no_certificates():
     url = test_create_endpoint.endpoint_info
     trusted_cert, _, _ = prepare_certs(CERT_SERVER)
     creds = grpc.ssl_channel_credentials(root_certificates=trusted_cert)
-    stub, request = prepare_stub_and_request(url, MODEL_NAME, creds)
+    stub, request = prepare_stub_and_request(url, MODEL_NAME, creds=creds)
 
     numpy_input = numpy.zeros((1, 224, 224, 3), numpy.dtype('<f'))
 
@@ -231,9 +268,6 @@ def test_no_certificates():
 
     with pytest.raises(grpc.RpcError) as context:
         stub.Predict(request, 10.0)
-
-    logs = get_logs_of_pod(TENANT_NAME, test_create_endpoint.pod_name)
-    logging.info(filter_serving_logs(logs))
 
     assert context.value.details() == 'Received http2 header with status: 400'
 
