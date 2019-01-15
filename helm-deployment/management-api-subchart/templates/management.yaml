@@ -102,8 +102,8 @@ metadata:
   namespace: {{ .Values.namespace }}
 spec:
   ports:
-  - port: 443
-    targetPort: 443
+  - port: {{ .Values.service.externalPort }}
+    targetPort: {{ .Values.service.externalPort }}
   selector:
     app: management-api
   type: ClusterIP

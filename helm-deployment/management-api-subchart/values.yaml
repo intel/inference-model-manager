@@ -3,7 +3,7 @@ tag: <image_tag>
 namespace: "mgt-api"
 service:
   name: management-api
-  externalPort: 443
+  externalPort: 9443
 ingress:
   enabled: true
   # Used to create Ingress record (should used with service.type: ClusterIP).
