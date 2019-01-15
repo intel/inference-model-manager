@@ -21,7 +21,7 @@ from config import TENANT_NAME, SCOPE_NAME, CERT
 
 PORTABLE_SECRETS_PATHS = ['mgt-api/minio-access-info', 'mgt-api/tls-secret']
 
-PLATFORM_ADMIN = os.environ.get('PLATFORM_ADMIN', 'platform_admin')
+PLATFORM_ADMIN_LABEL = os.environ.get('PLATFORM_ADMIN_LABEL', 'platform_admin')
 
 
 BASE64_DECODING_ERROR_MESSAGE = "Base64 decoding"

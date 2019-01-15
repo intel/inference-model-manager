@@ -29,7 +29,7 @@ MINIO_REGION = os.getenv('MINIO_REGION', "us-east-1")
 SIGNATURE_VERSION = os.getenv('MINIO_SIGNATURE_VERSION', "s3v4")
 
 PLATFORM_DOMAIN = os.getenv('PLATFORM_DOMAIN', 'default')
-PLATFORM_ADMIN = os.getenv('PLATFORM_ADMIN', 'platform_admin')
+PLATFORM_ADMIN_LABEL = os.getenv('PLATFORM_ADMIN_LABEL', 'platform_admin')
 
 DEX_URL = os.getenv('DEX_URL', 'https://dex:443')
 DEX_EXTERNAL_URL = os.getenv('DEX_EXTERNAL_URL', f'dex.{PLATFORM_DOMAIN}:443')

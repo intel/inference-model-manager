@@ -32,7 +32,8 @@ platformDomain - DNS domain to be used for new Inference Endpoints
 ingress.hosts,ingress.tls.hosts - DNS name for the Management API external interface
 minio.accessKey - MinIo access key
 minio.secretKey - MinIo secret
-platformAdmin - the group with Platform admin permissions - should match JWT token groups scope
+adminScope - the group with Platform admin permissions - should match JWT token groups scope
+platformAdminLabel - label needed for mgt-api to figure out which namespaces were created by it
 
 
 The group set in `platformAdmin` parameter is being granted kubernetes cluster role binding to enable managing 
