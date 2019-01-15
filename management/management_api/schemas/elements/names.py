@@ -45,5 +45,6 @@ subject_name = {
 template_name = {
     "type": "string",
     "title": "Template name",
-    "minLength": 3
+    "minLength": 3,
+    "default": "tf-serving"
 }

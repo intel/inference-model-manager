@@ -26,7 +26,6 @@ endpoint_post_schema = {
         "endpointName",
         "modelName",
         "subjectName",
-        "servingName",
     ],
     "properties": {
         "endpointName": endpoint_name,

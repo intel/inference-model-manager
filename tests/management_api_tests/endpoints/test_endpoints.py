@@ -28,21 +28,26 @@ from management_api_tests.endpoints.endpoint_utils import check_replicas_number_
     check_server_update_result
 from management_api_tests.reused import normalize_version_policy
 
-
-def test_create_endpoint(function_context, apps_api_instance, get_k8s_custom_obj_client,
-                         session_tenant):
-    crd_server_name = 'predict'
-    namespace, _ = session_tenant
-    replicas = 1
-    data = json.dumps({
+crd_server_name = 'predict'
+replicas = 1
+DEFAULT_TEMPLATE = {
         'modelName': 'resnet',
         'modelVersionPolicy': '{specific {versions: 1}}',
         'endpointName': crd_server_name,
         'subjectName': 'client',
         'replicas': replicas,
         'resources': ENDPOINT_RESOURCES,
-        'servingName': 'tf-serving'
-    })
+}
+
+TF_SERVING_TEMPLATE = DEFAULT_TEMPLATE
+TF_SERVING_TEMPLATE['servingName'] = 'tf-serving'
+
+
+@pytest.mark.parametrize("params", [TF_SERVING_TEMPLATE, DEFAULT_TEMPLATE])
+def test_create_endpoint(params, function_context, apps_api_instance, get_k8s_custom_obj_client,
+                         session_tenant):
+    namespace, _ = session_tenant
+    data = json.dumps(params)
     url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=namespace)
 
     response = requests.post(url, data=data, headers=DEFAULT_HEADERS)
@@ -89,7 +94,6 @@ def test_try_create_the_same_endpoint(tenant_with_endpoint):
 
 def test_create_endpoint_with_2_replicas(get_k8s_custom_obj_client, apps_api_instance,
                                          function_context, session_tenant):
-    crd_server_name = 'predict'
     namespace, _ = session_tenant
     model_name = 'resnet2'
     model_version_policy = '{specific {versions: 1}}'
@@ -224,7 +228,6 @@ FAILING_UPDATE_PARAMS = [
 def test_fail_to_update_endpoint(get_k8s_custom_obj_client,
                                  auth, endpoint_name, update_params,
                                  expected_error_code, expected_error_msg, tenant_with_endpoint):
-
     namespace, body = tenant_with_endpoint
     crd_server_name = body['spec']['endpointName']
 
@@ -250,13 +253,10 @@ QUOTA_INCOMPLIANT_VALUES = [
 @pytest.mark.parametrize("incompliant_quota, expected_error", QUOTA_INCOMPLIANT_VALUES)
 def test_not_create_endpoint_with_incompliant_resource_quota(session_tenant, incompliant_quota,
                                                              expected_error):
-
-    crd_server_name = 'predict'
     namespace, _ = session_tenant
 
     model_name = 'resnet'
     model_version_policy = '{specific {versions: 1}}'
-    replicas = 1
     data = json.dumps({
         'modelName': model_name,
         'modelVersionPolicy': model_version_policy,
@@ -307,9 +307,7 @@ def test_view_endpoint(request, endpoint_fix, endpoint_name, expected_status, ex
 
 def test_not_create_endpoint_tenant_not_exist():
     headers = USER2_HEADERS
-    crd_server_name = 'predict'
     namespace = 'saturn'
-    replicas = 1
     data = json.dumps({
         'modelName': 'resnet',
         'modelVersionPolicy': '{specific {versions: 1}}',

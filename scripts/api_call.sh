@@ -133,14 +133,14 @@ case "$OPERATION" in
 				[[ -z ${PARAM_2} ]] && read -p "Please provide model name " PARAM_2
 				[[ -z ${PARAM_3} ]] && read -p "Please provide model version policy " PARAM_3
 				[[ -z ${PARAM_4} ]] && read -p "Please provide tenant name " PARAM_4
-				[[ -z ${PARAM_5} ]] && read -p "Please provide serving name " PARAM_5
+				[[ -z ${PARAM_5} ]] && read -p "Please provide serving name (leave empty for default: tf-serving) " PARAM_5
 				[[ -z ${PARAM_6} ]] && PARAM_6=client
+				! [[ -z ${PARAM_5} ]] && SERVING_PARAM="\"servingName\":\"${PARAM_5}\","
 				CURL='curl $INSECURE -s -X POST \
-				"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_4}/endpoints" \
-				-H "accept: application/json" \
-				-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
-				-d "{\"modelName\":\"${PARAM_2}\", \"modelVersionPolicy\":\"${PARAM_3}\",
-				\"endpointName\":\"${PARAM_1}\", \"servingName\":\"${PARAM_5}\", \"subjectName\": \"${PARAM_6}\", \"resources\": ${ENDPOINT_RESOURCES}}"'
+					"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_4}/endpoints" \
+					-H "accept: application/json" \
+					-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
+					-d "{${SERVING_PARAM} \"modelName\":\"${PARAM_2}\", \"modelVersionPolicy\":${PARAM_3}, \"endpointName\":\"${PARAM_1}\", \"subjectName\": \"${PARAM_6}\", \"resources\": ${ENDPOINT_RESOURCES}}"'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
 				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
 				eval "$CURL"
