@@ -67,7 +67,7 @@ def get_token(parameters: dict, offline=False):
 
 
 def _get_keys_from_dex():
-    resp = requests.get(urljoin(DEX_URL, "/dex/keys"), params=None)
+    resp = requests.get(urljoin(DEX_URL, AuthParameters.KEYS_PATH), params=None)
     data = json.loads(resp.text)
     keys = []
     for k in data['keys']:

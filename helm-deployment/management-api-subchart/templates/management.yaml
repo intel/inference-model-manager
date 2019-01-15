@@ -78,6 +78,8 @@ spec:
           value: "{{ .Values.dexTokenPath }}"
         - name: AUTH_PATH
           value: "{{ .Values.dexAuthPath }}"
+        - name: KEYS_PATH
+          value: "{{ .Values.dexKeysPath }}"
         volumeMounts:
         - mountPath: /certs/
           name: tls-management-secret

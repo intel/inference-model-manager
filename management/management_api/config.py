@@ -47,6 +47,7 @@ class AuthParameters:
     CLIENT_SECRET = os.getenv('AUTH_CLIENT_SECRET', 'ZXhhbXBsZS1hcHAtc2VjcmV0')
     TOKEN_PATH = os.getenv('TOKEN_PATH', '/dex/token')
     AUTH_PATH = os.getenv('AUTH_PATH', '/dex/auth')
+    KEYS_PATH = os.getenv('KEYS_PATH', '/dex/keys')
     ADMIN_SCOPE = os.getenv('ADMIN_SCOPE', 'admin')
 
 
