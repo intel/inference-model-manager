@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,14 +18,13 @@ import pytest
 import falcon
 
 
-def test_authenticate_get(mocker, client):
-    controller_url_mock = mocker.patch('management_api.authenticate.authenticate.'
-                                       'get_auth_controller_url')
+@pytest.mark.parametrize("params, expected_redirect_url", [({'offline': True}, 'oob'),
+                                                           ({}, 'callback')])
+def test_authenticate_get(client, params, expected_redirect_url):
     expected_status = falcon.HTTP_308
-    controller_url_mock.return_value = "test"
-    result = client.simulate_request(method='GET', path='/authenticate')
+    result = client.simulate_request(method='GET', path='/authenticate', params=params)
     assert expected_status == result.status
-    controller_url_mock.assert_called_once()
+    assert expected_redirect_url in result.headers['Location']
 
 
 @pytest.mark.parametrize("body, expected_status",

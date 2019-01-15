@@ -30,6 +30,15 @@ If you are behind proxy, use extra proxy parameters:
 --proxy_host <host> --proxy_port <port>
 ```
 
+**Login without launching browser**
+
+If your machine does not provide any web-browser or you are using it over ssh, you can try our "out of browser" option. 
+To use this mode please add parameter:
+
+```
+--offline
+```
+
 ### Management API calls
 *api_call.sh* script allows to call Management API in a more convenient way.
 

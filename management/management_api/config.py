@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ DEFAULT_MODEL_VERSION_POLICY = '{latest{}}'
 
 # AUTH CONTROLLER DEFINITIONS:
 class AuthParameters:
+    OOB_REDIRECT_URL = 'urn:ietf:wg:oauth:2.0:oob'  # out of browser
     REDIRECT_URL = os.getenv('AUTH_REDIRECT_URL', 'http://127.0.0.1:5555/callback')
     CLIENT_ID = os.getenv('AUTH_CLIENT_ID', 'example-app')
     RESPONSE_TYPE = 'code'

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,11 +20,13 @@ from unittest.mock import Mock
 import pytest
 
 
-def test_get_auth_controller_url():
+@pytest.mark.parametrize("offline, expected_redirect_url", [(True, 'oob'), (False, 'callback')])
+def test_get_auth_controller_url(offline, expected_redirect_url):
     os.environ["PLATFORM_DOMAIN"] = "example.com"
-    url = get_auth_controller_url()
+    url = get_auth_controller_url(offline)
     assert url.startswith("https://dex.default")
     assert 'redirect_uri' in url and 'response_type' in url and 'client_id' in url
+    assert expected_redirect_url in url
 
 
 @pytest.mark.parametrize("case", [('fetch_token'), ('fetch_token_exc'), ('refresh_token'),
