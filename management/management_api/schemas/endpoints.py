@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -51,24 +51,24 @@ endpoint_delete_schema = {
 
 resources['optional'] = True
 
-endpoint_patch_schema = {
+endpoint_update_schema = {
     "type": "object",
-    "title": "Endpoint PATCH Schema",
-    "oneOf": [{
-        "required": [
-            "replicas"
-        ]
-    },
-        {
-            "required": [
-                "modelName"
-            ]
-        }
+    "title": "Endpoint PATCH Schema for updating",
+    "properties": {
+        "modelName": model_name,
+        "modelVersionPolicy": model_version_policy,
+        "resources": resources,
+        "subjectName": subject_name
+    }
+}
+
+endpoint_scale_schema = {
+    "type": "object",
+    "title": "Endpoint PATCH Schema for scaling",
+    "required": [
+        "replicas"
     ],
     "properties": {
         "replicas": replicas,
-        "modelName": model_name,
-        "modelVersionPolicy": model_version_policy,
-        "resources": resources
     }
 }

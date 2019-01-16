@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2019 Intel Corporation
+# Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,14 +35,24 @@ from model_upload import upload_model
 from e2e_tests.management_api_requests import create_tenant, delete_tenant, create_endpoint, \
     update_endpoint
 
-from e2e_tests.config import MODEL_NAME, TENANT_NAME
+from e2e_tests.config import MODEL_NAME, TENANT_NAME, CREATE_ENDPOINT_VP, UPDATE_ENDPOINT_VP
 from e2e_tests.tf_serving_utils.load_numpy import IMAGES, LABELS
 from management_api_tests.authenticate import get_user_token
 from config import MANAGEMENT_API_URL, CERT_BAD_CLIENT, CERT_BAD_CLIENT_KEY, CERT_CLIENT, \
-    CERT_CLIENT_KEY, CERT_SERVER
+    CERT_CLIENT_KEY, CERT_SERVER, SENSIBLE_ENDPOINT_RESOURCES
 from conftest import get_all_pods_in_namespace, get_logs_of_pod, list_namespaces, \
     download_saved_model_from_path
 
+
+class EndpointInfo:
+    def __init__(self):
+        self.info = None
+        self.pod_name = None
+        self.url = None
+        self.credentials = None
+
+
+endpoint_info = EndpointInfo()
 
 images = IMAGES
 image = numpy.expand_dims(images[0], axis=0)
@@ -118,26 +128,28 @@ def wait_endpoint_setup():
     return running, pod_name
 
 
-def test_create_endpoint():
-    endpoint_response = create_endpoint()
+def test_create_endpoint_with_bad_subject_name():
+    params = {
+        'modelName': MODEL_NAME,
+        'modelVersionPolicy': CREATE_ENDPOINT_VP,
+        'endpointName': MODEL_NAME + 'endpoint',
+        'subjectName': 'bad',
+        'resources': SENSIBLE_ENDPOINT_RESOURCES,
+        'servingName': 'tf-serving',
+    }
+    endpoint_response = create_endpoint(params)
     assert "created" in endpoint_response.text
     assert endpoint_response.status_code == 200
     running, pod_name = wait_endpoint_setup()
     assert running is True
-    test_create_endpoint.endpoint_info = get_url_from_response(endpoint_response)
-    test_create_endpoint.pod_name = pod_name
+    endpoint_info.info = get_url_from_response(endpoint_response)
+    endpoint_info.pod_name = pod_name
     return endpoint_response
 
 
-test_create_endpoint.endpoint_info = None
-test_create_endpoint.pod_name = None
-test_create_endpoint.url = None
-test_create_endpoint.creds = None
-
-
 def perform_inference(rpc_timeout: float):
-    stub, request = prepare_stub_and_request(test_create_endpoint.url, MODEL_NAME,
-                                             creds=test_create_endpoint.creds)
+    stub, request = prepare_stub_and_request(endpoint_info.url, MODEL_NAME,
+                                             creds=endpoint_info.credentials)
 
     request.inputs[model_input].CopyFrom(
         tf.contrib.util.make_tensor_proto(image, shape=image.shape))
@@ -148,21 +160,48 @@ def perform_inference(rpc_timeout: float):
         logging.info("Prediction failed: " + str(e))
         print(str(e))
         pass
-    logs = get_logs_of_pod(TENANT_NAME, test_create_endpoint.pod_name)
+    logs = get_logs_of_pod(TENANT_NAME, endpoint_info.pod_name)
     logging.info(filter_serving_logs(logs))
     return prediction_response
 
 
-def test_prediction_with_certificates():
+def test_prediction_with_certificates_and_wrong_subject_name():
     time.sleep(10)
-    test_create_endpoint.url = test_create_endpoint.endpoint_info
+    endpoint_info.url = endpoint_info.info
     trusted_cert, trusted_key, trusted_ca = prepare_certs(
         CERT_SERVER,
         CERT_CLIENT_KEY,
         CERT_CLIENT)
-    test_create_endpoint.creds = grpc.ssl_channel_credentials(root_certificates=trusted_cert,
-                                                              private_key=trusted_key,
-                                                              certificate_chain=trusted_ca)
+    endpoint_info.credentials = grpc.ssl_channel_credentials(root_certificates=trusted_cert,
+                                                             private_key=trusted_key,
+                                                             certificate_chain=trusted_ca)
+    # resnet_v1 test
+    prediction_response = perform_inference(10.0)
+    assert prediction_response == "Failed"
+
+
+def test_update_subject_name():
+    params = {'subjectName': 'client'}
+    endpoint_response = update_endpoint(params)
+    assert "patched" in endpoint_response.text
+    assert endpoint_response.status_code == 200
+    time.sleep(10)
+    running, pod_name = wait_endpoint_setup()
+    endpoint_info.pod_name = pod_name
+    assert running is True
+    return endpoint_response
+
+
+def test_prediction_with_certificates():
+    time.sleep(10)
+    endpoint_info.url = endpoint_info.info
+    trusted_cert, trusted_key, trusted_ca = prepare_certs(
+        CERT_SERVER,
+        CERT_CLIENT_KEY,
+        CERT_CLIENT)
+    endpoint_info.credentials = grpc.ssl_channel_credentials(root_certificates=trusted_cert,
+                                                             private_key=trusted_key,
+                                                             certificate_chain=trusted_ca)
     # resnet_v1 test
     prediction_response = perform_inference(10.0)
     assert not prediction_response == "Failed"
@@ -196,13 +235,14 @@ def test_prediction_batch_with_certificates():
         assert label == test_label
 
 
-def test_update_endpoint():
-    endpoint_response = update_endpoint()
+def test_update_version_policy():
+    params = {'modelVersionPolicy': UPDATE_ENDPOINT_VP}
+    endpoint_response = update_endpoint(params)
     assert "patched" in endpoint_response.text
     assert endpoint_response.status_code == 200
     time.sleep(10)
     running, pod_name = wait_endpoint_setup()
-    test_create_endpoint.pod_name = pod_name
+    endpoint_info.pod_name = pod_name
     assert running is True
     return endpoint_response
 
@@ -218,23 +258,23 @@ def test_prediction_with_certificates_v2():
 
 
 def test_version_not_served():
-    stub, request = prepare_stub_and_request(test_create_endpoint.url, MODEL_NAME,
+    stub, request = prepare_stub_and_request(endpoint_info.url, MODEL_NAME,
                                              model_version=1,
-                                             creds=test_create_endpoint.creds)
+                                             creds=endpoint_info.credentials)
 
     request.inputs[model_input].CopyFrom(
         tf.contrib.util.make_tensor_proto(image, shape=image.shape))
     with pytest.raises(grpc.RpcError) as context:
         stub.Predict(request, 10.0)
 
-    logs = get_logs_of_pod(TENANT_NAME, test_create_endpoint.pod_name)
+    logs = get_logs_of_pod(TENANT_NAME, endpoint_info.pod_name)
     logging.info(filter_serving_logs(logs))
 
     assert "Servable not found" in context.value.details()
 
 
 def test_wrong_certificates():
-    url = test_create_endpoint.endpoint_info
+    url = endpoint_info.info
 
     trusted_cert, wrong_key, wrong_ca = prepare_certs(
         CERT_SERVER,
@@ -256,7 +296,7 @@ def test_wrong_certificates():
 
 
 def test_no_certificates():
-    url = test_create_endpoint.endpoint_info
+    url = endpoint_info.info
     trusted_cert, _, _ = prepare_certs(CERT_SERVER)
     creds = grpc.ssl_channel_credentials(root_certificates=trusted_cert)
     stub, request = prepare_stub_and_request(url, MODEL_NAME, creds=creds)
@@ -273,7 +313,7 @@ def test_no_certificates():
 
 
 def test_grpc_client():
-    url = test_create_endpoint.endpoint_info
+    url = endpoint_info.info
 
     output = main(grpc_address=url,
                   target_name=None,

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2018 Intel Corporation
+// Copyright (c) 2018-2019 Intel Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import (
 	"reflect"
 	"text/template"
 	"time"
+	"strings"
 
 	crv1 "github.com/IntelAI/inference-model-manager/server-controller/apis/cr/v1"
 	"github.com/intel/crd-reconciler-for-kubernetes/pkg/resource"
@@ -69,6 +70,7 @@ type patchStructMap struct {
 	Value map[string]string `json:"value"`
 }
 
+var subjectNamePath = "/metadata/annotations/allowed-values"
 var replicaPath = "/spec/replicas"
 var resourcePath = "/spec/template/spec/containers/0/resources/{{.ResourcePath}}"
 var configRollingPath = "/spec/template/metadata/labels/configDate"
@@ -173,15 +175,17 @@ func (c *serverHooks) Update(oldObj, newObj interface{}) {
 		fmt.Printf("Updating succeeded for the server %v\n", oldServer.ObjectMeta.SelfLink)
 		return
 	}
-	patchLines := make([]interface{}, 0)
+	deploymentPatchLines := make([]interface{}, 0)
+	ingressPatchLines := make([]interface{}, 0)
+
 	p := patchData{ModelName: newServer.Spec.ModelName, ModelVersionPolicy: newServer.Spec.ModelVersionPolicy, Namespace: oldServer.Namespace()}
 	fmt.Printf("Check resource field.\n")
-	patchLines, err = prepareJSONPatchFromMap("limits", patchLines, oldServer.Spec.Resources.Limits, newServer.Spec.Resources.Limits, p)
+	deploymentPatchLines, err = prepareJSONPatchFromMap("limits", deploymentPatchLines, oldServer.Spec.Resources.Limits, newServer.Spec.Resources.Limits, p)
 	if err != nil {
 		fmt.Printf("ERROR during resource/limits changes preparation: %v\n", err)
 		return
 	}
-	patchLines, err = prepareJSONPatchFromMap("requests", patchLines, oldServer.Spec.Resources.Requests, newServer.Spec.Resources.Requests, p)
+	deploymentPatchLines, err = prepareJSONPatchFromMap("requests", deploymentPatchLines, oldServer.Spec.Resources.Requests, newServer.Spec.Resources.Requests, p)
 	if err != nil {
 		fmt.Printf("ERROR during resource/requests changes preparation: %v\n", err)
 		return
@@ -190,9 +194,18 @@ func (c *serverHooks) Update(oldObj, newObj interface{}) {
 	fmt.Printf("Check replica field\n")
 	if oldServer.Spec.Replicas != newServer.Spec.Replicas && newServer.Spec.Replicas >= 0 {
 		replicaPatch := patchStructInt{Op: "replace", Path: replicaPath, Value: newServer.Spec.Replicas}
-		patchLines = append(patchLines, replicaPatch)
+		deploymentPatchLines = append(deploymentPatchLines, replicaPatch)
 
 	}
+
+	fmt.Printf("Check subjectName field\n")
+	if oldServer.Spec.SubjectName != newServer.Spec.SubjectName {
+		annotationParts := []string{"CN", newServer.Spec.SubjectName}
+		annotation := strings.Join(annotationParts, "=")
+		subjectNamePatch := patchStructString{Op: "replace", Path: subjectNamePath, Value: annotation}
+		ingressPatchLines = append(ingressPatchLines, subjectNamePatch)
+	}
+
 	fmt.Printf("Check ModelName and ModelVersionPolicy fields.\n")
 	if oldServer.Spec.ModelName != newServer.Spec.ModelName ||
 		oldServer.Spec.ModelVersionPolicy != newServer.Spec.ModelVersionPolicy {
@@ -213,12 +226,17 @@ func (c *serverHooks) Update(oldObj, newObj interface{}) {
 		// Necessary patch to trigger new deployment after configmap change
 		t := time.Now().UTC()
 		configMapPatch := patchStructString{Op: "replace", Path: configRollingPath, Value: t.Format("20060102150405")}
-		patchLines = append(patchLines, configMapPatch)
+		deploymentPatchLines = append(deploymentPatchLines, configMapPatch)
 	}
 
-	if len(patchLines) > 0 {
-		fmt.Printf("Will try to update server.\n")
-		patchBytes, err := json.Marshal(patchLines)
+	if len(deploymentPatchLines) == 0 && len(ingressPatchLines) == 0 {
+		fmt.Printf("Update not required. No changes detected\n")
+		return
+	}
+
+	if len(deploymentPatchLines) > 0 {
+		fmt.Printf("Will try to update deployment.\n")
+		patchBytes, err := json.Marshal(deploymentPatchLines)
 		if err != nil {
 			fmt.Printf("ERROR during preparing bytes to send %v\n", err.Error())
 			return
@@ -230,9 +248,23 @@ func (c *serverHooks) Update(oldObj, newObj interface{}) {
 			return
 		}
 
-		fmt.Printf("Updating succeeded for the server %v\n", oldServer.ObjectMeta.SelfLink)
 	}
 
+	if len(ingressPatchLines) > 0 {
+		fmt.Printf("Will try to update ingress.\n")
+		patchBytes, err := json.Marshal(ingressPatchLines)
+		if err != nil {
+			fmt.Printf("ERROR during preparing bytes to send %v\n", err.Error())
+			return
+		}
+		fmt.Printf("JsonPatch which will be applied: %s\n", string(patchBytes))
+		err = c.templates[servingName].ingressClient.Patch(oldServer.Namespace(), oldServer.Spec.EndpointName, patchBytes)
+		if err != nil {
+			fmt.Printf("ERROR during update operation %v\n", err.Error())
+			return
+		}
+	}
+	fmt.Printf("Server %v updated successfully\n", oldServer.ObjectMeta.SelfLink)
 }
 
 func (c *serverHooks) Delete(obj interface{}) {

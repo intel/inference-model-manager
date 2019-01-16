@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -134,12 +134,15 @@ def update_endpoint(parameters: dict, namespace: str, endpoint_name: str, id_tok
     except ApiException as apiException:
         raise KubernetesGetException('endpoint', apiException)
 
-    endpoint_object['spec']['modelName'] = parameters['modelName']
+    if 'modelName' in parameters:
+        endpoint_object['spec']['modelName'] = parameters['modelName']
     if 'modelVersionPolicy' in parameters:
         endpoint_object['spec']['modelVersionPolicy'] = \
             normalize_version_policy(parameters['modelVersionPolicy'])
     if 'resources' in parameters:
         endpoint_object['spec']['resources'] = transform_quota(parameters['resources'])
+    if 'subjectName' in parameters:
+        endpoint_object['spec']['subjectName'] = parameters['subjectName']
 
     try:
         custom_obj_api_instance.patch_namespaced_custom_object(

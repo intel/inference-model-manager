@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ from management_api.utils.logger import get_logger
 from management_api.endpoints.endpoint_utils import create_endpoint, delete_endpoint, \
     scale_endpoint, update_endpoint, view_endpoint, list_endpoints
 from management_api.schemas.endpoints import endpoint_post_schema, endpoint_delete_schema, \
-    endpoint_patch_schema
+    endpoint_update_schema, endpoint_scale_schema
 
 
 logger = get_logger(__name__)
@@ -56,7 +56,7 @@ class Endpoints(object):
 
 
 class EndpointScale(object):
-    @jsonschema.validate(endpoint_patch_schema)
+    @jsonschema.validate(endpoint_scale_schema)
     def on_patch(self, req, resp, tenant_name, endpoint_name):
         namespace = tenant_name
         body = req.media
@@ -78,7 +78,7 @@ class Endpoint(object):
         resp.status = falcon.HTTP_200
         resp.body = endpoint
 
-    @jsonschema.validate(endpoint_patch_schema)
+    @jsonschema.validate(endpoint_update_schema)
     def on_patch(self, req, resp, tenant_name, endpoint_name):
         namespace = tenant_name
         body = req.media

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2019 Intel Corporation
+# Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -164,7 +164,7 @@ FAILING_SCALE_PARAMS = [
     (DEFAULT_HEADERS, "wrong_name", {'replicas': 3}, 400, "Not Found"),
     (DEFAULT_HEADERS, "predict", {'replicas': -1}, 400, "-1 is less than the minimum of 0"),
     (DEFAULT_HEADERS, "predict", {'replicas': "many"}, 400, "'many' is not of type 'integer'"),
-    (DEFAULT_HEADERS, "predict", {}, 400, "{} is not valid under any of the given schemas"),
+    (DEFAULT_HEADERS, "predict", {}, 400, "required property"),
 ]
 
 

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -70,10 +70,12 @@ def test_endpoints_delete(mocker, client):
                            {'modelName': 'test', 'modelVersionPolicy': '{specific {versions: 3}}'},
                            'patched successfully', falcon.HTTP_OK),
                           ("", "update_endpoint",
+                           {'modelName': 'test'}, 'patched successfully', falcon.HTTP_OK),
+                          ("", "update_endpoint",
                            {'modelName': 'test', 'modelVersionPolicy': '1,2'},
                            'Failed data validation', falcon.HTTP_BAD_REQUEST),
                           ("", "update_endpoint",
-                           {'modelName': 'test', 'modelVersionPolicy': 'latest'},
+                           {'modelVersionPolicy': 'latest'},
                            'Failed data validation', falcon.HTTP_BAD_REQUEST),
                           ])
 def test_endpoints_patch(mocker, client, functionality, method_name, body, expected_message,
