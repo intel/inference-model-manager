@@ -48,18 +48,14 @@ def main():
     ca_cert_path = check_cert(config['ca_cert_path'])
     proxy_host = config.get('proxy_host', None)
     proxy_port = config.get('proxy_port', None)
-    new_config = get_dex_auth_token(address=config['management_api_address'],
-                                    port=config['management_api_port'],
-                                    auth_dict={'refresh_token': config['refresh_token']},
-                                    ca_cert_path=ca_cert_path, proxy_host=proxy_host,
-                                    proxy_port=proxy_port, insecure=args.insecure, offline=True)
+    new_token = get_dex_auth_token(address=config['management_api_address'],
+                                   port=config['management_api_port'],
+                                   auth_dict={'refresh_token': config['refresh_token']},
+                                   ca_cert_path=ca_cert_path, proxy_host=proxy_host,
+                                   proxy_port=proxy_port, insecure=args.insecure, offline=True)
 
-    new_config.update({'management_api_address': config['management_api_address'],
-                       'management_api_port': config['management_api_port'],
-                       'ca_cert_path': ca_cert_path})
-    if proxy_port and proxy_host:
-        new_config.update({'proxy_host': proxy_host, 'proxy_port': proxy_port})
-    save_to_file(config_file_path, new_config)
+    config.update(new_token)
+    save_to_file(config_file_path, config)
 
 
 if __name__ == '__main__':
