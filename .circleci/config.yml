@@ -48,7 +48,7 @@ jobs:
             then
                sudo apt-get install jq
                export GCE_REGION=`jq --arg namearg "$CIRCLE_USERNAME" '.[$namearg]' <<< "$REGION_JSON" | tr -d '"'`
-               if [ "GCE_REGION" != "null" ]
+               if [ "$GCE_REGION" != "null" ]
                then
                  sed -i "s/us-west1/${GCE_REGION}/g" desiredcni.yaml
                fi
@@ -80,6 +80,7 @@ jobs:
             echo 'export MGT_NAMESPACE="mgt-api"' >> $BASH_ENV
             echo 'export MINIO_ACCESS_KEY="AKIAIOSFODNN7EXAMPLE"' >> $BASH_ENV
             echo 'export MINIO_SECRET_KEY="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"' >> $BASH_ENV
+            echo 'export DEX_URL="https://${DEX_DOMAIN_NAME}:443"' >> $BASH_ENV
       - run:
           name: Generate certificates for dex external service
           command: |
@@ -190,17 +191,25 @@ jobs:
             cat ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-ing-mgt-api.crt
             echo "DEX CA"
             cat ~/inference-model-manager/helm-deployment/dex-subchart/certs/ca-ing-dex.crt
+            echo 'export CERT=`cat ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-cert-tf.crt | base64 -w0`' >> $BASH_ENV
+            echo 'export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt' >> $BASH_ENV
       - store_artifacts:
           path: ~/inference-model-manager/helm-deployment/dex-subchart/certs
       - store_artifacts:
           path: ~/inference-model-manager/helm-deployment/management-api-subchart/certs
       - run:
+          name: Run imm test
+          command: |
+            . ~/inference-model-manager/.venv/bin/activate
+            pip install -q -r ~/inference-model-manager/tests/requirements.txt
+            pip install -q -r ~/inference-model-manager/examples/grpc_client/requirements.txt
+            cd ~/inference-model-manager/scripts
+            chmod +x test_imm.sh
+            ./test_imm.sh
+      - run:
           name: Run tests
           command: |
             . ~/inference-model-manager/.venv/bin/activate
-            cd ~/inference-model-manager/helm-deployment/management-api-subchart/certs
-            export CERT=`cat ca-cert-tf.crt | base64 -w0`
-            export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
             cd ~/inference-model-manager/tests
             pip install -q -r requirements.txt
             . run_test.sh

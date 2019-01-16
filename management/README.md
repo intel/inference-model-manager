@@ -254,4 +254,4 @@ Servings in crd[('tf-serving', {<data>})
 
 ## Script for API calls
 
-You can refer to `api_call.sh` example CLI employing all API endpoints on [scripts](../scripts/)
+You can refer to `imm.sh` example CLI employing all API endpoints on [scripts](../scripts/)

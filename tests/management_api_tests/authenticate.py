@@ -16,6 +16,7 @@
 
 import os
 import requests
+import sys
 
 from urllib.parse import urljoin, urlparse, parse_qs
 from bs4 import BeautifulSoup
@@ -108,3 +109,14 @@ def get_admin_token():
 def get_token(userpass):
     user_password = f'{userpass}_pass'
     return authenticate(userpass + "@example.com", user_password)
+
+
+if __name__ == "__main__":
+    user = sys.argv[1]
+    token = None
+    if user == 'admin':
+        token = get_admin_token()
+    elif user == 'user':
+        token = get_user_token()
+    if token:
+        print(token)

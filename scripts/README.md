@@ -40,7 +40,7 @@ To use this mode please add parameter:
 ```
 
 ### Management API calls
-*api_call.sh* script allows to call Management API in a more convenient way.
+*imm* script allows to call Management API in a more convenient way.
 
 #### List of available options
 ##### login
@@ -48,12 +48,12 @@ To use this mode please add parameter:
   MANAGEMENT_CA_CERT_PATH
   - Usage example:
     ```
-    ./api_call.sh -a mgmt.example.com login
+    ./imm -a mgmt.example.com login
     ```
 ##### logout
   - Usage example:
     ```
-    ./api_call.sh logout
+    ./imm logout
     ```
 ##### create (c)
 - tenant (t)
@@ -62,82 +62,82 @@ To use this mode please add parameter:
   CERT env (**required**), quota with TENANT_RESOURCES env
   - Usage example:
     ```
-    ./api_call.sh create tenant mytenant users
+    ./imm create tenant mytenant users
     ```
 - endpoint (e)
   - Required parameters: endpointName, modelName, modelVersion, tenantName, servingName, subjectName (default: client)
   - Additional parameters provided with environment variables: quota with ENDPOINT_RESOURCES env
   - Usage example:
     ```
-    ./api_call.sh create e myendpoint mymodel 1 mytenant tf-serving
+    ./imm create e myendpoint mymodel 1 mytenant tf-serving
     ```
 ##### remove (rm)
 - tenant (t)
   - Required parameters: tenantName
   - Usage example:
     ```
-    ./api_call.sh rm t mytenant
+    ./imm rm t mytenant
     ```
 - endpoint (e)
   - Required parameters: endpointName, tenantName
   - Usage example:
     ```
-    ./api_call.sh rm e myendpoint mytenant
+    ./imm rm e myendpoint mytenant
     ```
 - model (m)
   - Required parameters: modelName, modelVersion, tenantName
   - Usage example:
     ```
-    ./api_call.sh rm m mymodel 2 mytenant
+    ./imm rm m mymodel 2 mytenant
     ```
 ##### list (ls)
 - tenants (tenant / t)
   - Usage example:
     ```
-    ./api_call.sh ls t
+    ./imm ls t
     ```
 - endpoints (endpoint / e)
   - Required parameters: tenantName
   - Usage example:
     ```
-    ./api_call.sh ls e mytenant
+    ./imm ls e mytenant
     ```
 - models (model / m)
   - Required parameters: tenantName
   - Usage example:
     ```
-    ./api_call.sh ls m mytenant
+    ./imm ls m mytenant
     ```
 - servings (serving | s)
   - Usage example:
   ```
-  ./api_call.sh ls s
+  ./imm ls s
   ```
 ##### update (up)
 - endpoint
   - Required parameters: endpointName, modelName, modelVersion, tenantName
   - Usage example:
     ```
-    ./api_call.sh up myendpoint mymodel 2 mytenant
+    ./imm up myendpoint mymodel 2 mytenant
     ```
 ##### scale (s)
 - endpoint
   - Required parameters: endpointName, replicas, tenantName
   - Usage example:
     ```
-    ./api_call.sh s myendpoint 5 mytenant
+    ./imm s myendpoint 5 mytenant
     ```
 ##### upload (u)
   - Required parameters: path_to_model, modelName, modelVersion (default: 1), tenantName
   - Usage example:
     ```
-    ./api_call.sh u ../model.pb mymodel 1 mytenant 
+    ./imm u ../model.pb mymodel 1 mytenant 
     ```
 ##### run-inference (ri)
   - Required parameters: grpc_address, modelName, input_type (numpy/list), input_path, batch_size, server_cert_path, client_cert_path, client_key_path
   - Usage example:
     ```
-    ./api_call.sh ri myendpoint-mytenant.example.com:443 mymodel numpy ../images.npy  10 ../server-tf.crt ../client-tf.crt ../client-tf.key
+    ./imm ri myendpoint-mytenant.example.com:443 mymodel numpy ../images.npy  10 ../server-tf.crt ../client-tf.crt ../client-tf.key
     ```
     
 #### Environment variables
@@ -149,7 +149,7 @@ To use this mode please add parameter:
 - `TENANT_RESOURCES` - quota used for tenant creation, default: `"{\"requests.cpu\": \"2\", \"requests.memory\": \"2Gi\", \"limits.cpu\": \"2\", \"limits.memory\": \"2Gi\", \"maxEndpoints\": 15}"`
 - `ENDPOINT_RESOURCES` - quota used for endpoint creation, default: `"{\"requests.cpu\": \"1\", \"requests.memory\": \"1Gi\", \"limits.cpu\": \"1\", \"limits.memory\": \"1Gi\"}"`
 
-More information: `./api_call.sh -h`.
+More information: `./imm -h`.
 
 ### Uploading a model
 Recommended way to upload models is to use `model_upload_cli.py` script.  
