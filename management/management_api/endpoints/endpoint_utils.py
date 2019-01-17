@@ -52,6 +52,8 @@ def create_endpoint(parameters: dict, namespace: str, id_token: str):
             "spec": parameters, "metadata": metadata}
     api_instance = get_k8s_api_client(id_token)
 
+    if 'servingName' not in parameters:
+        parameters['servingName'] = 'tf-serving'
     if 'modelVersionPolicy' not in parameters:
         parameters['modelVersionPolicy'] = DEFAULT_MODEL_VERSION_POLICY
     else:
