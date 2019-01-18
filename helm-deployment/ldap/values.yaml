@@ -1,0 +1,72 @@
+adminPassword: "admin"
+customLdifFiles:
+  imm-config.ldif: |-
+    dn: ou=People,dc=example,dc=org
+    objectClass: organizationalUnit
+    ou: People
+
+    dn: cn=sun,ou=People,dc=example,dc=org
+    objectClass: person
+    objectClass: inetOrgPerson
+    sn: sun
+    cn: sun
+    mail: sun@example.com
+    userpassword: sun_pass
+
+    dn: cn=mars,ou=People,dc=example,dc=org
+    objectClass: person
+    objectClass: inetOrgPerson
+    sn: mars
+    cn: mars
+    mail: mars@example.com
+    userpassword: mars_pass
+
+    dn: cn=saturn,ou=People,dc=example,dc=org
+    objectClass: person
+    objectClass: inetOrgPerson
+    sn: saturn
+    cn: saturn
+    mail: saturn@example.com
+    userpassword: saturn_pass
+
+    dn: cn=venus,ou=People,dc=example,dc=org
+    objectClass: person
+    objectClass: inetOrgPerson
+    sn: venus
+    cn: venus
+    mail: venus@example.com
+    userpassword: venus_pass
+
+    dn: cn=mercury,ou=People,dc=example,dc=org
+    objectClass: person
+    objectClass: inetOrgPerson
+    sn: mercury
+    cn: mercury
+    mail: mercury@example.com
+    userpassword: mercury_pass
+
+    # Group definitions.
+
+    dn: ou=Groups,dc=example,dc=org
+    objectClass: organizationalUnit
+    ou: Groups
+
+    dn: cn=admin,ou=Groups,dc=example,dc=org
+    objectClass: groupOfNames
+    cn: admin
+    member: cn=sun,ou=People,dc=example,dc=org
+
+    dn: cn=test,ou=Groups,dc=example,dc=org
+    objectClass: groupOfNames
+    cn: test
+    member: cn=venus,ou=People,dc=example,dc=org
+
+    dn: cn=apus,ou=Groups,dc=example,dc=org
+    objectClass: groupOfNames
+    cn: apus
+    member: cn=mars,ou=People,dc=example,dc=org
+
+    dn: cn=cetus,ou=Groups,dc=example,dc=org
+    objectClass: groupOfNames
+    cn: cetus
+    member: cn=saturn,ou=People,dc=example,dc=org

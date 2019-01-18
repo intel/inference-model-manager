@@ -1,0 +1,11 @@
+{
+            "Comment": "CREATE/DELETE/UPSERT a record ",
+            "Changes": [{
+            "Action": "DELETE",
+                        "ResourceRecordSet": {
+                                    "Name": "*.krzych.nlpnp.adsdcsp.com",
+                                    "Type": "A",
+                                    "TTL": 300,
+                                 "ResourceRecords": [{ "Value": "35.233.148.9"}]
+}}]
+}
