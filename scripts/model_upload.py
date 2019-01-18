@@ -19,6 +19,8 @@ import shutil
 import tarfile
 
 import requests
+from requests import urllib3
+urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
 
 
 def upload_part(url, params, headers, data, parts, verify):
