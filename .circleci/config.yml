@@ -56,9 +56,7 @@ jobs:
       - run:
           name: Prepare environment variables
           command: |
-            echo 'export PR_NR=`basename ${CIRCLE_PULL_REQUEST}`' >> $BASH_ENV
             echo 'export KOPS_FEATURE_FLAGS=AlphaAllowGCE' >> $BASH_ENV
-            echo 'export PR_NR=`basename ${CIRCLE_PULL_REQUEST}`' >> $BASH_ENV
             echo 'export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`' >> $BASH_ENV
             echo 'export CLUSTER_NAME="imm-${SHORT_SHA1}-${CIRCLE_BRANCH}.k8s.local"' >> $BASH_ENV
             echo 'export CLUSTER_NAME_SHORT="imm-${SHORT_SHA1}-${CIRCLE_BRANCH}"' >> $BASH_ENV
