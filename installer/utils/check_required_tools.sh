@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,11 +15,26 @@
 # limitations under the License.
 #
 
-# Example script generating TLS certificates for dex external interface to be configured in K8S ingress records.
 
+# import from the same directory
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+. $DIR/messages.sh
 
-# Generate valid ing-dex server key/cert
-openssl genrsa -out ing-dex.key 4096
-openssl req -new -key ing-dex.key -out ing-dex.csr -subj "/CN=${DEX_DOMAIN_NAME}"
-openssl x509 -req -days 365 -in ing-dex.csr -CA ca-ing.crt -CAkey ca-ing.key -set_serial 01 -out ing-dex.crt
-cat ca-ing.crt >> ing-dex.crt
+tools=("ping" "unbuffer" "kops" "kubectl" "helm" "jq" "yq" "virtualenv" "python3.6")
+
+missing=""
+for cmd in "${tools[@]}"
+do
+   result=`command -v $cmd`
+   if [ -z "$result" ]
+   then
+      missing="$missing $cmd "
+   fi
+done
+
+if [ ! -z "$missing" ]
+then
+   failure "Please install tools: [$missing]"
+   exit 1
+fi
+

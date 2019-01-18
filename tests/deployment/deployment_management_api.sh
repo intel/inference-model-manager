@@ -14,20 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
+B64DECODE="${B64DECODE:=base64 --decode}"
 RETURN_DIR=$PWD
-if [ "$MGMT_INTERNAL_CERTS" = "true" ]
-then
-echo "Internal mgmt-api certs will be generated"
-cd ../../helm-deployment/management-api-subchart/certs/ && ./generate-management-api-certs.sh
-cd $RETURN_DIR
+if [ "$MGMT_CERTS" = "true" ]; then
+    echo "External mgmt-api self-signed certs will be generated for DNS ${MGMT_DOMAIN_NAME}"
+    cd ../../helm-deployment/management-api-subchart/certs/ && ./generate-ing-management-api-certs.sh
+    cd $RETURN_DIR
 fi
-if [ "$MGMT_CERTS" = "true" ]
-then
-echo "External mgmt-api self-signed certs will be generated for DNS ${MGMT_DOMAIN_NAME}"
-cd ../../helm-deployment/management-api-subchart/certs/ && ./generate-ing-management-api-certs.sh
-cd $RETURN_DIR
+if [ "$MGMT_INTERNAL_CERTS" = "true" ]; then
+    echo "Internal mgmt-api certs will be generated"
+    cd ../../helm-deployment/management-api-subchart/certs/ && ./generate-management-api-certs.sh
+    cd $RETURN_DIR
 fi
+kubectl get secret -n dex ca-secret-dex -o yaml | yq r - 'data."ca.crt"' | $B64DECODE > ../../helm-deployment/management-api-subchart/certs/ca-dex.crt
 MINIO_ENDPOINT="minio.default:9000"
 MINIO_URL="http://$MINIO_ENDPOINT"
 helm install --set image=$MGMT_IMAGE --set tag=$MGMT_TAG --set platformDomain=$DOMAIN_NAME \

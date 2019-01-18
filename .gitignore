@@ -100,3 +100,25 @@ ENV/
 
 config
 .pytest_cache/
+
+# Installer additional files
+installer/dex/dex_config.yaml
+installer/k8s/cluster.yaml
+installer/k8s/config.yaml
+installer/k8s/config_oidc.yaml
+installer/k8s/oidc.yaml
+installer/minio/minio_ing.yaml
+installer/validate/__pycache__/
+installer/utils/dns_utils/.venvaws
+installer/utils/route53/route_record.json
+installer/helm-temp-dir
+installer/hooks/dns_entry_hook.sh
+helm-deployment/*/charts
+helm-deployment/*/*.lock
+
+**/*.pem
+**/*.crt
+**/*.csr
+**/*.key
+**/*.pb
+scripts/*.npy

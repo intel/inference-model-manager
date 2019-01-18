@@ -1,0 +1,14 @@
+spec:
+  fileAssets:
+  - content: |
+      replacebycertificate
+    name: paste-cert
+    path: /etc/srv/kubernetes/ca.pem
+    roles:
+    - Master
+  kubeAPIServer:
+    oidcCAFile: /etc/srv/kubernetes/ca.pem
+    oidcClientID: example-app
+    oidcGroupsClaim: groups
+    oidcIssuerURL: toreplacebyissuer
+    oidcUsernameClaim: email

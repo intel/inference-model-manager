@@ -58,7 +58,7 @@ jobs:
       - run:
           name: Choose region
           command: |
-            cd ~/inference-model-manager/kops
+            cd ~/inference-model-manager/installer/kops
             export BRANCH=$(git symbolic-ref --short HEAD)
             echo $REGION_JSON
             if [ "$BRANCH" != "master" ]
@@ -67,7 +67,7 @@ jobs:
                export GCE_REGION=`jq --arg namearg "$CIRCLE_USERNAME" '.[$namearg]' <<< "$REGION_JSON" | tr -d '"'`
                if [ "$GCE_REGION" != "null" ]
                then
-                 sed -i "s/us-west1/${GCE_REGION}/g" desiredcni.yaml
+                 sed -i "s/us-west1/${GCE_REGION}/g" desiredcni_ci.yaml
                fi
             fi
       - run:
@@ -100,6 +100,7 @@ jobs:
           name: Generate certificates for dex external service
           command: |
             cd ~/inference-model-manager/helm-deployment/dex-subchart/certs
+            ./generate-ing-ca.sh
             ./generate-ing-dex-certs.sh
       - run:
           name: Create k8s cluster
@@ -121,14 +122,14 @@ jobs:
             chmod +x ./kops
             sudo mv ./kops /usr/local/bin/
             export PROJECT=`gcloud config get-value project`
-            cd ~/inference-model-manager/kops
+            cd ~/inference-model-manager/installer/kops
             
-            sed -i "s/toreplacebyclustername/${CLUSTER_NAME_SHORT}/g" desiredcni.yaml
-            sed -i "s@toreplacebyissuer@${ISSUER}@g" desiredcni.yaml
-            cp ~/inference-model-manager/helm-deployment/dex-subchart/certs/ca-ing-dex.crt .
-            sed -i 's/^/      /' ca-ing-dex.crt
-            sed -i -e '/replace_by_certificate/{r ca-ing-dex.crt' -e 'd}' desiredcni.yaml
-            kops create -f desiredcni.yaml
+            sed -i "s/toreplacebyclustername/${CLUSTER_NAME_SHORT}/g" desiredcni_ci.yaml
+            sed -i "s@toreplacebyissuer@${ISSUER}@g" desiredcni_ci.yaml
+            cp ~/inference-model-manager/helm-deployment/dex-subchart/certs/ca-ing.crt .
+            sed -i 's/^/      /' ca-ing.crt
+            sed -i -e '/replace_by_certificate/{r ca-ing.crt' -e 'd}' desiredcni_ci.yaml
+            kops create -f desiredcni_ci.yaml
             kops update cluster ${CLUSTER_NAME} --yes
             sleep 300
             kubectl create -f https://git.io/weave-kube-1.6
@@ -142,6 +143,10 @@ jobs:
             ./get_helm.sh
             helm init --service-account tiller --upgrade
             sleep 20
+
+            wget https://github.com/mikefarah/yq/releases/download/2.2.1/yq_linux_amd64
+            chmod a+x yq_linux_amd64
+            sudo mv yq_linux_amd64 /usr/local/bin/yq
       - run:
           name: Check management api images version
           command: |
@@ -183,55 +188,53 @@ jobs:
       - run:
           name: Create record in AWS Route53
           command: |    
-            cd ~/inference-model-manager/kops/
+            cd ~/inference-model-manager/installer/utils/route53/
             while [ -z $ING_IP ]; do sleep 10; ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}' -n mgt-api); done
-                  
-            sed -i "s/0.0.0.0/${ING_IP}/g" route_record.json
-            sed -i "s/toreplacebydomainname/${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com/g" route_record.json
-            cat route_record.json
+            
             virtualenv .venvaws -p python3
             . .venvaws/bin/activate
             pip install awscli --upgrade 
-            export AWS_DNS=`aws route53 change-resource-record-sets --hosted-zone-id Z11DOV0M5AJEBB --change-batch file://./route_record.json`
-            echo $AWS_DNS
+
+            export AWS_DNS=`./apply.sh CREATE ${ING_IP} ${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com`
+            cat route_record.json
             export AWS_DNS_ID=$(echo $AWS_DNS | jq '.ChangeInfo.Id')
             echo ${AWS_DNS_ID} 
             sleep 30
             while [ "$STATUS" = "INSYNC" ]; do sleep 10; export STATUS=$(aws route53 get-change --id `echo ${AWS_DNS_ID} | tr -d "\""` | jq '.ChangeInfo.Status'); echo $STATUS; done
             deactivate
       - run:
+          name: Install tests requirements
+          command: |
+            . ~/inference-model-manager/.venv/bin/activate
+            pip install -q --upgrade pip
+            pip install -q -r ~/inference-model-manager/tests/requirements.txt
+            pip install -q -r ~/inference-model-manager/scripts/requirements.txt
+      - run:
           name: Install Certificates
           command: |
-            sudo cp ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-ing-mgt-api.crt /usr/local/share/ca-certificates/ca-ing-mgt-api.crt
-            sudo cp ~/inference-model-manager/helm-deployment/dex-subchart/certs/ca-ing-dex.crt /usr/local/share/ca-certificates/ca-ing-dex.crt
+            sudo cp ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-ing.crt /usr/local/share/ca-certificates/
             sudo update-ca-certificates
-            # Commands below are necessary to enable developers debug their builds
-            echo "MANAGEMENT API CA"
-            cat ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-ing-mgt-api.crt
-            echo "DEX CA"
-            cat ~/inference-model-manager/helm-deployment/dex-subchart/certs/ca-ing-dex.crt
-            echo 'export CERT=`cat ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-cert-tf.crt | base64 -w0`' >> $BASH_ENV
+            echo "CA ing:"
+            cat ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-ing.crt
             echo 'export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt' >> $BASH_ENV
+            echo 'export CERT=`cat ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-cert-tf.crt | base64 -w0`' >> $BASH_ENV
       - store_artifacts:
           path: ~/inference-model-manager/helm-deployment/dex-subchart/certs
       - store_artifacts:
           path: ~/inference-model-manager/helm-deployment/management-api-subchart/certs
-      - run:
+      - run:        
           name: Check if platform is ready for tests, fail build if not ready after 10 min
           command: |
             . ~/inference-model-manager/.venv/bin/activate
-            pip install -q -r ~/inference-model-manager/tests/requirements.txt
             cd ~/inference-model-manager/scripts
             . ./imm_utils.sh
             get_token admin
-            while [ "$TENANTS" != "There are no tenants present on platform" ]; do sleep 5; TENANTS=$(./imm ls t); done
+            while [[ "$TENANTS" != "There are no tenants present on platform" ]]; do TENANTS=`./imm ls t`; sleep 5; done
           no_output_timeout: 10m
       - run:
           name: Run imm test
           command: |
             . ~/inference-model-manager/.venv/bin/activate
-            pip install -q -r ~/inference-model-manager/tests/requirements.txt
-            pip install -q -r ~/inference-model-manager/examples/grpc_client/requirements.txt
             cd ~/inference-model-manager/scripts
             ./test_imm.sh
       - run:
@@ -239,7 +242,6 @@ jobs:
           command: |
             . ~/inference-model-manager/.venv/bin/activate
             cd ~/inference-model-manager/tests
-            pip install -q -r requirements.txt
             . run_test.sh
       - run:
           name: Set images tags to latest on master
@@ -260,12 +262,9 @@ jobs:
             helm ls --short | xargs -L1 helm --debug delete
             sleep 3m
             kops delete cluster ${CLUSTER_NAME} --yes
-            cd ~/inference-model-manager/kops
-            sed -i "s/0.0.0.0/${ING_IP}/g" route_delete.json
-            sed -i "s/toreplacebydomainname/${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com/g" route_delete.json
-            cat route_delete.json
+            cd ~/inference-model-manager/installer/utils/route53
             . .venvaws/bin/activate
-            aws route53 change-resource-record-sets --hosted-zone-id Z11DOV0M5AJEBB --change-batch file://./route_delete.json
+            ./apply.sh DELETE ${ING_IP} ${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com
             deactivate
             sleep 150
       - run:
@@ -278,12 +277,9 @@ jobs:
             helm ls --short | xargs -L1 helm --debug delete
             sleep 3m
             kops delete cluster ${CLUSTER_NAME} --yes
-            cd ~/inference-model-manager/kops
-            sed -i "s/0.0.0.0/${ING_IP}/g" route_delete.json
-            sed -i "s/toreplacebydomainname/${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com/g" route_delete.json
-            cat route_delete.json
+            cd ~/inference-model-manager/installer/utils/route53
             . .venvaws/bin/activate
-            aws route53 change-resource-record-sets --hosted-zone-id Z11DOV0M5AJEBB --change-batch file://./route_delete.json
+            ./apply.sh DELETE ${ING_IP} ${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com
             deactivate
             sleep 150
           no_output_timeout: 32m
