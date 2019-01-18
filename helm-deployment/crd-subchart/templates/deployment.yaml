@@ -39,9 +39,9 @@ kind: ServiceAccount
 metadata:
   name: server-controller
   namespace: {{ .Values.namespace }}
-{{ if .Values.openstack }}
+{{ if .Values.private_registry }}
   imagePullSecrets:
-    - name: gcr-json-key
+    - name: regcred
 {{ end }}
 ---
 apiVersion: extensions/v1beta1
@@ -57,9 +57,9 @@ spec:
         app: server-controller
     spec:
       serviceAccountName: server-controller
-{{ if .Values.docker_secret }}
+{{ if .Values.private_registry }}
       imagePullSecrets:
-        - name: gcr-json-key
+        - name: regcred
 {{ end }}
 
       containers:
