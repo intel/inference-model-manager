@@ -29,8 +29,8 @@ from management_api.utils.kubernetes_resources import get_crd_subject_name_and_r
     validate_quota_compliance, transform_quota, get_replicas, endpoint_exists, \
     get_endpoint_status
 from management_api.config import CRD_GROUP, CRD_VERSION, CRD_PLURAL, \
-    CRD_API_VERSION, CRD_KIND, PLATFORM_DOMAIN, DELETE_BODY, REPLICA_FAILURE, \
-    DEFAULT_MODEL_VERSION_POLICY
+    CRD_API_VERSION, CRD_KIND, PLATFORM_DOMAIN, DELETE_BODY, DEFAULT_MODEL_VERSION_POLICY, \
+    STATUSES
 from management_api.tenants.tenants_utils import tenant_exists
 
 
@@ -198,31 +198,20 @@ def list_endpoints(namespace: str, id_token: str):
 
 
 def get_endpoints_name_status(deployments, namespace):
-    deployments = deployments.to_dict()['items']
+    deployments = deployments.items
     name_status = "There's no endpoints present in {} tenant".format(namespace)
     if not deployments == []:
         endpoints_name_status = list()
         for deployment in deployments:
             endpoint_name_status = dict()
-            name = deployment['metadata']['labels']['endpoint']
+            name = deployment.metadata.labels['endpoint']
             endpoint_name_status['name'] = name
-            conditions = deployment['status']['conditions']
-            endpoint_name_status['status'], endpoint_name_status['message'] = \
-                get_endpoints_status(conditions)
+            endpoint_name_status['status'] = STATUSES[deployment.status.unavailable_replicas,
+                                                      deployment.status.available_replicas]
             endpoints_name_status.append(endpoint_name_status)
-        name_status = 'Endpoints present in {} tenant: {}\n'.\
-            format(namespace, endpoints_name_status)
+        name_status = 'Endpoints present in {} tenant: {}\n'.format(
+            namespace, endpoints_name_status)
     return name_status
-
-
-def get_endpoints_status(conditions):
-    message = "Endpoint is up and running"
-    for condition in conditions:
-        if condition['status'] == 'True':
-            status = condition['type']
-            if status == REPLICA_FAILURE:
-                message = condition['message']
-    return status, message
 
 
 def get_endpoint_number(apps_api_instance, namespace):
@@ -230,7 +219,7 @@ def get_endpoint_number(apps_api_instance, namespace):
         endpoints = apps_api_instance.list_namespaced_deployment(namespace)
     except ApiException as apiException:
         raise KubernetesGetException('endpoint', apiException)
-    endpoint_number = len(endpoints.to_dict()['items'])
+    endpoint_number = len(endpoints.items)
 
     return endpoint_number
 
@@ -240,7 +229,7 @@ def verify_endpoint_amount(api_instance, apps_api_instance, namespace):
         namespace_spec = api_instance.read_namespace(namespace)
     except ApiException as apiException:
         raise KubernetesGetException('namespace', apiException)
-    namespace_annotations = namespace_spec.to_dict()['metadata']['annotations']
+    namespace_annotations = namespace_spec.metadata.annotations
 
     if namespace_annotations and 'maxEndpoints' in namespace_annotations:
         endpoint_number = get_endpoint_number(apps_api_instance, namespace)

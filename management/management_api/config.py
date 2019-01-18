@@ -93,10 +93,22 @@ RESOURCE_DOES_NOT_EXIST = 404
 NAMESPACE_BEING_DELETED = 409
 TERMINATION_IN_PROGRESS = 'Terminating'
 NO_SUCH_BUCKET_EXCEPTION = 'NoSuchBucket'
-REPLICA_FAILURE = 'ReplicaFailure'
 
 
 class ValidityMessage:
     CERTIFICATE = "Provided certificate does not look like valid certificate. " \
                   "Please check if it's correctly Base64 encoded and not corrupted " \
                   "in any way."
+
+
+class EndpointPodStatus:
+    UNAVAILABLE_AND_AVAILABLE = (not None, not None)
+    ONLY_UNAVAILABLE = (not None, None)
+    ONLY_AVAILABLE = (None, not None)
+    SCALED_TO_ZERO = (None, None)
+
+
+STATUSES = {EndpointPodStatus.UNAVAILABLE_AND_AVAILABLE: 'Not fully available',
+            EndpointPodStatus.ONLY_UNAVAILABLE: 'Unavailable',
+            EndpointPodStatus.ONLY_AVAILABLE: 'Available',
+            EndpointPodStatus.SCALED_TO_ZERO: 'Scaled to 0'}
