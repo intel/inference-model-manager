@@ -1,1 +1,1 @@
-from .servings import Servings  # noqa
+from .servings import Servings, Serving  # noqa

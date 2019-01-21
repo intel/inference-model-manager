@@ -247,9 +247,24 @@ curl -X GET "https://<management_api_address>/servings" -H "accept: application/
 -H "Authorization: <jwt_token>" -H "Content-Type: application/json"
 ```
 
-When an operation ends with success, it returns a statement (example for a serving with a name `tf-serving`):
+When an operation ends with success, it returns a statement (example for a two default serving templates):
 ```
-Servings in crd[('tf-serving', {<data>})
+Servings in crd: ['ovms', 'tf-serving']
+```
+
+#### Get serving
+Call a GET operation on `https://<management-api-address>/servings/<serving-name>`:
+
+```
+curl -X GET "https://<management_api_address>/servings/<serving_name>" -H "accept: application/json" \
+-H "Authorization: <jwt_token>" -H "Content-Type: application/json"
+```
+
+When an operation ends with success, it returns a statement (example for a `tf-serving`):
+```
+Serving template tf-serving: 
+<configMap.tmpl: <yaml template> deployment.tmpl: <yaml template> ingress.tmpl: <yaml template>
+service.tmpl: <yaml tmeplate>
 ```
 
 ## Script for API calls

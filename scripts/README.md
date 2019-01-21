@@ -139,7 +139,20 @@ To use this mode please add parameter:
     ```
     ./imm ri myendpoint-mytenant.example.com:443 mymodel numpy ../images.npy  10 ../server-tf.crt ../client-tf.crt ../client-tf.key
     ```
-    
+##### view (v)
+- endpoint
+  - Required parameters: endpointName, tenantName
+  - Usage example:
+    ```
+    ./imm v e myendpoint mytenant
+    ```
+- serving
+  - Required parameter: servingName
+  - Usage example:
+    ```
+    ./imm v s myserving
+    ```
+
 #### Environment variables
 - `IMM_CONFIG_PATH` - Inference Model Manager config file, default: `~/.imm`
 - `MANAGEMENT_API_ADDRESS` - management api address, can be provided with `-a` option, default: `127.0.0.1`

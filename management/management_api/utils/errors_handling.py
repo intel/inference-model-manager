@@ -211,11 +211,11 @@ custom_errors = [ManagementApiException, KubernetesCallException, KubernetesForb
                  KubernetesUpdateException, MinioCallException, TenantAlreadyExistsException,
                  TenantDoesNotExistException, InvalidParamException, MissingTokenException,
                  JsonSchemaException, EndpointDoesNotExistException, ModelDeleteException,
-                 ModelDoesNotExistException, EndpointsReachedMaximumException]
+                 ModelDoesNotExistException, EndpointsReachedMaximumException,
+                 ResourceIsNotAvailableException]
 
 
 def default_exception_handler(ex, req, resp, params):
-
     if hasattr(ex, 'title') and "Failed data validation" in ex.title:
         JsonSchemaException(ex)
     message = "Unexpected error occurred: {}".format(ex)

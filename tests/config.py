@@ -66,6 +66,7 @@ AUTH_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'authenticate
 TOKEN_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'authenticate/token')
 MODEL_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants/{tenant_name}/models')
 SERVINGS_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'servings')
+SERVING_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'servings/{serving_name}')
 
 
 DEFAULT_HEADERS = {

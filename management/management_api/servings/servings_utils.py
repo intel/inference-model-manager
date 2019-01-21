@@ -19,7 +19,7 @@ from kubernetes.client.rest import ApiException
 from management_api.config import CRD_NAMESPACE
 from management_api.tenants.tenants_utils import is_namespace_available
 from management_api.utils.errors_handling import KubernetesGetException, \
-                                                 ResourceIsNotAvailableException
+    ResourceIsNotAvailableException
 from management_api.utils.kubernetes_resources import get_k8s_api_client
 
 
@@ -35,10 +35,33 @@ def list_servings(id_token):
 
     crd_config_maps = []
     for item in config_maps.to_dict()['items']:
-        crd_config_maps.append((item['metadata']['name'], item['data']))
+        crd_config_maps.append(item['metadata']['name'])
 
     if not crd_config_maps:
         return f"There are no serving templates present in {CRD_NAMESPACE}\n"
     else:
-        return f'Serving templates in {CRD_NAMESPACE}' \
-               f'{crd_config_maps}\n'
+        return f'Serving templates in {CRD_NAMESPACE}: ' \
+               f'{sorted(crd_config_maps)}\n'
+
+
+def get_serving(id_token, serving_name):
+    if not is_namespace_available(CRD_NAMESPACE, id_token):
+        raise ResourceIsNotAvailableException('namespace', CRD_NAMESPACE)
+
+    api_client = get_k8s_api_client(id_token)
+    try:
+        config_map = api_client.read_namespaced_config_map(serving_name, CRD_NAMESPACE,
+                                                           pretty='true')
+    except ApiException as apiException:
+        raise KubernetesGetException('config map', apiException)
+
+    crd_config_map = None
+    try:
+        crd_config_map = config_map.to_dict()['data']
+    except KeyError:
+        raise ResourceIsNotAvailableException('serving template configuration', serving_name)
+
+    if not crd_config_map:
+        return f"There are no configuration for {serving_name} template\n"
+    else:
+        return f'{crd_config_map}\n'

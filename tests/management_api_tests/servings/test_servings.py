@@ -17,16 +17,37 @@
 import pytest
 import requests
 
-from config import DEFAULT_HEADERS, SERVINGS_MANAGEMENT_API_URL
+from config import ADMIN_HEADERS, SERVINGS_MANAGEMENT_API_URL, SERVING_MANAGEMENT_API_URL
 
 
-@pytest.mark.skip
-@pytest.mark.parametrize("crd, expected_status, expected_message",
-                         [("crd_with_servings", 200, 'Servings in {}'),
-                          ("crd_wo_servings", 200,
-                           "There are no servings present in {}")])
-def test_list_servings(request, crd, expected_status, expected_message):
-    _, _ = request.getfixturevalue(crd)
-    response = requests.get(SERVINGS_MANAGEMENT_API_URL, headers=DEFAULT_HEADERS)
+@pytest.mark.parametrize("expected_status, expected_message",
+                         [(200, "['ovms', 'tf-serving']")])
+def test_list_servings(expected_status, expected_message):
+    response = requests.get(SERVINGS_MANAGEMENT_API_URL,
+                            headers=ADMIN_HEADERS)
     assert expected_message in response.text
     assert expected_status == response.status_code
+
+
+@pytest.mark.parametrize("serving_name, expected_status, expected_message",
+                         [('tf-serving', 200, ['configMap.tmpl', 'deployment.tmpl', 'ingress.tmpl',
+                                               'service.tmpl']),
+                          ('ovms', 200, ['configMap.tmpl', 'deployment.tmpl', 'ingress.tmpl',
+                                         'service.tmpl'])])
+def test_view_serving(serving_name, expected_status, expected_message):
+    url = SERVING_MANAGEMENT_API_URL.format(serving_name=serving_name)
+    response = requests.get(url, headers=ADMIN_HEADERS)
+    assert expected_status == response.status_code
+    for i in expected_message:
+        assert i in response.text
+
+
+@pytest.mark.parametrize("non_existing_serving_name, expected_status, expected_message",
+                         [('non-existing-serving-name', 400,
+                           'An error occurred during reading config map object')])
+def test_failure_on_view_non_existing_serving(non_existing_serving_name, expected_status,
+                                              expected_message):
+    url = SERVING_MANAGEMENT_API_URL.format(serving_name=non_existing_serving_name)
+    response = requests.get(url, headers=ADMIN_HEADERS)
+    assert expected_status == response.status_code
+    assert expected_message in response.text

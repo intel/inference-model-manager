@@ -34,7 +34,7 @@ Examples:
 	.${0##*/} logout
 	.${0##*/} run-inference myendpoint-mytenant.example.com:443 mymodel numpy ../images.npy  10 server.crt client.crt client.key
 Operations:
-	create (c), remove (rm), update (up), scale (s), list (ls), login, logout, upload (u), run-inference (ri)
+	create (c), remove (rm), update (up), scale (s), list (ls), login, logout, upload (u), run-inference (ri), view (v)
 Resources:
 	tenant (t), endpoint (e), model (m), servings (s)
 Environment variables:
@@ -269,7 +269,7 @@ case "$OPERATION" in
 				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
 				eval "$CURL"
 				;;
-            serving | servings | s )
+            serving | servings | s)
 				CURL='curl -X GET -s -S -H "accept: application/json" \
 				-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
 				https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/servings'
@@ -307,6 +307,29 @@ case "$OPERATION" in
 		python ../examples/grpc_client/grpc_client.py ${RESOURCE} ${PARAM_1} \
 		${INPUT_TYPE} ${PARAM_3} --batch_size ${PARAM_4} --server_cert ${PARAM_5} \
 		--client_cert ${PARAM_6} --client_key ${PARAM_7} 
+		;;
+	view | v)
+		case "$RESOURCE" in
+			serving | s )
+				[[ -z ${PARAM_1} ]] && read -p "Please provide serving name " PARAM_1
+				CURL='curl -X GET -s -S -H "accept: application/json" \
+				-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
+				https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/servings/${PARAM_1}'
+				[[ ${VERBOSE} == 1 ]] && echo $CURL
+				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
+				eval "$CURL"
+				;;
+			endpoint | e )
+				[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
+				[[ -z ${PARAM_2} ]] && read -p "Please provide tenant name " PARAM_2
+				CURL='curl -X GET -s -S -H "accept: application/json" \
+				-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
+				https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_2}/endpoints/${PARAM_1}'
+				[[ ${VERBOSE} == 1 ]] && echo $CURL
+				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
+				eval "$CURL"
+				;;
+		esac
 		;;
 	*)	show_help
 		exit 0
