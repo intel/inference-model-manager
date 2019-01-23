@@ -18,9 +18,9 @@ import falcon
 from falcon.media.validators import jsonschema
 
 from management_api.utils.logger import get_logger
-
+from management_api.config import WarningMessage
 from management_api.endpoints.endpoint_utils import create_endpoint, delete_endpoint, \
-    scale_endpoint, update_endpoint, view_endpoint, list_endpoints
+    scale_endpoint, update_endpoint, view_endpoint, list_endpoints, check_endpoint_model
 from management_api.schemas.endpoints import endpoint_post_schema, endpoint_delete_schema, \
     endpoint_update_schema, endpoint_scale_schema
 
@@ -43,7 +43,10 @@ class Endpoints(object):
         endpoint_url = create_endpoint(parameters=body, namespace=namespace,
                                        id_token=req.get_header('Authorization'))
         resp.status = falcon.HTTP_200
-        resp.body = 'Endpoint created\n {}'.format(endpoint_url)
+        model_warning = check_endpoint_model(namespace, body["modelName"])
+        warning_message = '' if model_warning else \
+            WarningMessage.MODEL_AVAILABILITY.format(body["modelName"])
+        resp.body = '{}Endpoint created\n {}'.format(warning_message, endpoint_url)
 
     @jsonschema.validate(endpoint_delete_schema)
     def on_delete(self, req, resp, tenant_name):

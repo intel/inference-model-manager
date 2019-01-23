@@ -44,6 +44,8 @@ def get_keys():
 def test_add_endpoint_auth_valid_user_token(mocker, client_with_auth, body, tenant_name,
                                             expected_status):
     create_endpoint_mock = mocker.patch('management_api.endpoints.endpoints.create_endpoint')
+    check_model_mock = mocker.patch('management_api.endpoints.endpoints.check_endpoint_model')
+    check_model_mock.return_value = True
     create_endpoint_mock.return_value = "test"
     time_mock = mocker.patch('time.time')
     time_mock.return_value = 1538148672.765898  # Friday 28th September 2018
