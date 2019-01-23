@@ -175,9 +175,13 @@ jobs:
             virtualenv .venvaws -p python3
             . .venvaws/bin/activate
             pip install awscli --upgrade 
-            aws route53 change-resource-record-sets --hosted-zone-id Z11DOV0M5AJEBB --change-batch file://./route_record.json
+            export AWS_DNS=`aws route53 change-resource-record-sets --hosted-zone-id Z11DOV0M5AJEBB --change-batch file://./route_record.json`
+            echo $AWS_DNS
+            export AWS_DNS_ID=$(echo $AWS_DNS | jq '.ChangeInfo.Id')
+            echo ${AWS_DNS_ID} 
+            sleep 30
+            while [ "$STATUS" = "INSYNC" ]; do sleep 10; export STATUS=$(aws route53 get-change --id `echo ${AWS_DNS_ID} | tr -d "\""` | jq '.ChangeInfo.Status'); echo $STATUS; done
             deactivate
-            sleep 150
       - run:
           name: Install Certificates
           command: |
@@ -196,13 +200,22 @@ jobs:
       - store_artifacts:
           path: ~/inference-model-manager/helm-deployment/management-api-subchart/certs
       - run:
+          name: Check if platform is ready for tests, fail build if not ready after 10 min
+          command: |
+            . ~/inference-model-manager/.venv/bin/activate
+            pip install -q -r ~/inference-model-manager/tests/requirements.txt
+            cd ~/inference-model-manager/scripts
+            . ./imm_utils.sh
+            get_token admin
+            while [ "$TENANTS" != "There's no tenants present on platform" ]; do sleep 5; TENANTS=$(./imm ls t); done
+          no_output_timeout: 10m
+      - run:
           name: Run imm test
           command: |
             . ~/inference-model-manager/.venv/bin/activate
             pip install -q -r ~/inference-model-manager/tests/requirements.txt
             pip install -q -r ~/inference-model-manager/examples/grpc_client/requirements.txt
             cd ~/inference-model-manager/scripts
-            chmod +x test_imm.sh
             ./test_imm.sh
       - run:
           name: Run tests
