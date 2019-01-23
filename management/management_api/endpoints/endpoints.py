@@ -43,8 +43,8 @@ class Endpoints(object):
         endpoint_url = create_endpoint(parameters=body, namespace=namespace,
                                        id_token=req.get_header('Authorization'))
         resp.status = falcon.HTTP_200
-        model_warning = check_endpoint_model(namespace, body["modelName"])
-        warning_message = '' if model_warning else \
+        model_existence = check_endpoint_model(namespace, body["modelName"])
+        warning_message = '' if model_existence else \
             WarningMessage.MODEL_AVAILABILITY.format(body["modelName"])
         resp.body = '{}Endpoint created\n {}'.format(warning_message, endpoint_url)
 

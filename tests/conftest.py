@@ -215,6 +215,15 @@ def session_tenant(api_instance, minio_client, session_context):
 
 
 @pytest.fixture(scope="function")
+def tenant_with_fake_model(api_instance, minio_client, function_context):
+    name = 'fake-model'
+    quota = TENANT_RESOURCES
+    namespace, quota = create_tenant(name, quota, function_context)
+    create_fake_model((namespace, {'spec': {'modelName': 'resnet'}}), minio_client)
+    return namespace, quota
+
+
+@pytest.fixture(scope="function")
 def ovms_tenant(api_instance, minio_client, function_context, minio_resource):
     name = "ovms"
     quota = TENANT_RESOURCES

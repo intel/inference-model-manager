@@ -245,7 +245,8 @@ def check_endpoint_model(namespace, model_name):
     try:
         bucket = minio_resource.Bucket(name=namespace)
     except ClientError:
-        # TODO add some logging message
+        logger.warning(f'Endpoint was created but we cant reach "{namespace}" minio bucket'
+                       f' to check if model exists\n')
         return False
 
     for object in bucket.objects.filter(Prefix=model_name):
