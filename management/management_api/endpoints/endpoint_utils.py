@@ -206,6 +206,7 @@ def get_endpoints_name_status(deployments, namespace):
             endpoint_name_status = dict()
             name = deployment.metadata.labels['endpoint']
             endpoint_name_status['name'] = name
+            endpoint_name_status['url'] = create_url_to_service(name, namespace)['url']
             endpoint_name_status['status'] = STATUSES[deployment.status.unavailable_replicas,
                                                       deployment.status.available_replicas]
             endpoints_name_status.append(endpoint_name_status)

@@ -170,11 +170,11 @@ curl -X GET "https://<management_api_address>/tenants/<tenant-name>/endpoints" -
 ```
 
 When an operation ends with success, it returns a statement (example for endpoins `endpoint1` and 
-`endpoint2` in a `test` tenant):
+`endpoint2` in a `test` tenant with a `test-domain` domain):
 ```
 Endpoints present in test tenant: 
-[{'name': 'endpoint1', 'status': 'Available', 'message': 'Endpoint is up and running'}, 
-{'name': 'endpoint2', 'status': 'Available', 'message': 'Endpoint is up and running'}]
+[{'name': 'endpoint1', 'url': 'endpoint1-test.test-domain.com:443', 'status': 'Available'}, 
+{'name': 'endpoint2', 'url': 'endpoint2-test.test-domain.com:443', 'status': 'Available'}]
 ```
 
 #### Delete endpoint
