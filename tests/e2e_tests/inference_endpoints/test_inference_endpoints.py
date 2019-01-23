@@ -69,6 +69,18 @@ def test_create_tenant():
     time.sleep(30)
 
 
+def test_fail_upload_model():
+    headers = {'Authorization': get_user_token()['id_token']}
+    params = {
+        'model_name': MODEL_NAME,
+        'model_version': 1,
+        'file_path': os.path.abspath('non-existing-model.pb'),
+    }
+    url = f"{MANAGEMENT_API_URL}/tenants/{TENANT_NAME}"
+    with pytest.raises(Exception):
+        upload_model(url, params, headers, 30)
+
+
 def test_upload_models():
     try:
         headers = {'Authorization': get_user_token()['id_token']}
@@ -93,7 +105,7 @@ def test_upload_models():
         upload_model(url, params, headers, 30)
         os.remove('saved_model.pb')
     except Exception as e:
-        pytest.fail(f"Unexpected error during upload test {e}")
+        pytest.fail(f"Unexpected error during upload test: {e.text}")
 
 
 def filter_serving_logs(raw_log):

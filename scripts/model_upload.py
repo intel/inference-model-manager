@@ -24,7 +24,7 @@ def upload_part(url, params, headers, data, parts, verify):
     response = requests.put(url + "/upload", data, headers=headers, params=params, verify=verify)
     if response.status_code != 200:
         print("Could not upload part nr : {}".format(params['partNumber']))
-        raise Exception
+        raise Exception(response)
 
     print("Part nr {} of current upload sent successfully".format(params['partNumber']))
     part_etag = response.json()['ETag']
@@ -42,7 +42,7 @@ def upload_model(url, params, headers, part_size, verify=False):
     response = requests.post(url + "/upload/start", json=data, headers=headers, verify=verify)
     if response.status_code != 200:
         print("Could not initiate upload: {}".format(response.text))
-        return
+        raise Exception(response)
     upload_id = response.json()['uploadId']
     print("Model upload initiated successfully. Upload id = {}".format(upload_id))
 
@@ -79,8 +79,12 @@ def upload_model(url, params, headers, part_size, verify=False):
         response = requests.post(url + "/upload/abort", json=data, headers=headers, verify=verify)
         if response.status_code != 200:
             print("Could not abort upload: {}".format(response.text))
+            raise Exception(response)
         print("Upload with id: {} aborted successfully".format(upload_id))
-        return
+        if e.__class__ == KeyboardInterrupt:
+            return
+        else:
+            raise
 
     # --- Completing upload
     print("Completing update with id: {} ...".format(upload_id))
@@ -90,6 +94,6 @@ def upload_model(url, params, headers, part_size, verify=False):
 
     if response.status_code != 200:
         print("Could not complete upload: {}".format(response.text))
-        return
+        raise Exception(response)
 
     print("Upload with id: {} completed successfully".format(upload_id))

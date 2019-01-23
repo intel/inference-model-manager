@@ -76,7 +76,10 @@ def main():
                                             config['management_api_port'], args.tenant)
 
     start_time = time.time()
-    upload_model(url, params, headers, args.part, verify)
+    try:
+        upload_model(url, params, headers, args.part, verify)
+    except Exception as e:
+        print("Unexpected error ocurred while uploading: {}".format(e))
     end_time = time.time()
     print("Time elapsed: " + str(end_time - start_time))
 
