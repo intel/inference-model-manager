@@ -22,8 +22,8 @@ import (
 	"encoding/json"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"github.com/intel/crd-reconciler-for-kubernetes/pkg/states"
 )
@@ -31,16 +31,20 @@ import (
 // GroupName is the group name used in this package.
 const GroupName = "ai.intel.com"
 
+// Version is the version used in this package
 const Version = "v1"
 
+// InferenceEndpointResourceKind is resource kind used in this package
 const InferenceEndpointResourceKind = "InferenceEndpoint"
 
+// InferenceEndpointResourceSingular is resource singular name used in this package
 const InferenceEndpointResourceSingular = "inference-endpoint"
 
+// InferenceEndpointResourcePlural is resource plural name used in this package
 const InferenceEndpointResourcePlural = "inference-endpoints"
 
 var (
-	// GVK unambiguously identifies the stream predicition kind.
+	// GVK unambiguously identifies the stream prediction kind.
 	GVK = schema.GroupVersionKind{
 		Group:   GroupName,
 		Version: Version,
@@ -49,6 +53,8 @@ var (
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// InferenceEndpoint represents state and metadata of Inference Endpoint
 type InferenceEndpoint struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
@@ -56,14 +62,17 @@ type InferenceEndpoint struct {
 	Status            InferenceEndpointStatus `json:"status,omitempty"`
 }
 
+// Name return Inference Endpoint name
 func (e *InferenceEndpoint) Name() string {
 	return e.ObjectMeta.Name
 }
 
+// Namespace return Inference Endpoint namespace
 func (e *InferenceEndpoint) Namespace() string {
 	return e.ObjectMeta.Namespace
 }
 
+//JSON return Inference Endpoint metadata as JSON, error
 func (e *InferenceEndpoint) JSON() (string, error) {
 	data, err := json.Marshal(e)
 	if err != nil {
@@ -73,45 +82,53 @@ func (e *InferenceEndpoint) JSON() (string, error) {
 	return string(data), nil
 }
 
+// GetStatusState return Inference Endpoint status state
 func (e *InferenceEndpoint) GetStatusState() states.State {
 	return e.Status.State
 }
 
+// GetSpecState return Infernence Endpoint specification state
 func (e *InferenceEndpoint) GetSpecState() states.State {
 	return e.Spec.State
 }
 
+//SetStatusStateWithMessage allows to overwrite Inference Endpoint state and message
 func (e *InferenceEndpoint) SetStatusStateWithMessage(state states.State, msg string) {
 	e.Status.State = state
 	e.Status.Message = msg
 }
 
+// InferenceEndpointSpec represents all metadata included in Inference Endpoint
 type InferenceEndpointSpec struct {
-	State                 states.State             `json:"state"`
-	ModelName             string                   `json:"modelName"`
-	ModelVersionPolicy    string                   `json:"modelVersionPolicy"`
-	EndpointName          string                   `json:"endpointName,omitempty"`
-	SubjectName           string                   `json:"subjectName"`
-	Resources             ResourceSpec             `json:"resources,omitempty"`
-	Replicas              int                      `json:"replicas,omitempty"`
-	TemplateName          string                   `json:"servingName"`
+	State              states.State `json:"state"`
+	ModelName          string       `json:"modelName"`
+	ModelVersionPolicy string       `json:"modelVersionPolicy"`
+	EndpointName       string       `json:"endpointName,omitempty"`
+	SubjectName        string       `json:"subjectName"`
+	Resources          ResourceSpec `json:"resources,omitempty"`
+	Replicas           int          `json:"replicas,omitempty"`
+	TemplateName       string       `json:"servingName"`
 }
 
+// InferenceEndpointStatus stores information about state and message in Inference Endpoint
 type InferenceEndpointStatus struct {
 	State   states.State `json:"state"`
 	Message string       `json:"message,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// InferenceEndpointList represents list of Inference Endpoints
 type InferenceEndpointList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata"`
 	Items           []InferenceEndpoint `json:"items"`
 }
 
+// ResourceSpec represents resource requests and limits used in Inference Endpoint
 type ResourceSpec struct {
 	Requests map[string]string `json:"requests"`
-	Limits map[string]string `json:"limits"`
+	Limits   map[string]string `json:"limits"`
 }
 
 // GetItems returns the list of items to be used in the List api call for crs

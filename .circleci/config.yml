@@ -1,11 +1,10 @@
 version: 2.0
 jobs:
-  style_and_unit_tests:
+  style_and_unit_tests_mgt_api:
     docker:
       - image: circleci/python:3.6.6-jessie-browsers
     working_directory: ~/inference-model-manager
     steps:
-      - setup_remote_docker
       - checkout
       - run:
           name: Create venv
@@ -26,6 +25,23 @@ jobs:
             . ~/inference-model-manager/.venv/bin/activate
             pip install -r management/requirements.txt
             cd ~/inference-model-manager/management/ && python setup.py test
+  style_crd:
+    docker:
+      - image: circleci/golang:1.11-node
+    working_directory: ~/inference-model-manager
+    steps:
+      - checkout
+      - run:
+          name: gometalinter
+          command: |
+            cd ~/inference-model-manager/server-controller
+            mkdir -p /go/src/github.com/IntelAI/inference-model-manager/server-controller
+            mv * /go/src/github.com/IntelAI/inference-model-manager/server-controller
+            cd /go/src/github.com/IntelAI/inference-model-manager/server-controller
+            dep ensure -v
+            make install-linter
+            make lint
+
   functional_tests:
     docker:
       - image: circleci/python:3.6.6-jessie-browsers
@@ -274,5 +290,6 @@ workflows:
   version: 2
   deploy-test:
     jobs:
-      - style_and_unit_tests
+      - style_and_unit_tests_mgt_api
       - functional_tests
+      - style_crd

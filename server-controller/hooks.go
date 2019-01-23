@@ -24,9 +24,9 @@ import (
 	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"reflect"
+	"strings"
 	"text/template"
 	"time"
-	"strings"
 
 	crv1 "github.com/IntelAI/inference-model-manager/server-controller/apis/cr/v1"
 	"github.com/intel/crd-reconciler-for-kubernetes/pkg/resource"
@@ -46,10 +46,10 @@ type serverHooks struct {
 }
 
 type patchData struct {
-	ModelName           string
-	ModelVersionPolicy  string
-	Namespace           string
-	ResourcePath        string
+	ModelName          string
+	ModelVersionPolicy string
+	Namespace          string
+	ResourcePath       string
 }
 
 type patchStructInt struct {
@@ -77,7 +77,7 @@ var configRollingPath = "/spec/template/metadata/labels/configDate"
 
 func (c *serverHooks) Add(obj interface{}) {
 	server := obj.(*crv1.InferenceEndpoint)
-	fmt.Printf("[CONTROLLER] OnAdd %s\n", server)
+	fmt.Printf("[CONTROLLER] OnAdd %s\n", server.ObjectMeta.SelfLink)
 	// NEVER modify objects from the store. It's a read-only, local cache.
 	// You can use DeepCopy() to make a deep copy of original object and modify
 	// this copy or create a copy manually for better performance.
@@ -162,8 +162,8 @@ func (c *serverHooks) Update(oldObj, newObj interface{}) {
 	oldServer := oldObj.(*crv1.InferenceEndpoint)
 	newServer := newObj.(*crv1.InferenceEndpoint)
 	fmt.Printf("[CONTROLLER] OnUpdate\n")
-	fmt.Printf("New Server %s\n", newServer)
-	fmt.Printf("Old Server %s\n", oldServer)
+	fmt.Printf("New Server %s\n", newServer.ObjectMeta.SelfLink)
+	fmt.Printf("Old Server %s\n", oldServer.ObjectMeta.SelfLink)
 	var err error
 	servingName := newServer.Spec.TemplateName
 	if oldServer.Spec.TemplateName != newServer.Spec.TemplateName {

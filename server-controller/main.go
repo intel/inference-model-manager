@@ -51,9 +51,9 @@ var templatesDir = "./serving-templates"
 func checkPath(path string) error {
 	if _, err := os.Stat(templatesDir); err != nil {
 		if os.IsNotExist(err) {
-			err = errors.New(fmt.Sprintf("%s file does not exist.\n", path))
+			err = fmt.Errorf("%s file does not exist", path)
 		} else {
-			err = errors.New(fmt.Sprintf("Error occurred when checking %s directory existence %v\n", path, err))
+			err = fmt.Errorf("error occurred when checking %s directory existence %v", path, err)
 		}
 		return err
 	}
@@ -101,15 +101,15 @@ func main() {
 	kubeconfig := flag.String("kubeconfig", "", "Path to a kube config. Only required if out-of-cluster.")
 	platformDomain, ok := os.LookupEnv("PLATFORM_DOMAIN")
 	if !ok {
-		panic(errors.New("PLATFORM_DOMAIN environment variable not set. Controller was unable to start.\n"))
+		panic(errors.New("PLATFORM_DOMAIN environment variable not set. Controller was unable to start"))
 	}
 	s3UseHTTPS, ok := os.LookupEnv("S3_USE_HTTPS")
 	if !ok {
-		panic(errors.New("S3_USE_HTTPS environment variable not set. Controller was unable to start.\n"))
+		panic(errors.New("S3_USE_HTTPS environment variable not set. Controller was unable to start"))
 	}
 	s3VerifySsl, ok := os.LookupEnv("S3_VERIFY_SSL")
 	if !ok {
-		panic(errors.New("S3_VERIFY_SSL environment variable not set. Controller was unable to start.\n"))
+		panic(errors.New("S3_VERIFY_SSL environment variable not set. Controller was unable to start"))
 	}
 	if _, err := os.Stat(templatesDir); err != nil {
 		if os.IsNotExist(err) {
