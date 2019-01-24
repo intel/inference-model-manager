@@ -5,14 +5,17 @@ ENDPOINT_NAME="endpointtest"
 SERVING_NAME="tf-serving"
 MODEL_NAME="resnet"
 MODEL_VERSION=1
-MODEL_VERSION_POLICY="{latest{}}"
+MODEL_VERSION_POLICY="{latest {} }"
 ADMIN_SCOPE="test"
 USER_SCOPE="test"
 REPLICAS=2
 MODEL_PATH="saved_model.pb"
 NUMPY_PATH="10_v1_imgs.npy"
+IMAGE_LIST="images/airliner.jpeg,images/arctic-fox.jpeg,images/bee.jpeg,images/golden_retriever.jpeg,images/gorilla.jpeg,images/magnetic_compass.jpeg,images/peacock.jpeg,images/pelican.jpeg,images/snail.jpeg,images/zebra.jpeg"
+LABEL_LIST=" airliner, Arctic fox, bee, golden retriever, gorilla, magnetic compass, peacock, pelican, snail, zebra"
 TESTS_NUMBER=0
 PASSED_TESTS=0
+JPEGS_INFERENCE_ACCURACY=0
 
 SERVER_CERT="../helm-deployment/management-api-subchart/certs/server-tf.crt"
 CLIENT_CERT="../helm-deployment/management-api-subchart/certs/client-tf.crt"
@@ -25,6 +28,21 @@ IMAGES_NUMPY_SRC="https://storage.googleapis.com/inference-eu/models_zoo/resnet_
 [[ ! -f ${NUMPY_PATH} ]] && echo "Downloading numpy images" && wget ${IMAGES_NUMPY_SRC}
 
 . ./imm_utils.sh
+
+get_inference_accuracy(){
+    NUMBER_OF_MATCHES=0
+    IFS=',' read -ra LABELS <<< "$LABEL_LIST"
+    for i in "${LABELS[@]}"; do
+         [[ $* =~ "$i" ]] && let "NUMBER_OF_MATCHES++"
+    done
+    echo "Number of correct predictions: ${NUMBER_OF_MATCHES}"
+    JPEGS_INFERENCE_ACCURACY=$((NUMBER_OF_MATCHES*10))
+    echo "JPEGS inference accuracy: ${JPEGS_INFERENCE_ACCURACY}%"
+}
+
+
+[[ ! -f ${MODEL_PATH} ]] && echo "Downloading model" && wget https://storage.googleapis.com/inference-eu/models_zoo/resnet_V1_50/saved_model/saved_model.pb
+[[ ! -f ${NUMPY_PATH} ]] && echo "Downloading numpy images" && wget https://storage.googleapis.com/inference-eu/models_zoo/resnet_V1_50/datasets/10_v1_imgs.npy
 
 echo "****************************ADMIN****************************"
 get_token admin
@@ -58,7 +76,7 @@ let "TESTS_NUMBER++"
 [[ $response =~ ${MODEL_NAME} ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
 
 echo "Create endpoint"
-response=`./imm c e ${ENDPOINT_NAME} ${MODEL_NAME} ${MODEL_VERSION_POLICY} ${TENANT_NAME} ${SERVING_NAME}`
+response=`./imm c e ${ENDPOINT_NAME} ${MODEL_NAME} "${MODEL_VERSION_POLICY}" ${TENANT_NAME} ${SERVING_NAME}`
 let "TESTS_NUMBER++"
 [[ $response =~ "${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || { echo "Test failed: $response" && remove_resources "create endpoint" ${TENANT_NAME}; }
 
@@ -75,10 +93,16 @@ do
 done
 echo -e "\n"
 
-echo "Run inference"
+echo "Run inference on numpy file"
 response=`./imm ri "${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}:443" ${MODEL_NAME} numpy ${NUMPY_PATH} 10 ${SERVER_CERT} ${CLIENT_CERT} ${CLIENT_KEY}`
 let "TESTS_NUMBER++"
 [[ $response =~ "Imagenet top results in a single batch" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
+
+echo "Run inference on jpg images"
+response=`./imm ri "${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}:443" ${MODEL_NAME} list ${IMAGE_LIST} 1 ${SERVER_CERT} ${CLIENT_CERT} ${CLIENT_KEY}`
+let "TESTS_NUMBER++"
+get_inference_accuracy $response
+[[ $JPEGS_INFERENCE_ACCURACY -ge 60  ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
 
 echo "Scale endpoint"
 response=`./imm s e ${ENDPOINT_NAME} ${REPLICAS} ${TENANT_NAME}`

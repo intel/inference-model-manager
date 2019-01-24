@@ -36,7 +36,7 @@ from e2e_tests.management_api_requests import create_tenant, delete_tenant, crea
     update_endpoint
 
 from e2e_tests.config import MODEL_NAME, TENANT_NAME, CREATE_ENDPOINT_VP, UPDATE_ENDPOINT_VP
-from e2e_tests.tf_serving_utils.load_numpy import IMAGES, LABELS
+from e2e_tests.tf_serving_utils.load_numpy import IMAGES, LABELS, JPG_IMAGE
 from management_api_tests.authenticate import get_user_token
 from config import MANAGEMENT_API_URL, CERT_BAD_CLIENT, CERT_BAD_CLIENT_KEY, CERT_CLIENT, \
     CERT_CLIENT_KEY, CERT_SERVER, SENSIBLE_ENDPOINT_RESOURCES
@@ -54,12 +54,14 @@ class EndpointInfo:
 
 endpoint_info = EndpointInfo()
 
+jpeg_image = JPG_IMAGE
 images = IMAGES
 image = numpy.expand_dims(images[0], axis=0)
 labels = LABELS
 first_label = labels[0]
 model_input = "in"
 model_output = "out"
+KIT_FOX_CLASS = 278
 
 
 def test_create_tenant():
@@ -159,7 +161,7 @@ def test_create_endpoint_with_bad_subject_name():
     return endpoint_response
 
 
-def perform_inference(rpc_timeout: float):
+def perform_inference(rpc_timeout: float, image=image):
     stub, request = prepare_stub_and_request(endpoint_info.url, MODEL_NAME,
                                              creds=endpoint_info.credentials)
 
@@ -227,9 +229,22 @@ def test_prediction_with_certificates():
     assert response.size == 1000
 
 
+def test_jpeg_prediction_with_certificates():
+    time.sleep(10)
+
+    # resnet_v1 test
+    prediction_response = perform_inference(10.0, jpeg_image)
+    assert not prediction_response == "Failed"
+    response = numpy.array(prediction_response.outputs[model_output].float_val)
+    assert response.size == 1000
+    max_output = numpy.argmax(response) - 1
+    assert max_output == KIT_FOX_CLASS
+
+
 def test_prediction_batch_with_certificates():
     time.sleep(10)
     prediction_response = perform_inference(30.0)
+    assert not prediction_response == "Failed"
     response = numpy.array(prediction_response.outputs[model_output].float_val)
 
     offset = 1001
@@ -324,7 +339,10 @@ def test_no_certificates():
     assert context.value.details() == 'Received http2 header with status: 400'
 
 
-def test_grpc_client():
+@pytest.mark.parametrize("images_list, images_numpy_path",
+                         [(None, 'e2e_tests/tf_serving_utils/images.npy'),
+                          ('e2e_tests/tf_serving_utils/fox.jpg', None)])
+def test_grpc_client(images_list, images_numpy_path):
     url = endpoint_info.info
 
     output = main(grpc_address=url,
@@ -335,8 +353,8 @@ def test_grpc_client():
                   model_name=MODEL_NAME,
                   input_name='in',
                   output_name='out',
-                  images_list=None,
-                  images_numpy_path='e2e_tests/tf_serving_utils/images.npy',
+                  images_list=images_list,
+                  images_numpy_path=images_numpy_path,
                   image_size=224,
                   images_number=2,
                   batch_size=2,

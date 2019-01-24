@@ -1,3 +1,4 @@
 numpy==1.15.2
 Pillow==5.3.0
 tensorflow-serving-api==1.11.0
+opencv-python==3.4.3.18

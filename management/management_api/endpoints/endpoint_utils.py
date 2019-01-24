@@ -199,7 +199,7 @@ def list_endpoints(namespace: str, id_token: str):
 
 def get_endpoints_name_status(deployments, namespace):
     deployments = deployments.items
-    name_status = "There's no endpoints present in {} tenant".format(namespace)
+    name_status = "There are no endpoints present in {} tenant".format(namespace)
     if not deployments == []:
         endpoints_name_status = list()
         for deployment in deployments:

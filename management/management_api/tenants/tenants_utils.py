@@ -302,7 +302,7 @@ def list_tenants(id_token):
         if item['status']['phase'] != TERMINATION_IN_PROGRESS:
             tenants.append(item['metadata']['name'])
     if not tenants:
-        message = "There's no tenants present on platform\n"
+        message = "There are no tenants present on platform\n"
         logger.info(message)
         return message
     message = f"Tenants present on platform: {tenants}\n"

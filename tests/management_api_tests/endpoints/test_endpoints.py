@@ -280,7 +280,7 @@ def test_not_create_endpoint_with_incompliant_resource_quota(session_tenant, inc
                          [('tenant_with_endpoint', DEFAULT_HEADERS, 200,
                            "Endpoints present in {} tenant"),
                           ('empty_tenant', DEFAULT_HEADERS, 200,
-                           "There's no endpoints present in {} tenant"),
+                           "There are no endpoints present in {} tenant"),
                           ('fake_tenant_endpoint', USER2_HEADERS, 404, "Tenant {} does not exist")
                           ])
 def test_list_endpoints(request, tenant_fix, auth_headers,

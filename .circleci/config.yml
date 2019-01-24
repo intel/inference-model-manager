@@ -19,6 +19,7 @@ jobs:
             echo "management folder" && cd ~/inference-model-manager/management/ && make style
             echo "tests folder && " && cd ~/inference-model-manager/tests/ && make style
             echo "scripts folder" && cd ~/inference-model-manager/scripts/ && flake8 --max-line-length 100
+            echo "grpc client folder && " && cd ~/inference-model-manager/examples/grpc_client/ && make style
       - run:
           name: Run unit tests
           command: |
@@ -223,7 +224,7 @@ jobs:
             cd ~/inference-model-manager/scripts
             . ./imm_utils.sh
             get_token admin
-            while [ "$TENANTS" != "There's no tenants present on platform" ]; do sleep 5; TENANTS=$(./imm ls t); done
+            while [ "$TENANTS" != "There are no tenants present on platform" ]; do sleep 5; TENANTS=$(./imm ls t); done
           no_output_timeout: 10m
       - run:
           name: Run imm test

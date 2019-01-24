@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,24 +18,45 @@
 import argparse
 import glob
 import numpy as np
-from PIL import Image
+import cv2
 
 
-def image_to_array(file_path):
-    image = Image.open(file_path)
-    if not image.size == (224, 224):
-        image = image.resize((224, 224))
-    image.load()
-    data = np.asarray(image, dtype="float32")
-    data = np.expand_dims(data, axis=0)
-    return data
+def crop_resize(img, crop_x, crop_y):
+    y, x, c = img.shape
+    y = crop_y if y < crop_y else y
+    x = crop_x if x < crop_x else x
+    img = cv2.resize(img, (x, y))
+    start_x = x//2-(crop_x // 2)
+    start_y = y//2-(crop_y // 2)
+    return img[start_y:start_y + crop_y, start_x:start_x + crop_x, :]
+
+
+def get_jpeg(path, size):
+    with open(path, mode='rb') as file:
+        content = file.read()
+
+    img = np.frombuffer(content, dtype=np.uint8)
+    img = cv2.imdecode(img, cv2.IMREAD_COLOR)  # BGR format
+    # retrieved array has BGR format and 0-255 normalization
+    # add image preprocessing if needed by the model
+    img = crop_resize(img, size, size)
+    img = img.astype('float32')
+    img = img.reshape(1, size, size, 3)
+    print(path, img.shape, "; data range:", np.amin(img), ":", np.amax(img))
+    return img
+
+
+def image_to_array(file_path, image_size):
+    print("Converting: {},  size: {} to numpy array".format(file_path, image_size))
+    img = get_jpeg(file_path, image_size)
+    return img
 
 
 def load_images_from_list(images_list, image_size, number_of_images):
     print(f'Number of images: {number_of_images}')
     images = np.zeros((0, image_size, image_size, 3), np.dtype('<f'))
     for image in images_list:
-        image_data = image_to_array(image)
+        image_data = image_to_array(image, image_size)
         images = np.append(images, image_data, axis=0)
     return images
 
@@ -61,7 +82,7 @@ def main():
     images.add_argument('--images_list', help='List of images in .jpg format')
     images.add_argument('--images_dir', help='Folder with images')
     parser.add_argument('--image_size', required=False, default=224,
-                       help='Size of images. Default: 224')
+                        help='Size of images. Default: 224')
     parser.add_argument('--number_of_images', required=False, default=1,
                         help='Number of images. Default: 1')
     parser.add_argument('--output', required=False, default='imgs.npy',
@@ -77,6 +98,7 @@ def main():
         images = load_images_from_dir(images_dir, args['image_size'], number_of_images)
 
     save_images_to_numpy(args['output'], images)
+
 
 if __name__ == "__main__":
     main()

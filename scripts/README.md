@@ -139,6 +139,12 @@ To use this mode please add parameter:
     ```
     ./imm ri myendpoint-mytenant.example.com:443 mymodel numpy ../images.npy  10 ../server-tf.crt ../client-tf.crt ../client-tf.key
     ```
+    In order to run inference on images (with `list` as `input_type`) you need to provide list of
+     paths to those images like:
+     ```
+     ./imm ri myendpoint-mytenant.example.com:443 mymodel list "cat.jpg, dog.jpg, fish.jpg"  3 ../server-tf.crt ../client-tf.crt ../client-tf.key
+     ```
+
 ##### view (v)
 - endpoint
   - Required parameters: endpointName, tenantName
