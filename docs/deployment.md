@@ -10,14 +10,15 @@ A prerequisite for the CRD controller functionality is the presence of [nginx in
 It should be deployed using created helm chart [ing-subchart](../helm-deployment/ing-subchart) or existing nginx controller 
 should be adjusted to include the required changes in nginx template. 
 
-There should be also accessible Minio service. The person deploying the platform need to know Minio endpoint URL,
-access key id and access secret.
+CRD controller must have access to Minio service. Its deployment requires Minio's endpoint 
+URL, access key id and secret key.
 
-CRD controller will be creating ingress records for defined inference endpoints relying on the TLS endpoint certificates 
-stored in the Kubernetes secret “tls-secret”.
+CRD controller also creates ingress records for defined inference endpoints relying on the TLS 
+endpoint certificates stored in the Kubernetes secret `tls-secret`.
 
-The certificate needs to be valid for a common name with a wildcard matching all gRPC endpoints DNS names 
-like *.<grpc_dns_domain>. 
+The certificate has to be valid for any URL in gRPC DNS domain (matching `*.<grpc_dns_domain>`), 
+effectively securing communication with endpoints accessed through URLs in particular domain. 
+ 
 
 Alternatively, there could be used just a single DNS domain name and certificate for all the platform endpoints but that
 would require adjustments in the grpc client code to include in the requests headers also the option 

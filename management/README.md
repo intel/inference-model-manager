@@ -269,4 +269,4 @@ service.tmpl: <yaml tmeplate>
 
 ## Script for API calls
 
-You can refer to `imm.sh` example CLI employing all API endpoints on [scripts](../scripts/)
+You can refer to `imm` example CLI employing all API endpoints on [scripts](../scripts/)

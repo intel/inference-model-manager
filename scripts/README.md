@@ -45,7 +45,7 @@ To use this mode please add parameter:
 #### List of available options
 ##### login
   - Additional parameters provided with environment variables: certificate path with 
-  MANAGEMENT_CA_CERT_PATH
+      MANAGEMENT_CA_CERT_PATH
   - Usage example:
     ```
     ./imm -a mgmt.example.com login
@@ -59,7 +59,7 @@ To use this mode please add parameter:
 - tenant (t)
   - Required parameters: tenantName, scope (group name)
   - Additional parameters provided with environment variables: base64 encoded certificate with 
-  CERT env (**required**), quota with TENANT_RESOURCES env
+      CERT env (**required**), quota with TENANT_RESOURCES env
   - Usage example:
     ```
     ./imm create tenant mytenant users
