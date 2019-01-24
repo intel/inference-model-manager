@@ -9,7 +9,8 @@ Tenants can be managed by using a REST endpoint exposed by Management API with a
 This section explains possible operations with this endpoint.
  
 All operations presented in this document require that user is logged in to platform and has aquired JTW token from
-oauth2 server (dex). The token is stored in a config file `.imm`. The user needs to belong to the platform admin group
+oauth2 server (dex). The token is stored in a config file `.immconfig`. The user needs to belong to 
+the platform admin group
 set during Management API component deployment. 
 
 Login operation is based on Oauth2 process. It can be implemented using [example CLI script](../scripts). 

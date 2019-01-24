@@ -25,7 +25,7 @@ from model_upload import upload_model
 
 
 def read_config():
-    config_path = getenv('IMM_CONFIG_PATH', join(expanduser("~"), '.imm'))
+    config_path = getenv('IMM_CONFIG_PATH', join(expanduser("~"), '.immconfig'))
     with open(config_path) as config_file:
         config = json.load(config_file)
     return config

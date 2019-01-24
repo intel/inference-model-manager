@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-IMM_CONFIG_PATH=~/.imm
+IMM_CONFIG_PATH=~/.immconfig
 
 get_token() {
 	user=$1

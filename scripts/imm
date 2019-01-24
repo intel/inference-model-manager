@@ -55,7 +55,7 @@ generate_client_certs() {
 
 VERBOSE=0
 OPTIND=1
-DEFAULT_CFG_FILE=~/.imm
+DEFAULT_CFG_FILE=~/.immconfig
 IMM_CONFIG_PATH=${IMM_CONFIG_PATH:=${DEFAULT_CFG_FILE}}
 
 while getopts "khva:p:c:" opt; do

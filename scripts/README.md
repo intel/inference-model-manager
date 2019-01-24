@@ -9,7 +9,7 @@ A special script for authentication has been created, it is available under the 
 webbrowser_authenticate.py
 ```
 It runs the appropriate page for authentication in the browser, then after the correct login it saves the token and refresh token to the file.
-By default this is the path `~/.imm`.
+By default this is the path `~/.immconfig`.
 This path can be changed by setting the `IMM_CONFIG_PATH` environment variable.  
 Command to run the script:
 
@@ -154,7 +154,7 @@ To use this mode please add parameter:
     ```
 
 #### Environment variables
-- `IMM_CONFIG_PATH` - Inference Model Manager config file, default: `~/.imm`
+- `IMM_CONFIG_PATH` - Inference Model Manager config file, default: `~/.immconfig`
 - `MANAGEMENT_API_ADDRESS` - management api address, can be provided with `-a` option, default: `127.0.0.1`
 - `MANAGEMENT_API_PORT` - management api port, can be provided with `-p` option, default: `443`
 - `CERT` - base64 encoded certificate for tenant creation, **required**

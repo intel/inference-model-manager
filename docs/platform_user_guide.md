@@ -46,7 +46,8 @@ Refer to [gRPC example client](../examples/grpc_client) to see how the credentia
 ## Login operation
 
 All operations presented here require that the user is logged in to platform and has acquired JTW token from
-oauth2 server (dex). The token is stored in a config file `.imm`. The user needs to belong to the group in the Identity Provider
+oauth2 server (dex). The token is stored in a config file `.immconfig`. The user needs to belong to 
+the group in the Identity Provider
 which was associated with the tenant but the Platform Admin. 
 
 Login operation is based on Oauth2 process. It can be implemented using [example CLI script](../scripts) 

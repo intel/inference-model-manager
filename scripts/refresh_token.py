@@ -43,7 +43,7 @@ def parse_args():
 
 def main():
     args = parse_args()
-    config_file_path = getenv('IMM_CONFIG_PATH', join(expanduser("~"), '.imm'))
+    config_file_path = getenv('IMM_CONFIG_PATH', join(expanduser("~"), '.immconfig'))
     config = read_config(config_file_path)
     ca_cert_path = check_cert(config['ca_cert_path'])
     proxy_host = config.get('proxy_host', None)

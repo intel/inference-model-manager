@@ -133,7 +133,7 @@ def parse_args():
 def main():
     global code
     args = parse_args()
-    config_file_path = getenv('IMM_CONFIG_PATH', join(expanduser("~"), '.imm'))
+    config_file_path = getenv('IMM_CONFIG_PATH', join(expanduser("~"), '.immconfig'))
     auth_url = get_dex_auth_url(address=args.address, port=args.port, ca_cert_path=args.ca_cert,
                                 proxy_host=args.proxy_host, proxy_port=args.proxy_port,
                                 insecure=args.insecure, offline=args.offline)
