@@ -65,11 +65,11 @@ To use this mode please add parameter:
     ./imm create tenant mytenant users
     ```
 - endpoint (e)
-  - Required parameters: endpointName, modelName, modelVersion, tenantName, servingName, subjectName (default: client)
+  - Required parameters: endpointName, modelName, modelVersionPolicy, tenantName, servingName, subjectName (default: client)
   - Additional parameters provided with environment variables: quota with ENDPOINT_RESOURCES env
   - Usage example:
     ```
-    ./imm create e myendpoint mymodel 1 mytenant tf-serving
+    ./imm create e myendpoint mymodel "{specific {versions: 1} }" mytenant tf-serving
     ```
 ##### remove (rm)
 - tenant (t)
@@ -115,10 +115,10 @@ To use this mode please add parameter:
   ```
 ##### update (up)
 - endpoint
-  - Required parameters: endpointName, modelName, modelVersion, tenantName
+  - Required parameters: endpointName, modelName, modelVersionPolicy, tenantName
   - Usage example:
     ```
-    ./imm up myendpoint mymodel 2 mytenant
+    ./imm up myendpoint mymodel {specific {versions: 2}} mytenant
     ```
 ##### scale (s)
 - endpoint
@@ -167,6 +167,16 @@ To use this mode please add parameter:
 - `MANAGEMENT_CA_CERT_PATH` - path to .crt file with certificate used for login
 - `TENANT_RESOURCES` - quota used for tenant creation, default: `"{\"requests.cpu\": \"2\", \"requests.memory\": \"2Gi\", \"limits.cpu\": \"2\", \"limits.memory\": \"2Gi\", \"maxEndpoints\": 15}"`
 - `ENDPOINT_RESOURCES` - quota used for endpoint creation, default: `"{\"requests.cpu\": \"1\", \"requests.memory\": \"1Gi\", \"limits.cpu\": \"1\", \"limits.memory\": \"1Gi\"}"`
+- `TOKEN` - token required to perform request, by default it is provided within `IMM_CONFIG_PATH` file
+
+#### Options
+- `v` - verbose mode, prints simplified cURL (vv - prints full cURL)
+- `h` - help
+- `a` - management api address (could be provided with MANAGEMENT_API_ADDRESS env or from config file)
+- `p` - management api port (could be provided with MANAGEMENT_API_PORT env or from config file)
+- `c` - path to config file
+- `k` - allowing connection to management api endpoints with not trusted certificates
+
 
 More information: `./imm -h`.
 
