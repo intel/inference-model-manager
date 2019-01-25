@@ -142,12 +142,12 @@ def wait_endpoint_setup():
     return running, pod_name
 
 
-def test_create_endpoint_with_bad_subject_name():
+def test_create_endpoint():
     params = {
         'modelName': MODEL_NAME,
         'modelVersionPolicy': CREATE_ENDPOINT_VP,
         'endpointName': MODEL_NAME + 'endpoint',
-        'subjectName': 'bad',
+        'subjectName': 'client',
         'resources': SENSIBLE_ENDPOINT_RESOURCES,
         'servingName': 'tf-serving',
     }
@@ -179,6 +179,7 @@ def perform_inference(rpc_timeout: float, image=image):
     return prediction_response
 
 
+@pytest.mark.skip
 def test_prediction_with_certificates_and_wrong_subject_name():
     time.sleep(10)
     endpoint_info.url = endpoint_info.info
@@ -194,6 +195,7 @@ def test_prediction_with_certificates_and_wrong_subject_name():
     assert prediction_response == "Failed"
 
 
+@pytest.mark.skip
 def test_update_subject_name():
     params = {'subjectName': 'client'}
     endpoint_response = update_endpoint(params)
