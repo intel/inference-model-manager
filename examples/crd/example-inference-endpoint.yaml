@@ -7,3 +7,4 @@ spec:
   modelVersionPolicy: "{latest{}}"
   subjectName: "client-name"
   endpointName: "resnet"
+  servingName: "tf-serving"
