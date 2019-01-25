@@ -38,8 +38,9 @@ def get_keys():
 
 
 @pytest.mark.parametrize("body, tenant_name, expected_status",
-                         [({'modelName': 'test', 'modelVersion': 3, 'endpointName': 'test',
-                            'subjectName': 'test'}, 'test', falcon.HTTP_OK)])
+                         [({'modelName': 'test', 'modelVersionPolicy': '{specific {versions: 3}}',
+                            'endpointName': 'test',
+                            'subjectName': 'test', 'servingName': 'test'}, 'test', falcon.HTTP_OK)])
 def test_add_endpoint_auth_valid_user_token(mocker, client_with_auth, body, tenant_name,
                                             expected_status):
     create_endpoint_mock = mocker.patch('management_api.endpoints.endpoints.create_endpoint')
@@ -56,7 +57,8 @@ def test_add_endpoint_auth_valid_user_token(mocker, client_with_auth, body, tena
 
 
 @pytest.mark.parametrize("body, expected_status",
-                         [({'modelName': 'test', 'modelVersion': 3, 'endpointName': 'test',
+                         [({'modelName': 'test', 'modelVersionPolicy':
+                             '{specific {versions: 3}}', 'endpointName': 'test',
                             'subjectName': 'test'}, falcon.HTTP_401)])
 def test_add_endpoint_auth_expired_token(mocker, client_with_auth, body, expected_status):
     create_endpoint_mock = mocker.patch('management_api.endpoints.endpoints.create_endpoint')

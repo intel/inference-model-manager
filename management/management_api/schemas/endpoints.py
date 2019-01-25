@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
 # limitations under the License.
 #
 
-from management_api.schemas.elements.models import model_name, model_version
-from management_api.schemas.elements.names import endpoint_name, subject_name
+from management_api.schemas.elements.models import model_name, model_version_policy
+from management_api.schemas.elements.names import endpoint_name, subject_name, template_name
 from management_api.schemas.elements.resources import replicas, resources
 
 
@@ -25,16 +25,16 @@ endpoint_post_schema = {
     "required": [
         "endpointName",
         "modelName",
-        "modelVersion",
-        "subjectName"
+        "subjectName",
     ],
     "properties": {
         "endpointName": endpoint_name,
         "modelName": model_name,
-        "modelVersion": model_version,
+        "modelVersionPolicy": model_version_policy,
         "subjectName": subject_name,
         "replicas": replicas,
-        "resources": resources
+        "resources": resources,
+        "servingName": template_name
     }
 }
 
@@ -51,25 +51,24 @@ endpoint_delete_schema = {
 
 resources['optional'] = True
 
-endpoint_patch_schema = {
+endpoint_update_schema = {
     "type": "object",
-    "title": "Endpoint PATCH Schema",
-    "oneOf": [{
-        "required": [
-            "replicas"
-        ]
-    },
-        {
-            "required": [
-                "modelName",
-                "modelVersion"
-            ]
-        }
+    "title": "Endpoint PATCH Schema for updating",
+    "properties": {
+        "modelName": model_name,
+        "modelVersionPolicy": model_version_policy,
+        "resources": resources,
+        "subjectName": subject_name
+    }
+}
+
+endpoint_scale_schema = {
+    "type": "object",
+    "title": "Endpoint PATCH Schema for scaling",
+    "required": [
+        "replicas"
     ],
     "properties": {
         "replicas": replicas,
-        "modelName": model_name,
-        "modelVersion": model_version,
-        "resources": resources
     }
 }

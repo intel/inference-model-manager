@@ -41,7 +41,7 @@ class StartMultiModel(object):
             raise TenantDoesNotExistException(tenant_name=namespace)
 
         upload_id = create_upload(bucket=namespace, key=key)
-        logger.info("Key: " + key + "  ID: " + upload_id)
+        logger.info("Key: " + key + " ID: " + upload_id)
         resp.status = falcon.HTTP_200
         resp.body = json.dumps({'uploadId': upload_id})
 

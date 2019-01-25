@@ -12,6 +12,10 @@ This way managing all aspects of serving inference endpoints can be delegated to
 It makes the management much simpler and allows delegating for the users permissions to manage the inference endpoint 
 without exposing other operations and resources in Kubernetes like pods, secrets and config maps.
 
+## Inference Endpoint configuration files
+
+How to create new templates is mentioned [here](../docs/serving_templates.md).
+
 ## Docker image building
 
 ```
@@ -22,7 +26,13 @@ While the docker image is built it should be pushed to a docker registry accessi
 
 ## Deployment in Kubernetes cluster
 
-Refer to the [helm chart](../helm-deployment/crd-subchart) documentation. 
+Refer to the [helm chart](../helm-deployment/crd-subchart) documentation. There is mentioned how to handle with Serving templates.
+
+## Deployment using Docker
+
+To launch Server-controller using Docker you must [mount volume](https://docs.docker.com/storage/volumes/) with [Serving templates](../docs/serving_templates.md).
+
+```docker run --rm -d  -v <Your directory with Serving templates>/:serving-templates server-controller-prod:latest ```
 
 
 ## Development guide
@@ -42,13 +52,6 @@ cd server-controller/
 dep ensure -v
 ```
 
-### Inference Endpoint configuration files
-
-Currently all the inference endpoints in the platform are being provisioned using the templates from [resources](resources).
-They are fixed at the docker image building time.
-
-In plans is adding more flexibility to define multiple templates at run-time in the form of K8S config maps.
-
 
 ### Local building
 In order to build server-controller locally please use following command
@@ -64,6 +67,8 @@ make circleci
 ```
 
 ### Local execution
+Due to the fact that there is no need to keep two identical codes, before local launching Server-controller please copy Inference Endpoint configuration files from
+[serving-templates](../helm-deployment/crd-subchart/serving-templates) to [resources](resources) directory(Please create empty directory if you dont have one).
 Server controller requires $PLATFORM_DOMAIN environment variable to be set. It shall contain domain 
 name for the system, controller will operate in.
 Endpoints created by the controller will include the domain name (e.g. endpointName-namespace.PLATFORM_DOMAIN)

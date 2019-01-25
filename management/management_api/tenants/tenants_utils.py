@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ from kubernetes.client.rest import ApiException
 from tenacity import retry, stop_after_attempt, wait_fixed
 from management_api.config import CERT_SECRET_NAME, PORTABLE_SECRETS_PATHS, \
     minio_client, minio_resource, RESOURCE_DOES_NOT_EXIST, K8S_FORBIDDEN, \
-    NAMESPACE_BEING_DELETED, NO_SUCH_BUCKET_EXCEPTION, TERMINATION_IN_PROGRESS, PLATFORM_ADMIN
+    NAMESPACE_BEING_DELETED, NO_SUCH_BUCKET_EXCEPTION, TERMINATION_IN_PROGRESS, PLATFORM_ADMIN_LABEL
 from management_api.utils.cert import validate_cert
 from management_api.utils.errors_handling import TenantAlreadyExistsException, MinioCallException, \
     TenantDoesNotExistException, KubernetesCreateException, KubernetesDeleteException, \
@@ -68,7 +68,7 @@ def create_namespace(name, quota, id_token):
     if 'maxEndpoints' in quota:
         annotations = {'maxEndpoints': str(quota.pop('maxEndpoints'))}
     name_object = k8s_client.V1ObjectMeta(name=name, annotations=annotations,
-                                          labels={'created_by': PLATFORM_ADMIN})
+                                          labels={'created_by': PLATFORM_ADMIN_LABEL})
     namespace = k8s_client.V1Namespace(metadata=name_object)
     api_instance = get_k8s_api_client(id_token=id_token)
     try:
@@ -292,7 +292,7 @@ def create_rolebinding(name, scope_name, id_token):
 def list_tenants(id_token):
     tenants = []
     api_instance = get_k8s_api_client(id_token)
-    label = f'created_by = {PLATFORM_ADMIN}'
+    label = f'created_by = {PLATFORM_ADMIN_LABEL}'
     namespaces = {}
     try:
         namespaces = api_instance.list_namespace(label_selector=label)
@@ -302,7 +302,7 @@ def list_tenants(id_token):
         if item['status']['phase'] != TERMINATION_IN_PROGRESS:
             tenants.append(item['metadata']['name'])
     if not tenants:
-        message = "There's no tenants present on platform\n"
+        message = "There are no tenants present on platform\n"
         logger.info(message)
         return message
     message = f"Tenants present on platform: {tenants}\n"

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ from time import sleep
 
 from tenacity import retry, stop_after_attempt
 
-from management_api_tests.config import CRD_GROUP, CRD_PLURAL, CRD_VERSION, CheckResult, \
-    RESOURCE_NOT_FOUND, OperationStatus
+from config import CRD_GROUP, CRD_PLURAL, CRD_VERSION
+from management_api_tests.config import CheckResult, RESOURCE_NOT_FOUND, OperationStatus
 from kubernetes.client.rest import ApiException
 import logging
 
@@ -97,33 +97,39 @@ def check_server_pods_existence(api_instance, namespace, endpoint_name, replicas
     return CheckResult.RESOURCE_AVAILABLE
 
 
-def check_server_update_result(api_instance, namespace, endpoint_name, new_values):
+def check_server_update_result(apps_api_instance, api_instance, namespace, endpoint_name,
+                               new_values):
     try:
-        api_response = api_instance.read_namespaced_deployment_status(endpoint_name,
-                                                                      namespace,
-                                                                      pretty="pretty")
+        api_response_deploy = apps_api_instance.read_namespaced_deployment_status(
+            endpoint_name, namespace, pretty="pretty")
     except ApiException as apiException:
         return CheckResult.ERROR
 
-    container = api_response.spec.template.spec.containers.pop()
-    arg = container.args.pop()
+    try:
+        api_response_configmap = api_instance.read_namespaced_config_map(
+            endpoint_name, namespace, pretty="pretty")
+    except ApiException as apiException:
+        return CheckResult.ERROR
+
+    container = api_response_deploy.spec.template.spec.containers.pop()
+    model_config = api_response_configmap.data['tf.conf']
     quota = container.resources.limits
     quota.update(container.resources.requests)
-    model_path = f'{namespace}/{new_values["modelName"]}-{new_values["modelVersion"]}'
+    model_path = f'{namespace}/{new_values["modelName"]}'
     if 'resources' in new_values:
         new_values['resources'] = transform_quota(new_values['resources'])
         for key, value in new_values['resources']:
             if new_values[key] != quota[key]:
                 return CheckResult.CONTENTS_MISMATCHING
-    if ('--model_name=' + new_values['modelName']) not in arg or (
-            '--model_base_path=s3://' + model_path) not in arg:
+    if ('name:"' + new_values['modelName']) not in model_config or (
+            's3://' + model_path) not in model_config:
         return CheckResult.CONTENTS_MISMATCHING
     return CheckResult.CONTENTS_MATCHING
 
 
 @retry(stop=stop_after_attempt(50))
 def wait_server_setup(api_instance, namespace, endpoint_name, replicas):
-    sleep(2)
+    sleep(5)
     try:
         api_response = api_instance.read_namespaced_deployment_status(endpoint_name,
                                                                       namespace,

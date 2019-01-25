@@ -1,11 +1,10 @@
 version: 2.0
 jobs:
-  style_and_unit_tests:
+  style_and_unit_tests_mgt_api:
     docker:
       - image: circleci/python:3.6.6-jessie-browsers
     working_directory: ~/inference-model-manager
     steps:
-      - setup_remote_docker
       - checkout
       - run:
           name: Create venv
@@ -20,12 +19,30 @@ jobs:
             echo "management folder" && cd ~/inference-model-manager/management/ && make style
             echo "tests folder && " && cd ~/inference-model-manager/tests/ && make style
             echo "scripts folder" && cd ~/inference-model-manager/scripts/ && flake8 --max-line-length 100
+            echo "grpc client folder && " && cd ~/inference-model-manager/examples/grpc_client/ && make style
       - run:
           name: Run unit tests
           command: |
             . ~/inference-model-manager/.venv/bin/activate
             pip install -r management/requirements.txt
             cd ~/inference-model-manager/management/ && python setup.py test
+  style_crd:
+    docker:
+      - image: circleci/golang:1.11-node
+    working_directory: ~/inference-model-manager
+    steps:
+      - checkout
+      - run:
+          name: gometalinter
+          command: |
+            cd ~/inference-model-manager/server-controller
+            mkdir -p /go/src/github.com/IntelAI/inference-model-manager/server-controller
+            mv * /go/src/github.com/IntelAI/inference-model-manager/server-controller
+            cd /go/src/github.com/IntelAI/inference-model-manager/server-controller
+            dep ensure -v
+            make install-linter
+            make lint
+
   functional_tests:
     docker:
       - image: circleci/python:3.6.6-jessie-browsers
@@ -48,7 +65,7 @@ jobs:
             then
                sudo apt-get install jq
                export GCE_REGION=`jq --arg namearg "$CIRCLE_USERNAME" '.[$namearg]' <<< "$REGION_JSON" | tr -d '"'`
-               if [ "GCE_REGION" != "null" ]
+               if [ "$GCE_REGION" != "null" ]
                then
                  sed -i "s/us-west1/${GCE_REGION}/g" desiredcni.yaml
                fi
@@ -56,9 +73,7 @@ jobs:
       - run:
           name: Prepare environment variables
           command: |
-            echo 'export PR_NR=`basename ${CIRCLE_PULL_REQUEST}`' >> $BASH_ENV
             echo 'export KOPS_FEATURE_FLAGS=AlphaAllowGCE' >> $BASH_ENV
-            echo 'export PR_NR=`basename ${CIRCLE_PULL_REQUEST}`' >> $BASH_ENV
             echo 'export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`' >> $BASH_ENV
             echo 'export CLUSTER_NAME="imm-${SHORT_SHA1}-${CIRCLE_BRANCH}.k8s.local"' >> $BASH_ENV
             echo 'export CLUSTER_NAME_SHORT="imm-${SHORT_SHA1}-${CIRCLE_BRANCH}"' >> $BASH_ENV
@@ -80,6 +95,7 @@ jobs:
             echo 'export MGT_NAMESPACE="mgt-api"' >> $BASH_ENV
             echo 'export MINIO_ACCESS_KEY="AKIAIOSFODNN7EXAMPLE"' >> $BASH_ENV
             echo 'export MINIO_SECRET_KEY="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"' >> $BASH_ENV
+            echo 'export DEX_URL="https://${DEX_DOMAIN_NAME}:443"' >> $BASH_ENV
       - run:
           name: Generate certificates for dex external service
           command: |
@@ -176,9 +192,13 @@ jobs:
             virtualenv .venvaws -p python3
             . .venvaws/bin/activate
             pip install awscli --upgrade 
-            aws route53 change-resource-record-sets --hosted-zone-id Z11DOV0M5AJEBB --change-batch file://./route_record.json
+            export AWS_DNS=`aws route53 change-resource-record-sets --hosted-zone-id Z11DOV0M5AJEBB --change-batch file://./route_record.json`
+            echo $AWS_DNS
+            export AWS_DNS_ID=$(echo $AWS_DNS | jq '.ChangeInfo.Id')
+            echo ${AWS_DNS_ID} 
+            sleep 30
+            while [ "$STATUS" = "INSYNC" ]; do sleep 10; export STATUS=$(aws route53 get-change --id `echo ${AWS_DNS_ID} | tr -d "\""` | jq '.ChangeInfo.Status'); echo $STATUS; done
             deactivate
-            sleep 150
       - run:
           name: Install Certificates
           command: |
@@ -190,13 +210,34 @@ jobs:
             cat ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-ing-mgt-api.crt
             echo "DEX CA"
             cat ~/inference-model-manager/helm-deployment/dex-subchart/certs/ca-ing-dex.crt
+            echo 'export CERT=`cat ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-cert-tf.crt | base64 -w0`' >> $BASH_ENV
+            echo 'export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt' >> $BASH_ENV
+      - store_artifacts:
+          path: ~/inference-model-manager/helm-deployment/dex-subchart/certs
+      - store_artifacts:
+          path: ~/inference-model-manager/helm-deployment/management-api-subchart/certs
+      - run:
+          name: Check if platform is ready for tests, fail build if not ready after 10 min
+          command: |
+            . ~/inference-model-manager/.venv/bin/activate
+            pip install -q -r ~/inference-model-manager/tests/requirements.txt
+            cd ~/inference-model-manager/scripts
+            . ./imm_utils.sh
+            get_token admin
+            while [ "$TENANTS" != "There are no tenants present on platform" ]; do sleep 5; TENANTS=$(./imm ls t); done
+          no_output_timeout: 10m
+      - run:
+          name: Run imm test
+          command: |
+            . ~/inference-model-manager/.venv/bin/activate
+            pip install -q -r ~/inference-model-manager/tests/requirements.txt
+            pip install -q -r ~/inference-model-manager/examples/grpc_client/requirements.txt
+            cd ~/inference-model-manager/scripts
+            ./test_imm.sh
       - run:
           name: Run tests
           command: |
             . ~/inference-model-manager/.venv/bin/activate
-            cd ~/inference-model-manager/helm-deployment/management-api-subchart/certs
-            export CERT=`cat ca-cert-tf.crt | base64 -w0`
-            export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
             cd ~/inference-model-manager/tests
             pip install -q -r requirements.txt
             . run_test.sh
@@ -250,5 +291,6 @@ workflows:
   version: 2
   deploy-test:
     jobs:
-      - style_and_unit_tests
+      - style_and_unit_tests_mgt_api
       - functional_tests
+      - style_crd

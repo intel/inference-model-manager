@@ -3,7 +3,7 @@ tag: <image_tag>
 namespace: "mgt-api"
 service:
   name: management-api
-  externalPort: 443
+  externalPort: 9443
 ingress:
   enabled: true
   # Used to create Ingress record (should used with service.type: ClusterIP).
@@ -24,7 +24,8 @@ platformDomain: <dns_for_inference_endpoints>
 dexUrl: "https://dex.dex:443"
 dexTokenPath: "/dex/token"
 dexAuthPath: "/dex/auth"
-platformAdmin: "platform_admin"
+dexKeysPath: "/dex/keys"
+platformAdminLabel: "platform_admin"
 adminScope: "admin"
 ingNamespace: 'ingress-nginx'
 minio:
@@ -40,4 +41,3 @@ dex:
   redirectURIs: 'http://127.0.0.1:5555/callback'
   name: 'Example App'
   secret: ZXhhbXBsZS1hcHAtc2VjcmV0
-groupName: admin

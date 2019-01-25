@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,22 +18,37 @@ import pytest
 import falcon
 
 
-@pytest.mark.parametrize("body, expected_status",
-                         [({'modelName': 'test', 'modelVersion': 3, 'endpointName': 'test',
-                            'subjectName': 'test'}, falcon.HTTP_OK),
-                          ({'modelName': 'test', 'modelVersion': 3, 'endpointName': 'test',
-                            'subjectName': 'test', 'resources': {'requests.cpu': '1'}},
-                           falcon.HTTP_OK)])
-def test_endpoints_post(mocker, client, body, expected_status):
+@pytest.mark.parametrize("body, expected_message, expected_status",
+                         [({'modelName': 'test', 'modelVersionPolicy':
+                             '{latest{}}', 'endpointName': 'test', 'subjectName': 'test',
+                            'servingName': 'test'}, 'Endpoint created\n test',
+                           falcon.HTTP_OK),
+                          ({'modelName': 'test', 'endpointName': 'test', 'subjectName': 'test',
+                            'servingName': 'test'}, 'Endpoint created\n test',
+                           falcon.HTTP_OK),
+                          ({'modelName': 'test', 'modelVersionPolicy':
+                              '{ all { } }', 'endpointName': 'test', 'subjectName': 'test',
+                            'servingName': 'test', 'resources': {'requests.cpu': '1'}},
+                           'Endpoint created\n test',
+                           falcon.HTTP_OK),
+                          ({'modelName': 'test', 'modelVersionPolicy':
+                              'specific {versions: 3}}', 'endpointName': 'test',
+                            'subjectName': 'test', 'servingName': 'test'}, 'Failed data validation',
+                           falcon.HTTP_BAD_REQUEST),
+                          ({'modelName': 'test', 'modelVersionPolicy':
+                              1, 'endpointName': 'test',
+                            'subjectName': 'test', 'servingName': 'test'}, 'Failed data validation',
+                           falcon.HTTP_BAD_REQUEST)])
+def test_endpoints_post(mocker, client, body, expected_message, expected_status):
     create_endpoint_mock = mocker.patch('management_api.endpoints.endpoints.create_endpoint')
     create_endpoint_mock.return_value = "test"
-    expected_message = 'Endpoint created\n {}'.format("test")
 
     result = client.simulate_request(method='POST', path='/tenants/default/endpoints', headers={},
                                      json=body)
     assert expected_status == result.status
-    assert expected_message == result.text
-    create_endpoint_mock.assert_called_once()
+    assert expected_message in result.text
+    if result.status == falcon.HTTP_OK:
+        create_endpoint_mock.assert_called_once()
 
 
 def test_endpoints_delete(mocker, client):
@@ -48,21 +63,33 @@ def test_endpoints_delete(mocker, client):
     delete_endpoint_mock.assert_called_once()
 
 
-@pytest.mark.parametrize("functionality, method_name, body, expected_status",
-                         [("replicas", "scale_endpoint", {'replicas': 3}, falcon.HTTP_OK),
-                          ("", "update_endpoint", {'modelName': 'test', 'modelVersion': 3},
-                           falcon.HTTP_OK)])
-def test_endpoints_patch(mocker, client, functionality, method_name, body, expected_status):
+@pytest.mark.parametrize("functionality, method_name, body, expected_message, expected_status",
+                         [("replicas", "scale_endpoint", {'replicas': 3}, 'patched successfully',
+                          falcon.HTTP_OK),
+                          ("", "update_endpoint",
+                           {'modelName': 'test', 'modelVersionPolicy': '{specific {versions: 3}}'},
+                           'patched successfully', falcon.HTTP_OK),
+                          ("", "update_endpoint",
+                           {'modelName': 'test'}, 'patched successfully', falcon.HTTP_OK),
+                          ("", "update_endpoint",
+                           {'modelName': 'test', 'modelVersionPolicy': '1,2'},
+                           'Failed data validation', falcon.HTTP_BAD_REQUEST),
+                          ("", "update_endpoint",
+                           {'modelVersionPolicy': 'latest'},
+                           'Failed data validation', falcon.HTTP_BAD_REQUEST),
+                          ])
+def test_endpoints_patch(mocker, client, functionality, method_name, body, expected_message,
+                         expected_status):
     method_mock = mocker.patch('management_api.endpoints.endpoints.' + method_name)
     method_mock.return_value = "test"
-    expected_message = 'patched successfully'
 
     result = client.simulate_request(method='PATCH', path=f'/tenants/default/endpoints/test/'
                                                           f'{functionality}',
                                      headers={}, json=body)
     assert expected_status == result.status
     assert expected_message in result.text
-    method_mock.assert_called_once()
+    if result.status == falcon.HTTP_OK:
+        method_mock.assert_called_once()
 
 
 @pytest.mark.parametrize("functionality, method_name, expected_status, expected_message",

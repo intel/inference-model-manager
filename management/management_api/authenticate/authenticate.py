@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,7 +34,8 @@ logger = get_logger(__name__)
 class Authenticate():
 
     def on_get(self, req, resp):
-        url = get_auth_controller_url()
+        offline = 'offline' in req.params
+        url = get_auth_controller_url(offline)
         resp.status = falcon.HTTP_308
         resp.set_header('Location', url)
 
@@ -44,7 +45,8 @@ class Token():
     @jsonschema.validate(authenticate_token_schema)
     def on_post(self, req, resp):
         body = req.media
-        token = get_token(parameters=body)
+        offline = 'offline' in req.params
+        token = get_token(parameters=body, offline=offline)
         resp.status = falcon.HTTP_200
         resp.body = json.dumps({'status': 'OK', 'data': {'token': token}})
 

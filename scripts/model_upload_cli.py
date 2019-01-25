@@ -25,7 +25,7 @@ from model_upload import upload_model
 
 
 def read_config():
-    config_path = getenv('IMM_CONFIG_PATH', join(expanduser("~"), '.imm'))
+    config_path = getenv('IMM_CONFIG_PATH', join(expanduser("~"), '.immconfig'))
     with open(config_path) as config_file:
         config = json.load(config_file)
     return config
@@ -61,20 +61,25 @@ def main():
     parser.add_argument('--part', type=part_size_t, default=30,
                         help='Size of data chunk in MB sent in a single upload request '
                              '(acceptable values: 5-5000, default: 30)')
+    parser.add_argument('-k', '--insecure',  help='Insecure connection', action='store_true')
 
     config = read_config()
     headers = {'Authorization': config['id_token']}
     args = parser.parse_args()
+    verify = not args.insecure
     params = {
         'model_name': args.model_name,
         'model_version': args.model_version,
         'file_path': os.path.abspath(args.file_path),
     }
-    url = f"https://{config['management_api_address']}:{config['management_api_port']}" \
-          f"/tenants/{args.tenant}"
+    url = "https://{}:{}/tenants/{}".format(config['management_api_address'],
+                                            config['management_api_port'], args.tenant)
 
     start_time = time.time()
-    upload_model(url, params, headers, args.part)
+    try:
+        upload_model(url, params, headers, args.part, verify)
+    except Exception as e:
+        print("Unexpected error ocurred while uploading: {}".format(e))
     end_time = time.time()
     print("Time elapsed: " + str(end_time - start_time))
 

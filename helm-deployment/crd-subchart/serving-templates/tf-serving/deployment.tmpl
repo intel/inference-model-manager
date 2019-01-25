@@ -21,17 +21,24 @@ spec:
       labels:
         endpoint: "{{.Spec.EndpointName}}"
     spec:
+      volumes:
+      - name: configmap
+        configMap:
+            name: "{{.Spec.EndpointName}}"
       containers:
       - name: tf-serving
-        image: "{{ GlobalTemplateValue "servingImage" }}"
+        image: "tensorflow/serving:1.11.1"
         imagePullPolicy: IfNotPresent
         command:
         - /bin/sh
         - -c
         args:
-        - tensorflow_model_server --port=9000 --model_name={{.Spec.ModelName}} --model_base_path="s3://{{.ObjectMeta.Namespace}}/{{.Spec.ModelName}}-{{.Spec.ModelVersion}}"
+        - tensorflow_model_server --port=9000 --model_config_file=/config/tf.conf
         ports:
         - containerPort: 9000
+        volumeMounts:
+        - mountPath: /config/
+          name: configmap
         env:
           - name: AWS_ACCESS_KEY_ID
             valueFrom:
@@ -55,7 +62,7 @@ spec:
                 key: minio.endpoint_url
           - name: AWS_REGION
             valueFrom:
-               secretKeyRef:
+              secretKeyRef:
                 name: minio-access-info
                 key: minio.minio_region
           - name: BUCKET_NAME

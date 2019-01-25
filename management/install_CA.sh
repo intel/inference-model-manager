@@ -15,5 +15,9 @@
 # limitations under the License.
 #
 
-cp -r /custom_CA/ /usr/local/share/ca-certificates/
-update-ca-certificates
+dir="/custom_CA"
+
+for file in $(ls "$dir")
+do
+  clrtrust add "$dir/$file"
+done

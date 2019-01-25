@@ -5,6 +5,5 @@
   "enable-gc": true,
   "concurrency": 1,
   "DisableAll": true,
-  "deadline": "10m",
-  "Enable": ["vet", "gofmt", "misspell", "deadcode"]
+  "Enable": ["vet", "gofmt", "misspell", "golint"]
 }

@@ -1,0 +1,12 @@
+{{- $namespace := .Values.namespace -}}
+{{- range $path, $bytes := .Files.Glob "serving-templates/*/deployment.tmpl" }}
+{{- $folder := base (dir $path) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $folder }}
+  namespace: {{ $namespace }}
+data:
+{{ ($.Files.Glob (printf "serving-templates/%s/*" $folder)).AsConfig | indent 2 }}
+---
+{{- end }}

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,25 +14,28 @@
 # limitations under the License.
 #
 
-import ssl
 import webbrowser
 import argparse
 from os.path import expanduser, join
 from os import getenv
 import sys
 import threading
-from common_token import get_dex_auth_token, save_to_file
+from common_token import get_dex_auth_token, get_dex_auth_url, save_to_file
 try:
     # Imports for Python 3
     from http.server import BaseHTTPRequestHandler, HTTPServer
     from urllib.parse import urlparse, parse_qs, urlunparse, urlencode, parse_qsl
-    import http.client as httplib
 except ImportError:
     # Imports for Python 2
     from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-    import httplib
     from urlparse import urlparse, parse_qs, urlunparse, parse_qsl
     from urllib import urlencode
+
+# Code needed to support Python 2
+try:
+    input = raw_input
+except NameError:
+    pass
 
 html_page = """
 <html><body><h1>
@@ -40,24 +43,6 @@ Now you can close this web browser window and return to the console.
 </h1></body></html>
 """
 code = None
-
-
-def get_dex_auth_url(address, port, ca_cert_path, proxy_host=None, proxy_port=None):
-    conn = None
-    if proxy_host:
-        conn = httplib.HTTPSConnection(proxy_host, proxy_port,
-                                       context=ssl.create_default_context(cafile=ca_cert_path))
-        conn.set_tunnel(address, port)
-    else:
-        conn = httplib.HTTPSConnection(address, port,
-                                       context=ssl.create_default_context(cafile=ca_cert_path))
-    conn.request("GET", "/authenticate")
-    r1 = conn.getresponse()
-    dex_auth_url = r1.getheader('location')
-    if dex_auth_url is None:
-        print("Can`t get dex url.")
-        sys.exit()
-    return dex_auth_url
 
 
 def enable_getting_refresh_token(auth_url):
@@ -126,12 +111,15 @@ def parse_args():
                         required=True)
     parser.add_argument('--port', type=int, help='management api port', required=False,
                         default=443)
-    parser.add_argument('--ca_cert', type=str, help='path to cert file for management api',
+    parser.add_argument('--ca_cert', type=str, help='path to CA cert file for management api',
                         required=False, default=None)
     parser.add_argument('--proxy_host', type=str, help='proxy hostname',
                         required=False, default=None)
     parser.add_argument('--proxy_port', type=int, help='proxy port',
                         required=False, default=None)
+    parser.add_argument('-k', "--insecure", help='', required=False, default=False,
+                        action='store_true')
+    parser.add_argument('--offline', help='', required=False, default=False, action='store_true')
 
     args = parser.parse_args()
     if args.proxy_host:
@@ -143,23 +131,33 @@ def parse_args():
 
 
 def main():
+    global code
     args = parse_args()
-    print(args.ca_cert)
-    config_file_path = getenv('IMM_CONFIG_PATH', join(expanduser("~"), '.imm'))
+    config_file_path = getenv('IMM_CONFIG_PATH', join(expanduser("~"), '.immconfig'))
     auth_url = get_dex_auth_url(address=args.address, port=args.port, ca_cert_path=args.ca_cert,
-                                proxy_host=args.proxy_host, proxy_port=args.proxy_port)
+                                proxy_host=args.proxy_host, proxy_port=args.proxy_port,
+                                insecure=args.insecure, offline=args.offline)
     auth_url_with_refresh_token = enable_getting_refresh_token(auth_url)
     auth_url_unparsed = urlparse(auth_url)
     queries = parse_qs(auth_url_unparsed.query)
     redirect_port = urlparse(queries['redirect_uri'][0]).port
 
-    run_server(redirect_port, auth_url_with_refresh_token)
+    if args.offline:
+        print("Go to the following link in your browser:\n")
+        print(auth_url_with_refresh_token)
+        code = input("Enter verification code: ")
+    else:
+        run_server(redirect_port, auth_url_with_refresh_token)
+
     print('Code received, waiting for token.')
-    token = get_dex_auth_token(address=args.address, port=args.port, auth_code=code,
+    token = get_dex_auth_token(address=args.address, port=args.port, auth_dict={'code': code},
                                ca_cert_path=args.ca_cert, proxy_host=args.proxy_host,
-                               proxy_port=args.proxy_port)
+                               proxy_port=args.proxy_port, insecure=args.insecure,
+                               offline=args.offline)
     token.update({'management_api_address': args.address, 'management_api_port': args.port,
                   'ca_cert_path': args.ca_cert})
+    if args.proxy_host:
+        token.update({'proxy_host': args.proxy_host, 'proxy_port': args.proxy_port})
     save_to_file(config_file_path, token)
     print("Your token and refresh token are available in file: {}".format(config_file_path))
 

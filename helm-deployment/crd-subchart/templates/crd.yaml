@@ -19,23 +19,22 @@ spec:
         spec:
           required:
             - modelName
-            - modelVersion
             - endpointName
             - subjectName
+            - servingName
           properties:
             modelName:
               type: string
               minLength: 3
-            modelVersion:
-              type: integer
-              format: int32
-              minimum: 1
             endpointName:
               type: string
               minLength: 3
             subjectName:
               type: string
               pattern: '^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$'
+            modelVersionPolicy:
+              type: string
+              pattern: '^\s*{\s*(specific\s*{\s*(versions:\s*\d+\s+)*versions:\s*\d+\s*}|all\s*{\s*}|latest\s*{\s*})\s*}\s*$'
             resources:
               type: object
               properties:
@@ -45,3 +44,6 @@ spec:
               type: integer
               format: int32
               minimum: 0
+            servingName:
+              type: string
+              minLength: 1

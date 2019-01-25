@@ -1,7 +1,6 @@
 image: <crd_image_path>
 tag: <crd_image_tag>
 namespace: "crd"
-servingImage: "tensorflow/serving:1.11.1"
 docker_secret: false
 platformDomain: <dns_domain_name>
 s3_use_https: 0

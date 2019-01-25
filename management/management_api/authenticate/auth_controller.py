@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,9 +29,13 @@ from management_api.utils.logger import get_logger
 logger = get_logger(__name__)
 
 
-def get_auth_controller_url():
+def get_redirect_uri(offline):
+    return AuthParameters.OOB_REDIRECT_URL if offline else AuthParameters.REDIRECT_URL
+
+
+def get_auth_controller_url(offline=False):
     auth_controller_url = get_dex_external_url()
-    params = {'client_id': AuthParameters.CLIENT_ID, 'redirect_uri': AuthParameters.REDIRECT_URL,
+    params = {'client_id': AuthParameters.CLIENT_ID, 'redirect_uri': get_redirect_uri(offline),
               'response_type': AuthParameters.RESPONSE_TYPE, 'scope': AuthParameters.SCOPE}
     url = urljoin(auth_controller_url, AuthParameters.AUTH_PATH)
     url_parts = list(urlparse(url))
@@ -42,8 +46,8 @@ def get_auth_controller_url():
     return url
 
 
-def get_token(parameters: dict):
-    oauth = OAuth2Session(AuthParameters.CLIENT_ID, redirect_uri=AuthParameters.REDIRECT_URL)
+def get_token(parameters: dict, offline=False):
+    oauth = OAuth2Session(AuthParameters.CLIENT_ID, redirect_uri=get_redirect_uri(offline))
     try:
         if 'code' in parameters:
             token = oauth.fetch_token(urljoin(DEX_URL, AuthParameters.TOKEN_PATH),
@@ -63,7 +67,7 @@ def get_token(parameters: dict):
 
 
 def _get_keys_from_dex():
-    resp = requests.get(urljoin(DEX_URL, "/dex/keys"), params=None)
+    resp = requests.get(urljoin(DEX_URL, AuthParameters.KEYS_PATH), params=None)
     data = json.loads(resp.text)
     keys = []
     for k in data['keys']:

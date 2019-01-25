@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,10 +17,12 @@
 import requests
 import json
 
-from management_api_tests.config import DEFAULT_HEADERS, ADMIN_HEADERS, SCOPE_NAME, \
-    TENANT_RESOURCES, SENSIBLE_ENDPOINT_RESOURCES, TENANTS_MANAGEMENT_API_URL, \
-    ENDPOINTS_MANAGEMENT_API_URL
-from e2e_tests.config import TENANT_NAME, MODEL_NAME, CERT
+from management_api_tests.config import SCOPE_NAME
+
+from e2e_tests.config import TENANT_NAME, MODEL_NAME
+from config import CERT, ADMIN_HEADERS, TENANT_RESOURCES, TENANTS_MANAGEMENT_API_URL, \
+    DEFAULT_HEADERS, ENDPOINTS_MANAGEMENT_API_URL, \
+    ENDPOINT_MANAGEMENT_API_URL
 
 
 def create_tenant(name=TENANT_NAME, headers=ADMIN_HEADERS,
@@ -46,17 +48,18 @@ def delete_tenant(headers=ADMIN_HEADERS, name=TENANT_NAME):
     return response
 
 
-def create_endpoint(headers=DEFAULT_HEADERS, name=MODEL_NAME,
-                    resources=SENSIBLE_ENDPOINT_RESOURCES,
-                    tenant=TENANT_NAME):
-    data = json.dumps({
-        'modelName': name,
-        'modelVersion': 1,
-        'endpointName': name + 'endpoint',
-        'subjectName': 'client',
-        'resources': resources,
-    })
+def create_endpoint(params: dict, headers=DEFAULT_HEADERS, tenant=TENANT_NAME):
+    data = json.dumps(params)
     url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=tenant)
 
     response = requests.post(url, data=data, headers=headers, verify=False)
+    return response
+
+
+def update_endpoint(params: dict, headers=DEFAULT_HEADERS, name=MODEL_NAME,
+                    tenant=TENANT_NAME):
+    data = json.dumps(params)
+    url = ENDPOINT_MANAGEMENT_API_URL.format(tenant_name=tenant, endpoint_name=name + 'endpoint')
+
+    response = requests.patch(url, data=data, headers=headers, verify=False)
     return response

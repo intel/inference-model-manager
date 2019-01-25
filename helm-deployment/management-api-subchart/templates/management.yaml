@@ -10,9 +10,9 @@ spec:
       labels:
         app: management-api
     spec:
-{{ if .Values.openstack }}
+{{ if .Values.private_registry }}
       imagePullSecrets:
-        - name: gcr-json-key
+        - name: regcred
 {{ end }}
       serviceAccount: mgt-api
       containers:
@@ -54,8 +54,8 @@ spec:
         - name: DEX_EXTERNAL_URL
           value: "{{ .Values.dexExternalURL }}"
 {{ end }}
-        - name: PLATFORM_ADMIN
-          value: "{{ .Values.platformAdmin }}"
+        - name: PLATFORM_ADMIN_LABEL
+          value: "{{ .Values.platformAdminLabel }}"
         - name: ADMIN_SCOPE
           value: "{{ .Values.adminScope }}"
         - name: MGT_API_NAMESPACE
@@ -78,6 +78,8 @@ spec:
           value: "{{ .Values.dexTokenPath }}"
         - name: AUTH_PATH
           value: "{{ .Values.dexAuthPath }}"
+        - name: KEYS_PATH
+          value: "{{ .Values.dexKeysPath }}"
         volumeMounts:
         - mountPath: /certs/
           name: tls-management-secret
@@ -102,8 +104,8 @@ metadata:
   namespace: {{ .Values.namespace }}
 spec:
   ports:
-  - port: 443
-    targetPort: 443
+  - port: {{ .Values.service.externalPort }}
+    targetPort: {{ .Values.service.externalPort }}
   selector:
     app: management-api
   type: ClusterIP

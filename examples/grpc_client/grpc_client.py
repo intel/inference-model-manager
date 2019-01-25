@@ -61,17 +61,19 @@ def inference(stub, request, imgs, kwargs):
     iteration = 0
     for x in range(0, imgs.shape[0], batch_size):
         iteration += 1
-        if iteration > imgs.shape[0]: break
+        if iteration > imgs.shape[0]:
+            break
         end_batch = x + batch_size
-        if end_batch > imgs.shape[0]: end_batch = imgs.shape[0]
+        if end_batch > imgs.shape[0]:
+            end_batch = imgs.shape[0]
         batch = imgs[x:end_batch]
         request.inputs[kwargs['input_name']].CopyFrom(
             tf_contrib_util.make_tensor_proto(batch, shape=(batch.shape)))
         start_time = datetime.datetime.now()
-        result = stub.Predict(request, 30.0) # result includes a dictionary with all model outputs
+        result = stub.Predict(request, 30.0)  # result includes a dictionary with all model outputs
         end_time = datetime.datetime.now()
         duration = (end_time - start_time).total_seconds() * 1000
-        processing_times = np.append(processing_times ,np.array([int(duration)]))
+        processing_times = np.append(processing_times, np.array([int(duration)]))
         output = tf_contrib_util.make_ndarray(result.outputs[kwargs['output_name']])
 
         print(f'Iteration {iteration}; '
@@ -83,7 +85,7 @@ def inference(stub, request, imgs, kwargs):
 
         print(f'\tImagenet top results in a single batch:')
         for i in range(output.shape[0]):
-            single_result = output[[i],...]
+            single_result = output[[i], ...]
             max_class = np.argmax(single_result)
             print(f'\t\t {i+1} image in batch: {classes.imagenet_classes[max_class]}')
 
@@ -176,5 +178,5 @@ def run_inference():
     main(**kwargs)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     run_inference()

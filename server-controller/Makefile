@@ -35,8 +35,12 @@ test: lint
 	go test --cover .
 	go test --cover ./apis/cr/v1
 
+install-linter:
+	go get -u github.com/alecthomas/gometalinter
+	gometalinter --install
+
 code-generation:
-	deepcopy-gen -v 3 --input-dirs=github.com/IntelAI/inference-model-manager/server-controller/apis/cr/v1/...
+	deepcopy-gen --input-dirs=github.com/IntelAI/inference-model-manager/server-controller/apis/cr/v1/...
 
 docker_tag:
 	@ echo "tagging image"

@@ -2,8 +2,8 @@
 # There were problems with long dep operation being repeated after slight Dockerfile changes.
 *.md
 .dockerignore
-Dockerfile.prod
 lint.json
+Dockerfile.prod
 server-controller
 vendor
 .git

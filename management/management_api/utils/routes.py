@@ -20,6 +20,7 @@ from management_api.tenants import Tenants
 from management_api.endpoints import Endpoints, EndpointScale, Endpoint
 from management_api.authenticate import Authenticate, Token
 from management_api.models import Models
+from management_api.servings import Servings, Serving
 
 routes = [
     dict(resource=Tenants(), url='/tenants'),
@@ -33,6 +34,8 @@ routes = [
     dict(resource=Authenticate(), url='/authenticate'),
     dict(resource=Token(), url='/authenticate/token'),
     dict(resource=Models(), url='/tenants/{tenant_name}/models'),
+    dict(resource=Servings(), url='/servings'),
+    dict(resource=Serving(), url='/servings/{serving_name}'),
 ]
 
 

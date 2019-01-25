@@ -23,6 +23,8 @@ import (
 	"context"
 	"errors"
 	"flag"
+	"fmt"
+	"io/ioutil"
 	apiv1 "k8s.io/api/core/v1"
 	extv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	extclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -44,26 +46,79 @@ import (
 	"github.com/intel/crd-reconciler-for-kubernetes/pkg/util"
 )
 
+var templatesDir = "./serving-templates"
+
+func checkPath(path string) error {
+	if _, err := os.Stat(templatesDir); err != nil {
+		if os.IsNotExist(err) {
+			err = fmt.Errorf("%s file does not exist", path)
+		} else {
+			err = fmt.Errorf("error occurred when checking %s directory existence %v", path, err)
+		}
+		return err
+	}
+	return nil
+}
+
+func prepareTemplateClients(servingName string, globalTemplateValues resource.GlobalTemplateValues, k8sclientset *kubernetes.Clientset) (templateClients, error) {
+	k8sClients := templateClients{}
+	templateFileDir := fmt.Sprintf("%s/%s", templatesDir, servingName)
+	deploymentTemplateFileDir := fmt.Sprintf("%s/%s", templateFileDir, "deployment.tmpl")
+	serviceTemplateFileDir := fmt.Sprintf("%s/%s", templateFileDir, "service.tmpl")
+	ingressTemplateFileDir := fmt.Sprintf("%s/%s", templateFileDir, "ingress.tmpl")
+	configMapTemplateFileDir := fmt.Sprintf("%s/%s", templateFileDir, "configMap.tmpl")
+
+	err := checkPath(deploymentTemplateFileDir)
+	if err != nil {
+		return k8sClients, err
+	}
+	deploymentClient := resource.NewDeploymentClient(globalTemplateValues, k8sclientset, deploymentTemplateFileDir)
+
+	err = checkPath(serviceTemplateFileDir)
+	if err != nil {
+		return k8sClients, err
+	}
+	serviceClient := resource.NewServiceClient(globalTemplateValues, k8sclientset, serviceTemplateFileDir)
+
+	err = checkPath(ingressTemplateFileDir)
+	if err != nil {
+		return k8sClients, err
+	}
+	ingressClient := resource.NewIngressClient(globalTemplateValues, k8sclientset, ingressTemplateFileDir)
+
+	err = checkPath(configMapTemplateFileDir)
+	if err != nil {
+		return k8sClients, err
+	}
+	configMapClient := resource.NewConfigMapClient(globalTemplateValues, k8sclientset, configMapTemplateFileDir)
+
+	k8sClients = templateClients{deploymentClient, serviceClient, ingressClient, configMapClient}
+
+	return k8sClients, nil
+
+}
 func main() {
 	kubeconfig := flag.String("kubeconfig", "", "Path to a kube config. Only required if out-of-cluster.")
-	deploymentTemplateFile := flag.String("deploymentFile", "./resources/deployment.tmpl", "Path to a deployment file")
-	serviceTemplateFile := flag.String("serviceFile", "./resources/service.tmpl", "Path to a service file")
-	ingressTemplateFile := flag.String("ingressFile", "./resources/ingress.tmpl", "Path to an ingress file")
 	platformDomain, ok := os.LookupEnv("PLATFORM_DOMAIN")
 	if !ok {
-		panic(errors.New("PLATFORM_DOMAIN environment variable not set. Controller was unable to start."))
+		panic(errors.New("PLATFORM_DOMAIN environment variable not set. Controller was unable to start"))
 	}
-	servingImage, ok := os.LookupEnv("SERVING_IMAGE")
+	s3UseHTTPS, ok := os.LookupEnv("S3_USE_HTTPS")
 	if !ok {
-		panic(errors.New("SERVING_IMAGE environment variable not set. Controller was unable to start."))
-	}
-	s3UseHttps, ok := os.LookupEnv("S3_USE_HTTPS")
-	if !ok {
-		panic(errors.New("S3_USE_HTTPS environment variable not set. Controller was unable to start."))
+		panic(errors.New("S3_USE_HTTPS environment variable not set. Controller was unable to start"))
 	}
 	s3VerifySsl, ok := os.LookupEnv("S3_VERIFY_SSL")
 	if !ok {
-		panic(errors.New("S3_VERIFY_SSL environment variable not set. Controller was unable to start."))
+		panic(errors.New("S3_VERIFY_SSL environment variable not set. Controller was unable to start"))
+	}
+	if _, err := os.Stat(templatesDir); err != nil {
+		if os.IsNotExist(err) {
+			specialErrorMessage := fmt.Sprintf("%s directory does not exist\n", templatesDir)
+			panic(errors.New(specialErrorMessage))
+		} else {
+			specialErrorMessage := fmt.Sprintf("Error occurred when checking %s directory existence %v\n", templatesDir, err)
+			panic(errors.New(specialErrorMessage))
+		}
 	}
 	flag.Parse()
 	// Create the client config. Use kubeconfig if given, otherwise assume
@@ -116,15 +171,25 @@ func main() {
 
 	globalTemplateValues := resource.GlobalTemplateValues{}
 	globalTemplateValues["platformDomain"] = platformDomain
-	globalTemplateValues["servingImage"] = servingImage
-	globalTemplateValues["s3UseHttps"] = s3UseHttps
+	globalTemplateValues["s3UseHttps"] = s3UseHTTPS
 	globalTemplateValues["s3VerifySsl"] = s3VerifySsl
-	deploymentClient := resource.NewDeploymentClient(globalTemplateValues, k8sclientset, *deploymentTemplateFile)
-	serviceClient := resource.NewServiceClient(globalTemplateValues, k8sclientset, *serviceTemplateFile)
-	ingressClient := resource.NewIngressClient(globalTemplateValues, k8sclientset, *ingressTemplateFile)
+	files, err := ioutil.ReadDir(templatesDir)
+	if err != nil {
+		specialErrorMessage := fmt.Sprintf("Problem with reading %s directory\n", templatesDir)
+		panic(errors.New(specialErrorMessage))
+	}
+	updateMap := make(map[string]templateClients)
+	for _, f := range files {
+		templateClients, err := prepareTemplateClients(f.Name(), globalTemplateValues, k8sclientset)
+		if err != nil {
+			fmt.Printf("Cannot create clients for templates: %s", f.Name())
+		} else {
+			updateMap[f.Name()] = templateClients
+		}
+	}
 
 	// Start a controller for instances of our custom resource.
-	hooks := serverHooks{crdClient, deploymentClient, serviceClient, ingressClient}
+	hooks := serverHooks{updateMap}
 	controller := controller.New(crdHandle, &hooks, crdClient.RESTClient())
 
 	ctx, cancelFunc := context.WithCancel(context.Background())

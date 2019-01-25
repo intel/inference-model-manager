@@ -132,14 +132,27 @@ Endpoints are managed by Platform Users. It is possible to take actions as follo
 * delete endpoint
 * list endpoints
 
+#### Model version policy
+In order to specify particular model versions to be served, provide `modelVersionPolicy` parameter
+ while creating or updating endpoint. `modelVersionPolicy` parameter is a string limited to:
+ * `{ latest {} }` - only latest version of the model will be served,
+ * `{ all {} }` - all available versions of the model will be served,
+ * `{ specific { versions: 1 versions: 2 ... }` - specified versions of the model will be
+  served 
+  
+If `modelVersionPolicy` parameter was not provided during endpoint creation, default 
+  value is 
+`{latest {}}`.
+
 #### Create endpoint
 Call a POST operation on `https://<management-api-address>/tenants/<tenant-name>/endpoints`:
 ```
 curl -X POST "https://<management_api_address>/tenants/<tenant-name>/endpoints" -H "accept: 
 application/json" \
 -H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
--d "{\"endpointName\": <string>, \"modelName\": <string>, \"modelVersion\": <int>, \"subjectName\": <string>
-\"resources\": <dict>}"
+-d "{\"endpointName\": <string>, \"modelName\": <string>, \"modelVersionPolicy\": <string>, 
+\"servingName\": <string>,
+ \"subjectName\": <string>, \"resources\": <dict>}"
 ```
 
 When an operation ends with success, it returns a statement (example for an endpoint with a name 
@@ -157,11 +170,11 @@ curl -X GET "https://<management_api_address>/tenants/<tenant-name>/endpoints" -
 ```
 
 When an operation ends with success, it returns a statement (example for endpoins `endpoint1` and 
-`endpoint2` in a `test` tenant):
+`endpoint2` in a `test` tenant with a `test-domain` domain):
 ```
 Endpoints present in test tenant: 
-[{'name': 'endpoint1', 'status': 'Available', 'message': 'Endpoint is up and running'}, 
-{'name': 'endpoint2', 'status': 'Available', 'message': 'Endpoint is up and running'}]
+[{'name': 'endpoint1', 'url': 'endpoint1-test.test-domain.com:443', 'status': 'Available'}, 
+{'name': 'endpoint2', 'url': 'endpoint2-test.test-domain.com:443', 'status': 'Available'}]
 ```
 
 #### Delete endpoint
@@ -201,13 +214,13 @@ Call a PATCH operation on `https://<management-api-address>/tenants/<tenant-name
 ```
 curl -X PATCH "https://<management_api_address>/tenants/<tenant-name>/endpoints/<endpoint-name>" \
 -H "accept: application/json" -H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
--d "{\"modelName\": <string>, \"modelVersion\": <int>}"
+-d "{\"modelName\": <string>, \"modelVersionPolicy\": <string>}"
 ```
 When an operation ends with success, it returns a statement (example for an endpoint with a name 
 `endpoint` from `test`):
 ```
 Endpoint {'url': 'endpoint-test.example-domain.com:443'} patched successfully. 
-New values: {'modelName': 'new-model', 'modelVersion': 1}
+New values: {'modelName': 'new-model', 'modelVersionPolicy': '{latest {}}'}
 ```
 
 #### Scale endpoint
@@ -225,6 +238,35 @@ When an operation ends with success, it returns a statement (example for an endp
 Endpoint {'url': 'endpoint-test.example-domain.com:443'} patched successfully. New values: {'replicas': 2}
 ```
 
+### Servings
+
+#### List servings
+Call a GET operation on `https://<management-api-address>/servings`:
+```
+curl -X GET "https://<management_api_address>/servings" -H "accept: application/json" \
+-H "Authorization: <jwt_token>" -H "Content-Type: application/json"
+```
+
+When an operation ends with success, it returns a statement (example for a two default serving templates):
+```
+Servings in crd: ['ovms', 'tf-serving']
+```
+
+#### Get serving
+Call a GET operation on `https://<management-api-address>/servings/<serving-name>`:
+
+```
+curl -X GET "https://<management_api_address>/servings/<serving_name>" -H "accept: application/json" \
+-H "Authorization: <jwt_token>" -H "Content-Type: application/json"
+```
+
+When an operation ends with success, it returns a statement (example for a `tf-serving`):
+```
+Serving template tf-serving: 
+<configMap.tmpl: <yaml template> deployment.tmpl: <yaml template> ingress.tmpl: <yaml template>
+service.tmpl: <yaml tmeplate>
+```
+
 ## Script for API calls
 
-You can refer to `api_call.sh` example CLI employing all API endpoints on [scripts](../scripts/)
+You can refer to `imm` example CLI employing all API endpoints on [scripts](../scripts/)

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,14 +14,5 @@
 # limitations under the License.
 #
 
-import logging
-
-
-def copy(minio_client, src_bucket, dest_bucket, src_key, dest_key):
-    copy_source = f"{src_bucket}/{src_key}"
-    try:
-        response = minio_client.copy_object(Bucket=dest_bucket, CopySource=copy_source,
-                                            Key=dest_key)
-    except Exception as e:
-        logging.error('An error occurred during minio copy: {}'.format(e))
-    return response
+style:
+	flake8 --max-line-length 100 images_2_numpy.py grpc_client_utils.py grpc_client.py

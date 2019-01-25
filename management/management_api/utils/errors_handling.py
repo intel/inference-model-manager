@@ -93,6 +93,19 @@ class MinioCallException(ManagementApiException):
         raise falcon.HTTPInternalServerError(str(ex))
 
 
+class ResourceIsNotAvailableException(ManagementApiException):
+    def __init__(self, resource, name):
+        super().__init__()
+        self.resource = resource
+        self.name = name
+
+    @staticmethod
+    def handler(ex, req, resp, params):
+        message = "{} {} is not available".format(ex.name, ex.resource)
+        logger.error(message)
+        raise falcon.HTTPInternalServerError(message)
+
+
 class TenantAlreadyExistsException(ManagementApiException):
     def __init__(self, tenant_name):
         super().__init__()
@@ -198,11 +211,11 @@ custom_errors = [ManagementApiException, KubernetesCallException, KubernetesForb
                  KubernetesUpdateException, MinioCallException, TenantAlreadyExistsException,
                  TenantDoesNotExistException, InvalidParamException, MissingTokenException,
                  JsonSchemaException, EndpointDoesNotExistException, ModelDeleteException,
-                 ModelDoesNotExistException, EndpointsReachedMaximumException]
+                 ModelDoesNotExistException, EndpointsReachedMaximumException,
+                 ResourceIsNotAvailableException]
 
 
 def default_exception_handler(ex, req, resp, params):
-
     if hasattr(ex, 'title') and "Failed data validation" in ex.title:
         JsonSchemaException(ex)
     message = "Unexpected error occurred: {}".format(ex)

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,69 +14,12 @@
 # limitations under the License.
 #
 
-import os
-import urllib.parse
 from enum import Enum
-from management_api_tests.authenticate import get_user_token, get_admin_token, \
-    get_token
+from config import TENANT_NAME, SCOPE_NAME, CERT
 
-MINIO_ACCESS_KEY_ID = os.environ.get('MINIO_ACCESS_KEY',
-                                     'AKIAIOSFODNN7EXAMPLE')
-MINIO_SECRET_ACCESS_KEY = os.environ.get('MINIO_SECRET_KEY',
-                                         'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY')
-MINIO_ENDPOINT_ADDR = os.environ.get('MINIO_ENDPOINT_ADDR', 'http://127.0.0.1:9000')
-MINIO_REGION = os.environ.get('MINIO_REGION', 'us-east-1')
-SIGNATURE_VERSION = 's3v4'
+
 PORTABLE_SECRETS_PATHS = ['mgt-api/minio-access-info', 'mgt-api/tls-secret']
 
-DEFAULT_HEADERS = {
-    'accept': 'application/json',
-    'Authorization': get_user_token()['id_token'],
-    'Content-Type': 'application/json',
-}
-
-ADMIN_HEADERS = {
-    'accept': 'application/json',
-    'Authorization': get_admin_token()['id_token'],
-    'Content-Type': 'application/json',
-}
-
-USER1_HEADERS = {
-    'accept': 'application/json',
-    'Authorization': get_token("mars")['id_token'],
-    'Content-Type': 'application/json',
-}
-
-USER2_HEADERS = {
-    'accept': 'application/json',
-    'Authorization': get_token("saturn")['id_token'],
-    'Content-Type': 'application/json',
-}
-
-CRD_GROUP = 'ai.intel.com'
-CRD_VERSION = 'v1'
-CRD_PLURAL = 'inference-endpoints'
-CRD_API_VERSION = f'{CRD_GROUP}/{CRD_VERSION}'
-CRD_KIND = 'InferenceEndpoint'
-
-MANAGEMENT_API_URL = os.environ.get('MANAGEMENT_API_URL', 'http://127.0.0.1:5000')
-TENANTS_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants')
-ENDPOINTS_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants/' +
-                                                                        '{tenant_name}/endpoints')
-ENDPOINT_MANAGEMENT_API_URL_SCALE = ENDPOINTS_MANAGEMENT_API_URL + "/{endpoint_name}/replicas"
-ENDPOINT_MANAGEMENT_API_URL = ENDPOINTS_MANAGEMENT_API_URL + "/{endpoint_name}"
-START_MULTIPART_UPLOAD_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants/' +
-                                                                          '{tenant_name}/' +
-                                                                          'upload/start')
-AUTH_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'authenticate')
-TOKEN_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'authenticate/token')
-MODEL_MANAGEMENT_API_URL = urllib.parse.urljoin(MANAGEMENT_API_URL, 'tenants/{tenant_name}/models')
-
-PLATFORM_ADMIN = os.environ.get('PLATFORM_ADMIN', 'platform_admin')
-TENANT_NAME = os.environ.get('TENANT_NAME', 'function-tenant')
-GENERAL_TENANT_NAME = os.environ.get('GENERAL_TENANT_NAME', 'test-tenant')
-
-CERT = os.environ.get('CERT', 'WRONG_CERT')
 
 BASE64_DECODING_ERROR_MESSAGE = "Base64 decoding"
 INCORRECT_FORMAT_ERROR_MESSAGE = "certificate format"
@@ -112,9 +55,6 @@ WRONG_CERTS = [
     INCORRECT_FORMAT_ERROR_MESSAGE)
 ]
 
-# scope name should be 'test' because tests are performed in tenant 'test'
-# so rolebinding, scope in token and namespace name matches together
-SCOPE_NAME = os.environ.get('SCOPE_NAME', 'test')
 
 QUOTA_REGEX = "^([+]?[0-9.]+)([eEinumkKMGTP]*[+]?[0-9]*)$"
 
@@ -229,16 +169,6 @@ WRONG_BODIES = [
     wrong_name('a', 'is too short'),
     wrong_name('veryveryveryveryveryveryveryveryveryveryveryveryverylongtenantname', 'is too long')
 ]
-
-TENANT_RESOURCES = {'limits.cpu': '2', 'limits.memory': '2Gi', 'requests.cpu': '1',
-                    'requests.memory': '1Gi'}
-
-SENSIBLE_ENDPOINT_RESOURCES = {'limits.cpu': '1000m', 'limits.memory': '1000Mi',
-                               'requests.cpu': '100m', 'requests.memory': '100Mi'}
-
-
-ENDPOINT_RESOURCES = {'limits.cpu': '200m', 'limits.memory': '200Mi', 'requests.cpu': '0m',
-                      'requests.memory': '0Mi'}
 
 
 RESOURCE_NOT_FOUND = 404

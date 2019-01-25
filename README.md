@@ -4,8 +4,6 @@
 hosting, management and scaling inference processing endpoints exposed over gRPC protocol.
 
 It is built on top of Kubernetes and integrates with Tensorflow Serving for exposing the inference endpoints.
-In the plans is also support for integration with other model serving components like 
-[OpenVINO Model Server](https://github.com/IntelAI/OpenVINO-model-server).
 
 It is intended for organizations who dynamically deploy and scale inference endpoints.
 - Users are organized into tenants
@@ -37,6 +35,10 @@ security features like:
 [Example grpc client](examples/grpc_client)
 
 [Security recommendation for Kubernetes](docs/security_recommendations.md)
+
+[Troubleshooting](docs/troubleshooting.md)
+
+[Serving templates](docs/serving_templates.md)
 
 [Troubleshooting](docs/troubleshooting.md)
 

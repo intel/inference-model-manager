@@ -32,8 +32,12 @@ platformDomain - DNS domain to be used for new Inference Endpoints
 ingress.hosts,ingress.tls.hosts - DNS name for the Management API external interface
 minio.accessKey - MinIo access key
 minio.secretKey - MinIo secret
-platformAdmin - the group with Platform admin permissions - should match JWT token groups scope
+adminScope - the group with Platform admin permissions - should match JWT token groups scope
+platformAdminLabel - label needed for mgt-api to figure out which namespaces were created by it
+private_registry: false # If you use private registry and your cluster do not have access to that registry set this value to "true". Below you can see what else you need to do 
+```
 
+If you in previous step set docker_secret variable to ``true`` you have to create a secret in the cluster which holds your authorization token. Whole process is described [here](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/#create-a-secret-in-the-cluster-that-holds-your-authorization-token).
 
 The group set in `platformAdmin` parameter is being granted kubernetes cluster role binding to enable managing 
 all inferenece tenanats and kubernetes namespaces.
@@ -104,4 +108,5 @@ S3_ENDPOINT=s3.<region>.amazonaws.com
 S3_USE_HTTPS=1
 S3_VERIFY_SSL=1
 ```
+
 NOTE: Do not use general aws s3 url: s3.amazonaws.com, location is needed

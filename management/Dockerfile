@@ -1,10 +1,18 @@
-FROM python:3.6
+FROM clearlinux:latest
+
+RUN swupd bundle-add python3-basic
+RUN clrtrust generate
 
 ENV WORKERS=4
-ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+
 COPY . /management
 WORKDIR /management
 
-RUN pip install .
-EXPOSE 443
-ENTRYPOINT ./install_CA.sh && gunicorn --certfile=/certs/tls.crt --keyfile=/certs/tls.key -w $WORKERS -k gevent --bind 0.0.0.0:443 management_api.runner:app
+RUN pip --no-cache-dir install .
+
+ENV REQUESTS_CA_BUNDLE=/var/cache/ca-certs/compat/ca-roots.pem
+
+RUN useradd management-api-runner
+
+EXPOSE 9443
+ENTRYPOINT ./install_CA.sh && su management-api-runner -c "gunicorn --certfile=/certs/tls.crt --keyfile=/certs/tls.key -w $WORKERS -k gevent --bind 0.0.0.0:9443 management_api.runner:app" -
