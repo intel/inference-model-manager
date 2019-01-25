@@ -270,7 +270,7 @@ case "$OPERATION" in
 				eval "$CURL"
 				;;
             serving | servings | s)
-				CURL='curl -X GET -s -S -H "accept: application/json" \
+				CURL='curl $INSECURE -X GET -s -S -H "accept: application/json" \
 				-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
 				https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/servings'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
@@ -312,7 +312,7 @@ case "$OPERATION" in
 		case "$RESOURCE" in
 			serving | s )
 				[[ -z ${PARAM_1} ]] && read -p "Please provide serving name " PARAM_1
-				CURL='curl -X GET -s -S -H "accept: application/json" \
+				CURL='curl $INSECURE -X GET -s -S -H "accept: application/json" \
 				-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
 				https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/servings/${PARAM_1}'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
@@ -322,7 +322,7 @@ case "$OPERATION" in
 			endpoint | e )
 				[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
 				[[ -z ${PARAM_2} ]] && read -p "Please provide tenant name " PARAM_2
-				CURL='curl -X GET -s -S -H "accept: application/json" \
+				CURL='curl $INSECURE -X GET -s -S -H "accept: application/json" \
 				-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
 				https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_2}/endpoints/${PARAM_1}'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
