@@ -115,10 +115,13 @@ To use this mode please add parameter:
   ```
 ##### update (up)
 - endpoint
-  - Required parameters: endpointName, modelName, modelVersionPolicy, tenantName
+  - Required parameters: endpointName, tenantName
+  - Optional parameters: --modelName, --modelVersionPolicy, --resources, --subjectName
   - Usage example:
     ```
-    ./imm up myendpoint mymodel {specific {versions: 2}} mytenant
+    ./imm up e myendpoint mytenant --modelVersionPolicy "{specific{versions:2}}"
+    ./imm up e myendpoint mytenant --resources "{\"requests.cpu\":\"0\",\"requests.memory\":\"0\"}"
+    ./imm up e myendpoint mytenant --modelName newmodel --subjectName newsubject
     ```
 ##### scale (s)
 - endpoint
@@ -157,6 +160,11 @@ To use this mode please add parameter:
   - Usage example:
     ```
     ./imm v s myserving
+    ```
+  - To make result more readable we recommend using [yq](https://yq.readthedocs.io/en/latest/#synopsis)
+    - Usage example:
+    ```
+    ./imm v s ovms | yq -y '.'
     ```
 
 #### Environment variables
