@@ -1,5 +1,7 @@
 # Inference Model Manager for Kubernetes
 
+[![CircleCI](https://circleci.com/gh/IntelAI/inference-model-manager.svg?style=svg)](https://circleci.com/gh/IntelAI/inference-model-manager)
+
 *Inference Model Manager for Kubernetes* is an open source SW platform intended to provide convenient solution for 
 hosting, management and scaling inference processing endpoints exposed over gRPC protocol.
 
