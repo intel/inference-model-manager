@@ -23,17 +23,17 @@ Inference Model Manager integrates with 3rd party components:
 
 REST management API exposed by platform uses the same token and RBAC rules for authentication and authorization 
 as used by K8S API. 
-REST API is used for convenience and management simplification. A complete platform state is stored in kubernetes itself.
+REST API is used for convenience and management simplification. A complete platform state is stored in Kubernetes itself.
 
 Minio server with S3 is used for storage of the models. User interaction with Minio is 
 implemented via Management API only. 
 It means that users do not have to connect to Minio directly and they do not need its 
-credentials. Based on token validity and user permissions Management API filters incoming traffic.
+credentials. Management API filters operations on Minio storage based on the user's token validity and the permissions.
              
 
 ![architecture drawing](architecture.png)
 
-Inference requests targeted to the Inference Endpoint instances hosted within the platform are authenticated via MTLS.
+Inference requests targeted to the Inference Endpoint instances hosted within the platform are authenticated via mTLS.
 Each Inference Endpoint expects clients to use specific X509 Client Certificate issued by a CA configured on per Tenant basis.
 
 The K8S cluster Ingress Controller is responsible for terminating the TLS traffic and client certificate verification
