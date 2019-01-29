@@ -1,5 +1,5 @@
-image: <image_path>
-tag: <image_tag>
+image: intelaipg/inference-model-manager-api
+tag: 0.2
 namespace: "mgt-api"
 service:
   name: management-api
