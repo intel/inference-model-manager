@@ -10,7 +10,7 @@ metadata:
     nginx.ingress.kubernetes.io/auth-tls-secret: "{{.ObjectMeta.Namespace}}/ca-cert-secret"
     nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
     nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream: "false"
-    nginx.ingress.kubernetes.io/proxy-body-size: 8m
+    nginx.ingress.kubernetes.io/proxy-body-size: 64m
     allowed-values: "CN={{.Spec.SubjectName}}"
   labels:
     id: "{{.Spec.EndpointName}}"

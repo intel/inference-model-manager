@@ -22,7 +22,8 @@ import time
 from bs4 import BeautifulSoup
 from botocore.client import Config
 from kubernetes import config, client
-from kubernetes.client.rest import ApiException
+from kubernetes.client.configuration import Configuration
+from kubernetes.client.rest import ApiException, RESTClientObject
 from urllib.parse import urljoin, urlparse, parse_qs
 
 from config import MINIO_SECRET_ACCESS_KEY, MINIO_ACCESS_KEY_ID, \
@@ -37,6 +38,30 @@ from management_api_tests.authenticate import VENUS_CREDENTIALS
 from e2e_tests import management_api_requests as api_requests
 
 
+# Author of this solutions is https://github.com/johnmarcou
+# It has been published here: https://github.com/kubernetes-client/python/issues/411
+class K8sApiClient(client.ApiClient):
+    def call_api(self, *args, async=None, **kwargs):
+        return super().call_api(*args, async=False, **kwargs)
+
+    def __init__(self, configuration=None, header_name=None, header_value=None, cookie=None):
+        if configuration is None:
+            configuration = Configuration()
+        self.configuration = configuration
+
+        #        self.pool = ThreadPool()
+        self.rest_client = RESTClientObject(configuration)
+        self.default_headers = {}
+        if header_name is not None:
+            self.default_headers[header_name] = header_value
+        self.cookie = cookie
+        # Set default User-Agent.
+        self.user_agent = 'Swagger-Codegen/4.0.0/python'
+
+    def __del__(self):
+        pass
+
+
 @pytest.fixture(scope="session")
 def configuration():
     return config.load_kube_config()
@@ -44,22 +69,22 @@ def configuration():
 
 @pytest.fixture(scope="session")
 def api_instance(configuration):
-    return client.CoreV1Api(client.ApiClient(configuration))
+    return client.CoreV1Api(K8sApiClient(configuration))
 
 
 @pytest.fixture(scope="session")
 def rbac_api_instance(configuration):
-    return client.RbacAuthorizationV1Api(client.ApiClient(configuration))
+    return client.RbacAuthorizationV1Api(K8sApiClient(configuration))
 
 
 @pytest.fixture(scope="session")
 def apps_api_instance(configuration):
-    return client.AppsV1Api(client.ApiClient(configuration))
+    return client.AppsV1Api(K8sApiClient(configuration))
 
 
 @pytest.fixture(scope="session")
 def get_k8s_custom_obj_client(configuration):
-    return client.CustomObjectsApi(client.ApiClient(configuration))
+    return client.CustomObjectsApi(K8sApiClient(configuration))
 
 
 @pytest.fixture(scope="function")

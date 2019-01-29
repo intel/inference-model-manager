@@ -1,22 +1,28 @@
 # Serving templates
 
-Templates allow you to prepare and use different serving configurations without additional changes in Kubernetes configuration. Their goal is to reduce the risk of errors and speed up the implementation process.
-You can choose one of the templates that is already on the platform or ask platform administrator to add a custom one.
+Templates allow you to prepare optimized serving configurations which can be consumed by the platform users. 
+Their goal is to simplify the process of management of inference services and maximizing the system performance.
+Users can use only the templates enabled by the cluster administrators. It ensures best users experience and avoids
+potential challenges with Kubernetes configuration. 
 
+The administrator can enable the predefined templates, which are optimized for deployments of TensorFlow Serving* and OpenVINO
+Model Server*. They can be changed and added with various settings like
+environment variables, docker images, resource assignments etc. 
 
 
 ## Create custom template
-Sample templates can be found [here](../helm-deployment/crd-subchart/serving-templates).
-The folder with the template must contain 4 files:
+The predefined templates are stored in [serving-templates folder](../helm-deployment/crd-subchart/serving-templates).
+Each template is represented by a folder with 4 mandatory files:
  - deployment.tmpl
  - service.tmpl
  - ingress.tmpl
  - configMap.tmpl
 
-Below are clean templates with descriptions. You can modify these templates, but remember about the comments in some places.
+Below are exemplary files including description of their elements. You can modify them, but preserve and complete the required fields.
+They must also follow Kubernetes records definition.
 It is generally a good habit to leave all places where `{{.}}` appears, because it means that it is filled by the CRD.
 All ``<..>`` should be replaced.
-### Deployment
+
 ```yaml
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -26,7 +32,7 @@ metadata:  # All metadata variables and values specify below are necessary to pr
   labels:
     id: "{{.Spec.EndpointName}}"
     endpoint: "{{.Spec.EndpointName}}"
-  ownerReferences: # Values needed for server-controller to delete all resources belongs to InferenceEndpoint
+  ownerReferences: # Do not remove it. It is needed by server-controller for a cleanup after Endpoints are removed. 
   - apiVersion: {{.APIVersion}}
     kind: {{.Kind}}
     name: {{.Name}}
@@ -35,7 +41,7 @@ metadata:  # All metadata variables and values specify below are necessary to pr
     blockOwnerDeletion: {{.BlockOwnerDeletion}}
 spec:
   replicas: {{or .Spec.Replicas 1}} # If you want the user to be able to specify the number of replicas 
-                                    # leave this parameter, in another case decide for yourself how many 
+                                    # leave this parameter, in another case enforce how many 
                                     # replicas are required
   minReadySeconds: 60
   template: #Required due to update operation
@@ -43,7 +49,7 @@ spec:
       labels:
         endpoint: "{{.Spec.EndpointName}}"
     spec:
-      volumes: # If your template dont need any config maps you can remove this section
+      volumes: # If your template don't need any config maps mounted in the serving pods - you can remove this section
       - name: configmap
         configMap:
             name: "{{.Spec.EndpointName}}" # All resources created with Inference Endpoint have the same name
@@ -58,7 +64,7 @@ spec:
         - <>
         ports:
         - containerPort: <exposed port>
-        volumeMounts: #If you decided to not use any configmaps you can delete this section
+        volumeMounts: # You can remove this section if configmap don't need to be mounted in the serving pods
         - mountPath: /config/
           name: configmap
         env:
@@ -167,4 +173,15 @@ spec:
     - {{.Spec.EndpointName}}-{{.ObjectMeta.Namespace}}.{{ GlobalTemplateValue "platformDomain" }}
     secretName: tls-secret # Secret with TLS managed by Management-Api
 ```
+                 
+### Deployment
+
+After configuring the templates in [serving-templates](../helm-deployment/crd-subchart/serving-templates) directory
+you can apply them to the platform by upgrading the helm deployment of the crd-subchart.
+
+Make sure you are using correct parameters in values.yaml to avoid misconfiguration of existing deployment.
+
+```bash
+helm upgrade `helm list --deployed | grep crd-subchart | cut -d" " -f1`  .
+```                                      
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          

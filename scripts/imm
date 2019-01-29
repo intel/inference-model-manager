@@ -26,17 +26,20 @@ Options:
 	p - management api port (could be provided with MANAGEMENT_API_PORT env or from config file)
 	c - path to config file
 	k - allowing connection to management api endpoints with not trusted certificates
+	o - login without launching browser (offline)
 Examples:
 	.${0##*/} -a mgmt.example.com -p 443 -v create tenant mytenant
 	.${0##*/} create t mytenant myscope
-	.${0##*/} create e myendpoint mymodel 1 mytenant tf-serving subjectName
+	.${0##*/} create e myendpoint mymodel "{specific{versions:1}}" mytenant tf-serving subjectName
 	.${0##*/} -a 127.0.0.1 login
 	.${0##*/} logout
+	.${0##*/} up e myendpoint mytenant --resources "{\"requests.cpu\":\"0\",\"requests.memory\":\"0\"}"
+	.${0##*/} u ./saved_model.pb mymodel 2 mytenant
 	.${0##*/} run-inference myendpoint-mytenant.example.com:443 mymodel numpy ../images.npy  10 server.crt client.crt client.key
 Operations:
 	create (c), remove (rm), update (up), scale (s), list (ls), login, logout, upload (u), run-inference (ri), view (v)
 Resources:
-	tenant (t), endpoint (e), model (m), servings (s)
+	tenant (t), endpoint (e), model (m), serving (s)
 Environment variables:
 	IMM_CONFIG_PATH - Inference Model Manager config file
 	MANAGEMENT_API_ADDRESS - management api address
@@ -45,7 +48,7 @@ Environment variables:
 	MANAGEMENT_CA_CERT_PATH = path to ca-man-api.crt used for login
 	TENANT_RESOURCES - quota used for tenant creation
 	ENDPOINT_RESOURCES - quota used for endpoint creation
-	TOKEN - token required to perform request, by default it is provided within IMM_CONFIG_PATH file
+	IMM_TOKEN - token required to perform request, by default it is provided within IMM_CONFIG_PATH file
 EOF
 }
 
@@ -58,7 +61,7 @@ OPTIND=1
 DEFAULT_CFG_FILE=~/.immconfig
 IMM_CONFIG_PATH=${IMM_CONFIG_PATH:=${DEFAULT_CFG_FILE}}
 
-while getopts "khva:p:c:" opt; do
+while getopts "okhva:p:c:" opt; do
 	case $opt in
 		h)	show_help
 			exit 0
@@ -76,6 +79,8 @@ while getopts "khva:p:c:" opt; do
 			;;
 		k)	INSECURE=-k
 			;;
+		o)  OFFLINE=--offline
+			;;
 		*)	show_help >&2
 			exit 1
 			;;
@@ -83,23 +88,23 @@ while getopts "khva:p:c:" opt; do
 done
 shift "$((OPTIND-1))"
 
-OPERATION=$1
-RESOURCE=$2
-PARAM_1=$3
-PARAM_2=$4
-PARAM_3=$5
-PARAM_4=$6
-PARAM_5=$7
-PARAM_6=$8
-PARAM_7=$9
-PARAM_8=${10}
-TOKEN=${TOKEN}
+OPERATION=$1; shift
+RESOURCE=$1; shift
+PARAM_1=$1; shift
+PARAM_2=$1; shift
+PARAM_3=$1; shift
+PARAM_4=$1; shift
+PARAM_5=$1; shift
+PARAM_6=$1; shift
+PARAM_7=$1; shift
+PARAM_8=$1; shift
+IMM_TOKEN=${IMM_TOKEN}
 
 if [[ -s ${IMM_CONFIG_PATH} ]]; then
-	TOKEN=`cat ${IMM_CONFIG_PATH} | jq -r '.id_token'`
+	IMM_TOKEN=`cat ${IMM_CONFIG_PATH} | jq -r '.id_token'`
 	[[ -z "${MANAGEMENT_API_ADDRESS}" ]] && MANAGEMENT_API_ADDRESS=`cat ${IMM_CONFIG_PATH} | jq -r '.management_api_address'`
 	[[ -z "${MANAGEMENT_API_PORT}" ]] && MANAGEMENT_API_PORT=`cat ${IMM_CONFIG_PATH} | jq -r '.management_api_port'`
-elif [[ ${OPERATION} != "login"  && -z ${TOKEN} ]]; then
+elif [[ ${OPERATION} != "login"  && -z ${IMM_TOKEN} ]]; then
 	echo "Please login first"
 	exit 0
 fi
@@ -123,7 +128,7 @@ case "$OPERATION" in
 				read -p "Do you want to generate client certificates Y/n?" GENERATE_CERTS
 				[[ $GENERATE_CERTS != "n" ]] && generate_client_certs
 				CURL='curl $INSECURE -s -S -H "accept: application/json" \
-					-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
+					-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json" \
 					-d "{\"name\": \"${PARAM_1}\", \"cert\": \"${CERT}\", \"scope\":\"${PARAM_2}\",\"quota\": ${TENANT_RESOURCES}}" \
 					-X POST "https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants"'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
@@ -133,16 +138,17 @@ case "$OPERATION" in
 			endpoint | e)
 				[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
 				[[ -z ${PARAM_2} ]] && read -p "Please provide model name " PARAM_2
-				[[ -z ${PARAM_3} ]] && read -p "Please provide model version policy " PARAM_3
+				[[ -z ${PARAM_3} ]] && read -p "Please provide model version policy (press enter for default)" PARAM_3
 				[[ -z ${PARAM_4} ]] && read -p "Please provide tenant name " PARAM_4
 				[[ -z ${PARAM_5} ]] && read -p "Please provide serving name (default: tf-serving) " PARAM_5
 				[[ -z ${PARAM_6} ]] && PARAM_6=client
 				[[ -z ${PARAM_5} ]] && PARAM_5=tf-serving
+				[[ -n ${PARAM_3} ]] && PARAM_3=", \"modelVersionPolicy\": \"${PARAM_3}\""
 				CURL='curl $INSECURE -s -S -X POST \
 					"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_4}/endpoints" \
 					-H "accept: application/json" \
-					-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
-					-d "{\"servingName\":\"${PARAM_5}\", \"modelName\":\"${PARAM_2}\", \"modelVersionPolicy\":\"${PARAM_3}\", \"endpointName\":\"${PARAM_1}\", \"subjectName\": \"${PARAM_6}\", \"resources\": ${ENDPOINT_RESOURCES}}"'
+					-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json" \
+					-d "{\"servingName\":\"${PARAM_5}\", \"modelName\":\"${PARAM_2}\", \"endpointName\":\"${PARAM_1}\", \"subjectName\": \"${PARAM_6}\", \"resources\": ${ENDPOINT_RESOURCES} ${PARAM_3}}"'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
 				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
 				eval "$CURL"
@@ -154,7 +160,7 @@ case "$OPERATION" in
 			tenant | t)
 				[[ -z ${PARAM_1} ]] && read -p "Please provide tenant name " PARAM_1
 				CURL='curl $INSECURE -s -S -H "accept: application/json" \
-					-H "Authorization: ${TOKEN}" -H "Content-Type: application/json"  \
+					-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json"  \
 					-d "{\"name\": \"${PARAM_1}\"}" -X DELETE \
 					"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants"'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
@@ -165,7 +171,7 @@ case "$OPERATION" in
 				[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
 				[[ -z ${PARAM_2} ]] && read -p "Please provide tenant name " PARAM_2
 				CURL='curl $INSECURE -s -S -H "accept: application/json" \
-					-H "Authorization: ${TOKEN}" -H "Content-Type: application/json"  \
+					-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json"  \
 					-d "{\"endpointName\": \"${PARAM_1}\"}" -X DELETE \
 					"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_2}/endpoints"'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
@@ -178,7 +184,7 @@ case "$OPERATION" in
 				[[ -z ${PARAM_3} ]] && read -p "Please provide tenant name " PARAM_3
 				CURL='curl $INSECURE -X DELETE -s -S \
 					"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_3}/models" -H "accept: application/json" \
-					-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
+					-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json" \
 					-d "{\"modelName\": \"${PARAM_1}\", \"modelVersion\": ${PARAM_2}}"'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
 				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
@@ -190,13 +196,41 @@ case "$OPERATION" in
 		case "$RESOURCE" in
 			endpoint | e)
 				[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
-				[[ -z ${PARAM_2} ]] && read -p "Please provide new model name " PARAM_2
-				[[ -z ${PARAM_3} ]] && read -p "Please provide model version policy " PARAM_3
-				[[ -z ${PARAM_4} ]] && read -p "Please provide tenant name " PARAM_4
+				[[ -z ${PARAM_2} ]] && read -p "Please provide tenant name " PARAM_2
+				parameters=($PARAM_3 $PARAM_4 $PARAM_5 $PARAM_6 $PARAM_7 $PARAM_8 $PARAM_9 $PARAM_10)
+				i=0
+				while [ $i -lt 7 ] ; do
+					case ${parameters[i]} in
+						--modelName)
+							[[ "${parameters[($i+1)]}" ]] && modelName=${parameters[($i+1)]} || { echo '"--modelName" requires argument' && exit 1; }
+							;;
+						--modelVersionPolicy)
+							[[ "${parameters[($i+1)]}" ]] && modelVersionPolicy=${parameters[($i+1)]} || { echo '"--modelVersionPolicy" requires argument' && exit 1; }
+							;;
+						--resources)
+							[[ "${parameters[($i+1)]}" ]] && resources=${parameters[($i+1)]} || { echo '"--resources" requires argument' && exit 1; }
+							;;
+						--subjectName)
+							[[ "${parameters[($i+1)]}" ]] && subjectName=${parameters[($i+1)]} || { echo '"--subjectName" requires argument' && exit 1; }
+							;;
+						-?*)	
+							[[ ${parameter[$i]} ]] && echo "Unknown option: ${parameter[i]}" 
+							;;
+						*)
+							break      
+					esac
+					i=$(( $i + 2 ))
+				done
+				REQUEST_BODY="{"
+				[[ -n $modelName ]] && REQUEST_BODY="${REQUEST_BODY}\"modelName\": \"$modelName\", "
+				[[ -n $modelVersionPolicy ]] && REQUEST_BODY="${REQUEST_BODY}\"modelVersionPolicy\": \"$modelVersionPolicy\", "
+				[[ -n $resources ]] && REQUEST_BODY="${REQUEST_BODY}\"resources\": $resources, "
+				[[ -n $subjectName ]] && REQUEST_BODY="${REQUEST_BODY}\"subjectName\": \"$subjectName\", "
+				REQUEST_BODY="${REQUEST_BODY%??}}"
 				CURL='curl $INSECURE -X PATCH -s -S  \
-				"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_4}/endpoints/${PARAM_1}" -H "accept: application/json" \
-					-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
-					-d "{\"modelName\": \"${PARAM_2}\", \"modelVersionPolicy\":\"${PARAM_3}\"}"'
+				"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_2}/endpoints/${PARAM_1}" -H "accept: application/json" \
+					-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json" \
+					-d "${REQUEST_BODY}"'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
 				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
 				eval "$CURL"
@@ -211,7 +245,7 @@ case "$OPERATION" in
 				[[ -z ${PARAM_3} ]] && read -p "Please provide tenant name " PARAM_3
 				CURL='curl $INSECURE -X PATCH -s -S  \
 				"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_3}/endpoints/${PARAM_1}/replicas" -H "accept: application/json" \
-					-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
+					-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json" \
 					-d "{\"replicas\": ${PARAM_2}}"'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
 				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
@@ -225,16 +259,16 @@ case "$OPERATION" in
 			read MANAGEMENT_API_ADDRESS
 		fi
 		[[ -z ${MANAGEMENT_CA_CERT_PATH} ]] && MANAGEMENT_CA_CERT_PATH="" || MANAGEMENT_CA_CERT_PATH="--ca_cert ${MANAGEMENT_CA_CERT_PATH}"
-		python webbrowser_authenticate.py --address ${MANAGEMENT_API_ADDRESS} --port ${MANAGEMENT_API_PORT} ${MANAGEMENT_CA_CERT_PATH}
-		TOKEN=`cat "${IMM_CONFIG_PATH}" | jq -r '.id_token'`
-		echo ${TOKEN}
+		python webbrowser_authenticate.py $OFFLINE --address ${MANAGEMENT_API_ADDRESS} --port ${MANAGEMENT_API_PORT} ${MANAGEMENT_CA_CERT_PATH}
+		IMM_TOKEN=`cat "${IMM_CONFIG_PATH}" | jq -r '.id_token'`
+		echo ${IMM_TOKEN}
 		;;
 	logout)
 		read -r -p "Are you sure? This will remove all tokens from your config file. [y/n] " response
 		if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
 			if [ -f ${IMM_CONFIG_PATH} ]; then
-				CFG_WITHOUT_TOKENS=`cat ${IMM_CONFIG_PATH} | jq -c '{management_api_address, management_api_port}'`
-				echo ${CFG_WITHOUT_TOKENS} > ${IMM_CONFIG_PATH}
+				CFG_WITHOUT_IMM_TOKENS=`cat ${IMM_CONFIG_PATH} | jq -c '{management_api_address, management_api_port}'`
+				echo ${CFG_WITHOUT_IMM_TOKENS} > ${IMM_CONFIG_PATH}
 				echo "Signed out"
 			else
 				echo "Config file ${IMM_CONFIG_PATH} does not exist"
@@ -245,7 +279,7 @@ case "$OPERATION" in
 		case "$RESOURCE" in
 			tenant | tenants | t)
 				CURL='curl $INSECURE -X GET -s -S -H "accept: application/json" \
-				-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
+				-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json" \
 				https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
 				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
@@ -255,7 +289,7 @@ case "$OPERATION" in
 				[[ -z ${PARAM_1} ]] && read -p "Please provide tenant name " PARAM_1
 				CURL='curl $INSECURE -X GET -s -S \
 				"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_1}/endpoints" \
-				-H "accept: application/json" -H "Authorization: ${TOKEN}" -H "Content-Type: application/json"'
+				-H "accept: application/json" -H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json"'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
 				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
 				eval "$CURL"
@@ -264,14 +298,14 @@ case "$OPERATION" in
 				[[ -z ${PARAM_1} ]] && read -p "Please provide tenant name " PARAM_1
 				CURL='curl $INSECURE -X GET -s -S \
 				"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_1}/models" \
-				-H "accept: application/json" -H "Authorization: ${TOKEN}" -H "Content-Type: application/json"'
+				-H "accept: application/json" -H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json"'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
 				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
 				eval "$CURL"
 				;;
-            serving | servings | s)
-				CURL='curl -X GET -s -S -H "accept: application/json" \
-				-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
+			serving | servings | s)
+				CURL='curl $INSECURE -X GET -s -S -H "accept: application/json" \
+				-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json" \
 				https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/servings'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
 				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
@@ -282,7 +316,7 @@ case "$OPERATION" in
 	upload | u)
 		[[ -z ${RESOURCE} ]] && read -p "Please provide model path " RESOURCE
 		[[ -z ${PARAM_1} ]] && read -p "Please provide model name " PARAM_1
-		[[ -z ${PARAM_2} ]] && PARAM_2=1
+		[[ -z ${PARAM_2} ]] && read -p "Please provide model version " PARAM_2 
 		[[ -z ${PARAM_3} ]] && read -p "Please provide tenant name " PARAM_3
 		python model_upload_cli.py $INSECURE ${RESOURCE} ${PARAM_1} ${PARAM_2} ${PARAM_3}
 		;;
@@ -312,8 +346,8 @@ case "$OPERATION" in
 		case "$RESOURCE" in
 			serving | s )
 				[[ -z ${PARAM_1} ]] && read -p "Please provide serving name " PARAM_1
-				CURL='curl -X GET -s -S -H "accept: application/json" \
-				-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
+				CURL='curl $INSECURE -X GET -s -S -H "accept: application/json" \
+				-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json" \
 				https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/servings/${PARAM_1}'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
 				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
@@ -322,8 +356,8 @@ case "$OPERATION" in
 			endpoint | e )
 				[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
 				[[ -z ${PARAM_2} ]] && read -p "Please provide tenant name " PARAM_2
-				CURL='curl -X GET -s -S -H "accept: application/json" \
-				-H "Authorization: ${TOKEN}" -H "Content-Type: application/json" \
+				CURL='curl $INSECURE -X GET -s -S -H "accept: application/json" \
+				-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json" \
 				https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_2}/endpoints/${PARAM_1}'
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
 				[[ ${VERBOSE} == 2 ]] && eval echo $CURL

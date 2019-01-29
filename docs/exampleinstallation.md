@@ -11,7 +11,7 @@
 Before installation of IMM, make sure to have following:
 
 - Access to kubernetes cluster with ```kubectl``` 
-- Helm command installed ```helm```
+- Helm command installed ```helm``` and ```tiller``` configured
 - Minio compatible storage ```address, access key, secret key```
 - fully qualified domain name, eg: ```imm.example.com```
 - Access to one of the identity provider supported by DEX: LDAP, GitHub, SAML 2.0, GitLab	
@@ -21,23 +21,11 @@ Before installation of IMM, make sure to have following:
 
 ## Installation steps
 
-### 1.Install tiller on kubernetes cluster
-
-```
-kubectl -n kube-system create serviceaccount tiller
-
-kubectl create clusterrolebinding tiller \
-  --clusterrole cluster-admin \
-  --serviceaccount=kube-system:tiller
-
-helm init --service-account tiller
-```
-
-### 2.Clone inference-model-manager repo
+### 1.Clone inference-model-manager repo
 ```
 git clone https://github.com/IntelAI/inference-model-manager.git
 ```
-### 3.Build CRD controller image and push to docker registry
+### 2.Build CRD controller image and push to docker registry
 ```
 cd inference-model-manager/server_controller
 make docker_build
@@ -54,7 +42,7 @@ NOTE: in case of private docker registry, please take a look on our documentatio
 docker tag $IMAGE_ID $REGISTRY_URL/server-controller-prod:latest
 docker push $REGISTRY_URL/server-controller-prod:latest
 ```
-### 4.Configure CRD chart and install it 
+### 3.Configure CRD chart and install it 
 ```
 vim inference-model-manager/helm-deployment/crd-subchart/values.yaml
 - replace 
@@ -74,7 +62,7 @@ Expected output:
 NAME                                READY     STATUS             RESTARTS   AGE
 server-controller-c989895b7-pvh55   1/1       Running   0                   17s
 ```
-### 5. Install ingress-nginx
+### 4. Install ingress-nginx
 Go to inference-model-manager/helm-deployment/ing-subchart/, open values.yaml file and fill in your environment type (cloud or bare metal).
 Run
 ```
@@ -83,7 +71,7 @@ helm install .
 If your environment is bare metal and you want to use Kubernetes Node Port, please take a look on docs/nodeport.md file.
 
 
-### 6. Choose storage provider
+### 5. Choose storage provider
 For storing AI models you can choose any S3 compatible provider. If you already have Minio/S3 or other component, Management Api installation guide will show you how to integrate it with our pltform. If not, commands below show how to deploy example Minio component.
 
 ```
@@ -93,7 +81,7 @@ helm dep up .
 helm install .
 ```
 
-### 7. Install DEX Oauth2Server [dex doc]
+### 6. Install DEX Oauth2Server [dex doc]
 In this step you need to configure DEX connection to identity provider, like LDAP.
 Sample dex configuration for LDAP: https://github.com/dexidp/dex/blob/master/examples/config-ldap.yaml
 Create certificates using inference-model-manager/helm-deployment/dex-subchart/generate-dex-certs.sh and generate-ing-dex-certs.sh scripts. Remember to export DEX_NAMESPACE, DEX_DOMAIN_NAME and ISSUER environment variables, before running those scripts.
@@ -139,7 +127,7 @@ Expected output:
 NAME                   READY     STATUS    RESTARTS   AGE
 dex-6f8d94bd5f-9vlvm   1/1       Running   1          1m
 ```
-### 8. Build Management API and push image to registry
+### 7. Build Management API and push image to registry
 ```
 cd inference-model-manager/management
 make docker_build
@@ -157,7 +145,7 @@ docker tag $IMAGE_ID $REGISTRY_URL/management-api:latest
 docker push $REGISTRY_URL/management-api:latest
 ```
 
-### 9. Install Management API [management api doc]
+### 8. Install Management API [management api doc]
 In this step it's important to setup following variables in values.yaml file.
 
 NOTE: minio_endpoint_url should contain http or https and port number if different than 443.
@@ -204,11 +192,11 @@ kubectl get pods -n mgt-api
 NAME                              READY     STATUS    RESTARTS   AGE
 management-api-5c45d856c7-4kzv4   1/1       Running   0          8s
 ```
-### 10. Enable openId authentication in kubernetes api server
+### 9. Enable openId authentication in kubernetes api server
 You need to restart kubeapi-server after changes.
 Use this link for details https://github.com/IntelAI/inference-model-manager/blob/update-docs/docs/deployment.md#kubernetes-configuration-for-oid-authentication
   
-### 11. Verify installation
+### 10. Verify installation
 Obtain token from dex
 ```
 cd scripts

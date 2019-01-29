@@ -124,7 +124,6 @@ def test_create_endpoint_with_2_replicas(get_k8s_custom_obj_client, apps_api_ins
                              ) == OperationStatus.SUCCESS
 
 
-@pytest.mark.skip
 def test_scale_endpoint(get_k8s_custom_obj_client, apps_api_instance,
                         tenant_with_endpoint):
     headers = DEFAULT_HEADERS

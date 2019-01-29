@@ -214,10 +214,12 @@ Call a PATCH operation on `https://<management-api-address>/tenants/<tenant-name
 ```
 curl -X PATCH "https://<management_api_address>/tenants/<tenant-name>/endpoints/<endpoint-name>" \
 -H "accept: application/json" -H "Authorization: <jwt_token>" -H "Content-Type: application/json" \
--d "{\"modelName\": <string>, \"modelVersionPolicy\": <string>}"
+-d "{\"modelName\": <string>, \"modelVersionPolicy\": <string>, \"resources\": <dict>, \"subjectName\": <string>}"
 ```
+Parameters: `modelName`, `modelVersionPolicy`, `resources`, `subjectName` are optional.
+
 When an operation ends with success, it returns a statement (example for an endpoint with a name 
-`endpoint` from `test`):
+`endpoint` from `test` with modelName and modelVersionPolicy updated):
 ```
 Endpoint {'url': 'endpoint-test.example-domain.com:443'} patched successfully. 
 New values: {'modelName': 'new-model', 'modelVersionPolicy': '{latest {}}'}

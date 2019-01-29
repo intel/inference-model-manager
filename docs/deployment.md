@@ -33,9 +33,14 @@ certificate (they need the CA certificate to be present on the client host).
 
 The secret  “tls-secret” will need to be present in every K8S namespace with CRD and ingress records. 
 This secret is populated automatically to new namespaces during the new tenant creating operation by Management API.
+
+Optionally, [serving templates](security_recommendations.md) can be adjusted or added according to the needs. They are defined in 
+[serving-templates](../helm-deployment/crd-subchart/serving-templates) They specify allowed types of model servers,
+including their specific configuration in Kubernetes. The templates can be also changed after the platform deployment 
+by updating the helm crd deployment using `helm upgrade` command. 
  
-Deployment steps of the CRD controller is arranged by a helm chart. Execute the steps covered on 
-[chart doc](../helm-deployment/crd-subchart)  
+Deployment steps of the CRD controller are defined in a helm chart. Execute the steps covered in 
+[CRD helm chart doc](../helm-deployment/crd-subchart)  
 
 While the CRD controller is successfully deployed and configured you should be able to test inference endpoint
 provisioning by using the [example crd](../examples/crd/example-inference-endpoint.yaml)
@@ -48,17 +53,17 @@ The installation and configuration of DEX component might depend on the used con
 We automated and tested the installation process for LDAP integration. For other IdPs refer to the documentation of 
 [dex connectors](https://github.com/dexidp/dex/tree/master/connector)  
 
-DEX with LDAP integration can be installed using helm chart from [chart](../helm-deployment/dex-subchart). 
+DEX with LDAP integration can be installed using helm chart from [helm DEX chart](../helm-deployment/dex-subchart). 
 DEX installation should be done in a dedicated namespace this is has access protected from unauthorized users. 
 Before you start the installation you need to update the chart values.yaml with the following information:
 
-Deploy DEX server using steps described in [helm chart](../helm-deployment/dex-subchart)
+Deploy DEX server using steps described in [helm DEX chart](../helm-deployment/dex-subchart)
 
 	
 ## Kubernetes configuration for oid authentication
 
-Because all the platform related changes in Kubernetes are done using user token, the API interface of Kubernetes needs
-to be configured to use OID authentication. The details of the process of enabling OID token authentication might
+Because all the platform related changes in Kubernetes are done using a user token, the Kubernetes API interface needs
+to be configured to use OID authentication. Enablement of OID token authentication might
 depend on the installation process and specific configuration in the cluster. 
 The general steps are documented on 
 [K8S authentication](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#openid-connect-tokens).
@@ -85,7 +90,7 @@ Deployment of management API can be completed when the prerequisites are met and
 deployed (CRD, DEX, K8S API with OID, Minio)
 
 Management API can be deployed using a helm chart. Follow the steps described on
-[chart](../helm-deployment/management-api-subchart)
+[Mgt API helm chart](../helm-deployment/management-api-subchart)
 
 ### Troubleshooting
 Please refer to:

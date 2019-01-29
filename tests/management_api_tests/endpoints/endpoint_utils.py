@@ -16,7 +16,6 @@
 
 from time import sleep
 
-from tenacity import retry, stop_after_attempt
 
 from config import CRD_GROUP, CRD_PLURAL, CRD_VERSION
 from management_api_tests.config import CheckResult, RESOURCE_NOT_FOUND, OperationStatus
@@ -127,7 +126,6 @@ def check_server_update_result(apps_api_instance, api_instance, namespace, endpo
     return CheckResult.CONTENTS_MATCHING
 
 
-@retry(stop=stop_after_attempt(50))
 def wait_server_setup(api_instance, namespace, endpoint_name, replicas):
     sleep(5)
     try:
@@ -136,16 +134,10 @@ def wait_server_setup(api_instance, namespace, endpoint_name, replicas):
                                                                       pretty="pretty")
     except ApiException as apiException:
         return OperationStatus.TERMINATED
-    updated_replicas = api_response.status.updated_replicas
-    ready_replicas = api_response.status.ready_replicas
 
-    if updated_replicas is None:
-        updated_replicas = 0
-    if ready_replicas is None:
-        ready_replicas = 0
-
-    if updated_replicas != replicas:
+    desired_replicas = 0 if api_response.spec.replicas is None else api_response.spec.replicas
+    if desired_replicas != replicas:
+        print(api_response)
         return OperationStatus.FAILURE
-    if ready_replicas != updated_replicas:
-        raise Exception
+
     return OperationStatus.SUCCESS

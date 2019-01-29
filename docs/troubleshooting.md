@@ -46,3 +46,28 @@ ERROR:management_api.utils.errors_handling:Unexpected error occurred: 'dict' obj
 ```
 Minio -- Management Api connection problems, most probably wrong port number included in minio.endpoint_url in minio-access-info kubernetes secret.
 
+### Unexpected error occurred: Could not connect to the endpoint URL: "http://minio.default:9000/mytenant?list-type=2"
+
+Minio URL/service is not set correctly
+
+### During installation of DEX - failed to initialize storage: failed to perform migrations: creating migration table: unable to open database file
+
+Dex needs storage (for persistent state)
+
+
+
+## Additional hints
+
+### Install tiller on kubernetes cluster
+
+```	
+kubectl -n kube-system create serviceaccount tiller	
+ kubectl create clusterrolebinding tiller \	
+  --clusterrole cluster-admin \	
+  --serviceaccount=kube-system:tiller	
+ helm init --service-account tiller	
+```
+
+### How to configure helm on kubespray
+
+Set flag `helm_enabled: true` in `inventory/<clustername>/k8s-cluster/addons.yml`

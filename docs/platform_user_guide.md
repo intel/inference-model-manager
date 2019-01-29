@@ -110,15 +110,16 @@ Endpoints can be created by using a REST endpoint exposed by Management API with
 `https://<management-api-address>/tenants/<tenant-name>/endpoints`
  
 To create an endpoint we need to provide following parameters:
-- endpointName - it identifies the endpoint and will compose the URL for the inference clients 
-<endpointName><tenant><domain name>
-- subjectName - Common Name in the client certificate authorized to access the gRPC Inference Endpoint,
-- modelName – model to serve
-- modelVersion – version of a model to serve
-- servingName - define which serving will be used to create endpoint
+- endpointName - it identifies the endpoint and will compose the URL for the inference clients
+<endpointName><tenant><domain name>.
+- servingName - serving template to be applied.
+- subjectName - Common Name in the client certificate authorized to access the gRPC Inference Endpoint.
+- modelName – model to serve.
+- modelVersionPolicy – a policy name which defines model versions to be served. Refer to the model server documentation for allowed values.
+- servingName - define which serving will be used to create endpoint.
 We can also specify additional parameters:
-- replicas – number of replicas to be provisioned
-- resources – see Resources for endpoint
+- replicas – number of replicas to be provisioned.
+- resources – see Resources for endpoint.
 
 Refer to the Management [API documentation](../management) and [example CLI](../scripts) to see 
 how the endpoint should be used.
@@ -181,8 +182,10 @@ Endpoints can be viewed using a REST endpoint exposed by Management API with an 
 ```https://<management-api-address>/tenants/<tenant-name>/endpoints/<endpoint-name>```
  
 Update endpoint can change the model served be the endpoint. It accepts the following parameters:
-- modelName – name of the model from bucket,
-- modelVersion – version of the model from bucket
+- modelName – name of the model from a bucket.
+- modelVersionPolicy – a policy name which defines model versions to be served. Refer to the model server documentation for allowed values.
+- subjectName - Common Name in the client certificate authorized to access the gRPC Inference Endpoint.
+- resources – see Resources for endpoint.
 
 A change will trigger a rolling update in the Inference Endpoint replicas.
 
