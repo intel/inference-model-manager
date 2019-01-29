@@ -45,7 +45,7 @@ L3 load-balancer pointing the traffic to nginx controller nodes and monitoring t
 Make sure it support gRPC traffic and http2 protocol.
 
 ## Docker registry
-It is optional to build platform components’ docker images and push them to Docker Registry which is accessible
+You can use prebuilt public docker images or optionally, build platform components’ docker images on your own. In that case push them to a docker registry accessible
 for the Kubernetes cluster. Docker Registry credentials should be stored in Kubernetes secrets so the platform deployment 
 could pull all needed images. It is strongly recommended to use secure connection with Docker registry with TLS encryption
 and authorization enabled.
