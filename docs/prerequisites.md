@@ -45,13 +45,13 @@ L3 load-balancer pointing the traffic to nginx controller nodes and monitoring t
 Make sure it support gRPC traffic and http2 protocol.
 
 ## Docker registry
-It is required to build platform components’ docker images and push them to Docker Registry which is accessible
+It is optional to build platform components’ docker images and push them to Docker Registry which is accessible
 for the Kubernetes cluster. Docker Registry credentials should be stored in Kubernetes secrets so the platform deployment 
 could pull all needed images. It is strongly recommended to use secure connection with Docker registry with TLS encryption
 and authorization enabled.
 
 *Note:* In the included deployment scripts several components are being pulled from public Docker repositories. 
-Those are DEX, nginx-controller and TensorFlow Serving. If Kubernetes cluster can’t access public Docker repositories
+Those are: management-api, server-controller, DEX, nginx-controller, OVMS and TensorFlow Serving. If Kubernetes cluster can’t access public Docker repositories
  from Internet, their images should be pushed to a private registry and deployment templates adjusted accordingly.
 
 ## Identity provider supported by DEX connectors
