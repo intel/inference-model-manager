@@ -13,10 +13,12 @@ The choice is to use prebuilt Docker image published by Intel on [Docker Hub](ht
 or to [build the image](https://github.com/IntelAI/OpenVINO-model-server/blob/master/docs/docker_container.md) yourself
 
 ## CRD controller
+Prebuilt images are avaliable in https://hub.docker.com/r/intelaipg/inference-model-manager-crd
 
-Refer to the documentation on [server-controller](../server-controller) documentation.
+If you want to build them on your own, please refer to the documentation on [server-controller](../server-controller) documentation.
 
-# Management API server
+## Management API server
+Prebuilt images are avaliable in https://hub.docker.com/r/intelaipg/inference-model-manager-api
 
-Refer to the documentation on [management api](../management) documentation.
+If you want to build them on your own, please refer to the documentation on [management api](../management) documentation.
 
