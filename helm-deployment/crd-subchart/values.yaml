@@ -1,5 +1,5 @@
-image: <crd_image_path>
-tag: <crd_image_tag>
+image: intelaipg/inference-model-manager-crd
+tag: 0.2
 namespace: "crd"
 docker_secret: false
 platformDomain: <dns_domain_name>
