@@ -3,14 +3,13 @@
 ### Preparation to installation
 
 You have to set all values specify in this chapter to properly run this chart
-```image: <crd_image_path> # path to image
-   tag: <crd_image_tag> # image tag
+```
    platformDomain: <dns_for_tfs> # platform dns
    private_registry: false # If you use private registry and your cluster do not have access to that registry set this value to "true". Below you can see what else you need to do 
 ```
 #### Private docker registry
 
-If you in previous step set docker_secret variable to ``true`` you have to create a secret in the cluster which holds your authorization token. Whole process is described [here](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/#create-a-secret-in-the-cluster-that-holds-your-authorization-token).
+If you set in previous step `docker_secret` variable to ``true`` you have to create a secret in the cluster which holds your authorization token. Whole process is described [here](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/#create-a-secret-in-the-cluster-that-holds-your-authorization-token).
 
 #### Serving templates
 
