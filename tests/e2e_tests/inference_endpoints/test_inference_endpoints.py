@@ -35,13 +35,14 @@ from model_upload import upload_model
 from e2e_tests.management_api_requests import create_tenant, delete_tenant, create_endpoint, \
     update_endpoint
 
-from e2e_tests.config import MODEL_NAME, TENANT_NAME, CREATE_ENDPOINT_VP, UPDATE_ENDPOINT_VP
+from e2e_tests.config import MODEL_NAME, TENANT_NAME, ENDPOINT_NAME, CREATE_ENDPOINT_VP,\
+    UPDATE_ENDPOINT_VP
 from e2e_tests.tf_serving_utils.load_numpy import IMAGES, LABELS, JPG_IMAGE
 from management_api_tests.authenticate import get_user_token
 from config import MANAGEMENT_API_URL, CERT_BAD_CLIENT, CERT_BAD_CLIENT_KEY, CERT_CLIENT, \
-    CERT_CLIENT_KEY, CERT_SERVER, SENSIBLE_ENDPOINT_RESOURCES
+    CERT_CLIENT_KEY, CERT_SERVER, SENSIBLE_ENDPOINT_RESOURCES, ING_NAMESPACE
 from conftest import get_all_pods_in_namespace, get_logs_of_pod, list_namespaces, \
-    download_saved_model_from_path
+    download_saved_model_from_path, get_ingress_subject_name, get_ingress_pod_name
 
 
 class EndpointInfo:
@@ -142,12 +143,12 @@ def wait_endpoint_setup():
     return running, pod_name
 
 
-def test_create_endpoint():
+def test_create_endpoint_with_bad_subject_name():
     params = {
         'modelName': MODEL_NAME,
         'modelVersionPolicy': CREATE_ENDPOINT_VP,
-        'endpointName': MODEL_NAME + 'endpoint',
-        'subjectName': 'client',
+        'endpointName': ENDPOINT_NAME,
+        'subjectName': 'bad',
         'resources': SENSIBLE_ENDPOINT_RESOURCES,
         'servingName': 'tf-serving',
     }
@@ -158,6 +159,8 @@ def test_create_endpoint():
     assert running is True
     endpoint_info.info = get_url_from_response(endpoint_response)
     endpoint_info.pod_name = pod_name
+    subject_name = get_ingress_subject_name(endpoint_name, TENANT_NAME)
+    assert subject_name == 'CN=bad'
     return endpoint_response
 
 
@@ -179,9 +182,7 @@ def perform_inference(rpc_timeout: float, image=image):
     return prediction_response
 
 
-@pytest.mark.skip
 def test_prediction_with_certificates_and_wrong_subject_name():
-    time.sleep(10)
     endpoint_info.url = endpoint_info.info
     trusted_cert, trusted_key, trusted_ca = prepare_certs(
         CERT_SERVER,
@@ -195,21 +196,50 @@ def test_prediction_with_certificates_and_wrong_subject_name():
     assert prediction_response == "Failed"
 
 
-@pytest.mark.skip
 def test_update_subject_name():
+    start_time = time.time()
     params = {'subjectName': 'client'}
     endpoint_response = update_endpoint(params)
     assert "patched" in endpoint_response.text
     assert endpoint_response.status_code == 200
-    time.sleep(10)
-    running, pod_name = wait_endpoint_setup()
-    endpoint_info.pod_name = pod_name
-    assert running is True
+    updated = wait_ingress_setup(ING_NAMESPACE, TENANT_NAME, ENDPOINT_NAME, start_time)
+    assert updated is True
+    subject_name = get_ingress_subject_name(ENDPOINT_NAME, TENANT_NAME)
+    assert subject_name == 'CN=client'
     return endpoint_response
 
 
+def wait_ingress_setup(ingress_namespace, endpoint_namespace, endpoint_name, start_time):
+    ingress_pod_name = get_ingress_pod_name(ingress_namespace)
+    updated = False
+    tick = time.time()
+    while tick - start_time < 200:
+        timer = int(tick - start_time)
+        tick = time.time()
+        try:
+            logs = get_logs_of_pod(ingress_namespace, ingress_pod_name, since_seconds=timer)
+            if retrieve_log_line_for_updated_ingress(logs, endpoint_namespace, endpoint_name):
+                updated = True
+                break
+        except Exception as e:
+            logging.info(e)
+            time.sleep(10)
+    return updated
+
+
+def retrieve_log_line_for_updated_ingress(logs, namespace, name):
+    logs = logs.splitlines()
+    for line in logs:
+        if namespace in line and name in line and "reason: 'UPDATE'" in line:
+            break
+        logs.pop(0)
+    for line in logs:
+        if 'Backend successfully reloaded' in line:
+            return True
+    return False
+
+
 def test_prediction_with_certificates():
-    time.sleep(10)
     endpoint_info.url = endpoint_info.info
     trusted_cert, trusted_key, trusted_ca = prepare_certs(
         CERT_SERVER,

@@ -347,9 +347,11 @@ def get_all_pods_in_namespace(namespace, label_selector=''):
     return api_response
 
 
-def get_logs_of_pod(namespace, pod):
+def get_logs_of_pod(namespace, pod, since_seconds=None):
     api_instance = client.CoreV1Api(client.ApiClient(config.load_kube_config()))
-    return api_instance.read_namespaced_pod_log(pod, namespace)
+    if since_seconds is None:
+        return api_instance.read_namespaced_pod_log(pod, namespace)
+    return api_instance.read_namespaced_pod_log(pod, namespace, since_seconds=since_seconds)
 
 
 def resource_quota(api_instance, quota={}, namespace=TENANT_NAME):
@@ -358,3 +360,24 @@ def resource_quota(api_instance, quota={}, namespace=TENANT_NAME):
     body = client.V1ResourceQuota(spec=resource_quota_spec, metadata=name_object)
     api_instance.create_namespaced_resource_quota(namespace=namespace, body=body)
     return quota
+
+
+def get_endpoint_ingress(name, namespace):
+    extensions_api_instance = client.ExtensionsV1beta1Api(config.load_kube_config())
+    api_response = extensions_api_instance.read_namespaced_ingress(name, namespace)
+    return api_response
+
+
+def get_ingress_subject_name(name, namespace):
+    metadata = get_endpoint_ingress(name, namespace).metadata
+    subject_name = metadata.annotations['allowed-values']
+    return subject_name
+
+
+def get_ingress_pod_name(namespace):
+    all_pods = get_all_pods_in_namespace(namespace)
+    for item in all_pods.items:
+        pod_name = item.metadata.name
+        if 'nginx-ingress-controller' in pod_name:
+            return pod_name
+    return None
