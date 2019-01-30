@@ -159,7 +159,7 @@ def test_create_endpoint_with_bad_subject_name():
     assert running is True
     endpoint_info.info = get_url_from_response(endpoint_response)
     endpoint_info.pod_name = pod_name
-    subject_name = get_ingress_subject_name(endpoint_name, TENANT_NAME)
+    subject_name = get_ingress_subject_name(ENDPOINT_NAME, TENANT_NAME)
     assert subject_name == 'CN=bad'
     return endpoint_response
 
@@ -229,10 +229,12 @@ def wait_ingress_setup(ingress_namespace, endpoint_namespace, endpoint_name, sta
 
 def retrieve_log_line_for_updated_ingress(logs, namespace, name):
     logs = logs.splitlines()
+    counter = 0
     for line in logs:
-        if namespace in line and name in line and "reason: 'UPDATE'" in line:
+        if namespace in line and name in line and "UPDATE" in line:
             break
-        logs.pop(0)
+        counter += 1
+    logs = logs[counter:]
     for line in logs:
         if 'Backend successfully reloaded' in line:
             return True
