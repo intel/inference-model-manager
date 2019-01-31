@@ -79,8 +79,14 @@ optional arguments:
 
 
 #### Example command
+* inference
 ```
 python grpc_client.py endpoint_address.domain.com:443 model-name --images_list image.jpg \
+--server_cert <path_to_server_cert> --client_cert <path_to_client_cert> --client_key <path_to_client_key>
+```
+* getting model status
+```
+python grpc_client.py endpoint_address.domain.com:443 model-name --get_model_status \
 --server_cert <path_to_server_cert> --client_cert <path_to_client_cert> --client_key <path_to_client_key>
 ```
 

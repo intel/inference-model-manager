@@ -18,7 +18,8 @@
 import grpc
 from tensorflow_serving.apis import predict_pb2
 from tensorflow_serving.apis import prediction_service_pb2_grpc
-
+from tensorflow_serving.apis import get_model_status_pb2
+from tensorflow_serving.apis import model_service_pb2_grpc
 
 def prepare_certs(server_cert=None, client_key=None, client_ca=None):
     if server_cert is not None:
@@ -33,16 +34,21 @@ def prepare_certs(server_cert=None, client_key=None, client_ca=None):
     return server_cert, client_key, client_ca
 
 
-def prepare_stub_and_request(address, model_name, model_version=None, creds=None, opts=None):
+def prepare_stub_and_request(address, model_name, model_version=None, creds=None, opts=None, get_model_status=False):
     if opts is not None:
         opts = (('grpc.ssl_target_name_override', opts),)
     if creds is not None:
         channel = grpc.secure_channel(address, creds, options=opts)
     else:
         channel = grpc.insecure_channel(address, options=opts)
-
-    stub = prediction_service_pb2_grpc.PredictionServiceStub(channel)
-    request = predict_pb2.PredictRequest()
+    request = None
+    stub = None
+    if get_model_status:
+        request = get_model_status_pb2.GetModelStatusRequest()
+        stub = model_service_pb2_grpc.ModelServiceStub(channel)
+    else:
+        stub = prediction_service_pb2_grpc.PredictionServiceStub(channel)
+        request = predict_pb2.PredictRequest()
     request.model_spec.name = model_name
     if model_version is not None:
         request.model_spec.version.value = model_version
