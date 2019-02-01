@@ -21,6 +21,7 @@ from tensorflow_serving.apis import prediction_service_pb2_grpc
 from tensorflow_serving.apis import get_model_status_pb2
 from tensorflow_serving.apis import model_service_pb2_grpc
 
+
 def prepare_certs(server_cert=None, client_key=None, client_ca=None):
     if server_cert is not None:
         with open(server_cert, 'rb') as f:
@@ -34,7 +35,8 @@ def prepare_certs(server_cert=None, client_key=None, client_ca=None):
     return server_cert, client_key, client_ca
 
 
-def prepare_stub_and_request(address, model_name, model_version=None, creds=None, opts=None, get_model_status=False):
+def prepare_stub_and_request(address, model_name, model_version=None, creds=None, opts=None,
+                             get_model_status=False):
     if opts is not None:
         opts = (('grpc.ssl_target_name_override', opts),)
     if creds is not None:
