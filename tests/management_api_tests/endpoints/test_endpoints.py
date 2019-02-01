@@ -187,7 +187,7 @@ CORRECT_UPDATE_PARAMS = [
     {'modelName': 'new-name', 'modelVersionPolicy': '{specific {versions: 2}}', 'resources':
         {'limits.cpu': '500m', 'limits.memory': '500Mi', 'requests.cpu': '200m',
          'requests.memory': '200Mi'}},
-     {'subjectName': 'updated'}
+    {'subjectName': 'updated'}
 ]
 
 
