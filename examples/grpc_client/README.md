@@ -20,7 +20,7 @@ pip install -r requirements.txt
 
 ### About
 
-`grpc_client.py` allows to make requests to endpoint which contains served Resnet model. To use it, 
+`grpc_client.py` allows to make requests to endpoint which contains served Resnet model. To use it for inference, 
 you need some images in .jpg format or numpy array in .npy format.  
 Default setting is to use certificate validation. You can change this behaviour by specifying `--no-ssl` flag.  
 
@@ -36,7 +36,7 @@ usage: grpc_client.py [-h] [--target_name TARGET_NAME]
                       [--image_size IMAGE_SIZE]
                       [--images_number IMAGES_NUMBER]
                       [--batch_size BATCH_SIZE] [--no-ssl] [--transpose_input]
-                      [--performance] [--no_imagenet_classes]
+                      [--performance] [--no_imagenet_classes] [--get_model_status]
                       grpc_address model_name
 
 Do requests to Tensorflow Serving using jpg images or images in numpy format
@@ -75,6 +75,7 @@ optional arguments:
   --performance         Enable processing performance info
   --no_imagenet_classes
                         Set for models without Imagenet classes
+  --get_model_status    Set to get model status                      
 ```
 
 
