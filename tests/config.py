@@ -26,7 +26,6 @@ MINIO_SECRET_ACCESS_KEY = os.environ.get('MINIO_SECRET_KEY',
 MINIO_ENDPOINT_ADDR = os.environ.get('MINIO_ENDPOINT_ADDR', 'http://127.0.0.1:9000')
 MINIO_REGION = os.environ.get('MINIO_REGION', 'us-east-1')
 SIGNATURE_VERSION = 's3v4'
-ING_NAMESPACE = os.environ.get('ING_NAMESPACE', 'ingress-nginx')
 
 CRD_GROUP = 'ai.intel.com'
 CRD_VERSION = 'v1'

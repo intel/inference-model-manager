@@ -40,9 +40,9 @@ from e2e_tests.config import MODEL_NAME, TENANT_NAME, ENDPOINT_NAME, CREATE_ENDP
 from e2e_tests.tf_serving_utils.load_numpy import IMAGES, LABELS, JPG_IMAGE
 from management_api_tests.authenticate import get_user_token
 from config import MANAGEMENT_API_URL, CERT_BAD_CLIENT, CERT_BAD_CLIENT_KEY, CERT_CLIENT, \
-    CERT_CLIENT_KEY, CERT_SERVER, SENSIBLE_ENDPOINT_RESOURCES, ING_NAMESPACE
+    CERT_CLIENT_KEY, CERT_SERVER, SENSIBLE_ENDPOINT_RESOURCES
 from conftest import get_all_pods_in_namespace, get_logs_of_pod, list_namespaces, \
-    download_saved_model_from_path, get_ingress_subject_name, get_ingress_pod_name
+    download_saved_model_from_path, get_ingress_subject_name
 
 
 class EndpointInfo:

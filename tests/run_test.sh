@@ -31,8 +31,6 @@ export MINIO_ENDPOINT_ADDR='http://127.0.0.1:9000'
 export MINIO_POD=`kubectl get pod | grep minio | awk '{print $1}'`
 kubectl port-forward ${MINIO_POD} 9000:9000 &
 
-export ING_NAMESPACE='ingress-nginx'
-
 pytest -v
 
 echo "Stop port forwarding"

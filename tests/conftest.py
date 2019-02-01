@@ -347,11 +347,9 @@ def get_all_pods_in_namespace(namespace, label_selector=''):
     return api_response
 
 
-def get_logs_of_pod(namespace, pod, since_seconds=None):
+def get_logs_of_pod(namespace, pod):
     api_instance = client.CoreV1Api(client.ApiClient(config.load_kube_config()))
-    if since_seconds is None:
-        return api_instance.read_namespaced_pod_log(pod, namespace)
-    return api_instance.read_namespaced_pod_log(pod, namespace, since_seconds=since_seconds)
+    return api_instance.read_namespaced_pod_log(pod, namespace)
 
 
 def resource_quota(api_instance, quota={}, namespace=TENANT_NAME):
