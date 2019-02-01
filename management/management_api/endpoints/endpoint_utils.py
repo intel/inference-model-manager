@@ -19,6 +19,9 @@ import re
 
 from kubernetes.client.rest import ApiException
 
+from botocore.exceptions import ClientError
+
+from management_api.config import minio_resource
 from management_api.utils.errors_handling import KubernetesCreateException, \
     KubernetesDeleteException, KubernetesUpdateException, \
     KubernetesGetException, TenantDoesNotExistException, EndpointDoesNotExistException, \
@@ -236,3 +239,18 @@ def verify_endpoint_amount(api_instance, apps_api_instance, namespace):
         endpoint_number = get_endpoint_number(apps_api_instance, namespace)
         if endpoint_number >= int(namespace_annotations['maxEndpoints']):
             raise EndpointsReachedMaximumException()
+
+
+def check_endpoint_model(namespace, model_name):
+    try:
+        bucket = minio_resource.Bucket(name=namespace)
+    except ClientError:
+        logger.warning(f'Endpoint was created successfully.'
+                       f'"{namespace}" bucket not accessible. '
+                       f'Model existence cannot be verified."\n')
+        return False
+
+    for object in bucket.objects.filter(Prefix=model_name + '/'):
+        if object.size > 0:
+            return True
+    return False

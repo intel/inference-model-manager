@@ -43,10 +43,12 @@ TF_SERVING_TEMPLATE = DEFAULT_TEMPLATE.copy()
 TF_SERVING_TEMPLATE['servingName'] = 'tf-serving'
 
 
-@pytest.mark.parametrize("params", [TF_SERVING_TEMPLATE, DEFAULT_TEMPLATE])
-def test_create_endpoint(params, function_context, apps_api_instance, get_k8s_custom_obj_client,
-                         session_tenant):
-    namespace, _ = session_tenant
+@pytest.mark.parametrize("params, tenant_fix, warning",
+                         [(TF_SERVING_TEMPLATE, "session_tenant", True),
+                          (DEFAULT_TEMPLATE, "tenant_with_fake_model", False)])
+def test_create_endpoint(request, function_context, apps_api_instance, get_k8s_custom_obj_client,
+                         params, tenant_fix, warning):
+    namespace, _ = request.getfixturevalue(tenant_fix)
     data = json.dumps(params)
     url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=namespace)
 
@@ -54,6 +56,8 @@ def test_create_endpoint(params, function_context, apps_api_instance, get_k8s_cu
 
     assert response.status_code == 200
     assert "created" in response.text
+    if warning:
+        assert "WARNING" in response.text
 
     function_context.add_object(object_type='CRD', object_to_delete={'name': crd_server_name,
                                                                      'namespace': namespace})
