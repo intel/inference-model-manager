@@ -372,12 +372,3 @@ def get_ingress_subject_name(name, namespace):
     metadata = get_endpoint_ingress(name, namespace).metadata
     subject_name = metadata.annotations['allowed-values']
     return subject_name
-
-
-def get_ingress_pod_name(namespace):
-    all_pods = get_all_pods_in_namespace(namespace)
-    for item in all_pods.items:
-        pod_name = item.metadata.name
-        if 'nginx-ingress-controller' in pod_name:
-            return pod_name
-    return None

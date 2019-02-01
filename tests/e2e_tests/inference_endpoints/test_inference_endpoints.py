@@ -143,12 +143,12 @@ def wait_endpoint_setup():
     return running, pod_name
 
 
-def test_create_endpoint_with_bad_subject_name():
+def test_create_endpoint():
     params = {
         'modelName': MODEL_NAME,
         'modelVersionPolicy': CREATE_ENDPOINT_VP,
         'endpointName': ENDPOINT_NAME,
-        'subjectName': 'bad',
+        'subjectName': 'client',
         'resources': SENSIBLE_ENDPOINT_RESOURCES,
         'servingName': 'tf-serving',
     }
@@ -160,7 +160,7 @@ def test_create_endpoint_with_bad_subject_name():
     endpoint_info.info = get_url_from_response(endpoint_response)
     endpoint_info.pod_name = pod_name
     subject_name = get_ingress_subject_name(ENDPOINT_NAME, TENANT_NAME)
-    assert subject_name == 'CN=bad'
+    assert subject_name == 'CN=client'
     return endpoint_response
 
 
@@ -180,65 +180,6 @@ def perform_inference(rpc_timeout: float, image=image):
     logs = get_logs_of_pod(TENANT_NAME, endpoint_info.pod_name)
     logging.info(filter_serving_logs(logs))
     return prediction_response
-
-
-def test_prediction_with_certificates_and_wrong_subject_name():
-    endpoint_info.url = endpoint_info.info
-    trusted_cert, trusted_key, trusted_ca = prepare_certs(
-        CERT_SERVER,
-        CERT_CLIENT_KEY,
-        CERT_CLIENT)
-    endpoint_info.credentials = grpc.ssl_channel_credentials(root_certificates=trusted_cert,
-                                                             private_key=trusted_key,
-                                                             certificate_chain=trusted_ca)
-    # resnet_v1 test
-    prediction_response = perform_inference(10.0)
-    assert prediction_response == "Failed"
-
-
-def test_update_subject_name():
-    start_time = time.time()
-    params = {'subjectName': 'client'}
-    endpoint_response = update_endpoint(params)
-    assert "patched" in endpoint_response.text
-    assert endpoint_response.status_code == 200
-    updated = wait_ingress_setup(ING_NAMESPACE, TENANT_NAME, ENDPOINT_NAME, start_time)
-    assert updated is True
-    subject_name = get_ingress_subject_name(ENDPOINT_NAME, TENANT_NAME)
-    assert subject_name == 'CN=client'
-    return endpoint_response
-
-
-def wait_ingress_setup(ingress_namespace, endpoint_namespace, endpoint_name, start_time):
-    ingress_pod_name = get_ingress_pod_name(ingress_namespace)
-    updated = False
-    tick = time.time()
-    while tick - start_time < 200:
-        timer = int(tick - start_time)*10
-        tick = time.time()
-        try:
-            logs = get_logs_of_pod(ingress_namespace, ingress_pod_name, since_seconds=timer)
-            if retrieve_log_line_for_updated_ingress(logs, endpoint_namespace, endpoint_name):
-                updated = True
-                break
-        except Exception as e:
-            logging.info(e)
-            time.sleep(10)
-    return updated
-
-
-def retrieve_log_line_for_updated_ingress(logs, namespace, name):
-    logs = logs.splitlines()
-    counter = 0
-    for line in logs:
-        if namespace in line and name in line and "UPDATE" in line:
-            break
-        counter += 1
-    logs = logs[counter:]
-    for line in logs:
-        if 'Backend successfully reloaded' in line:
-            return True
-    return False
 
 
 def test_prediction_with_certificates():
