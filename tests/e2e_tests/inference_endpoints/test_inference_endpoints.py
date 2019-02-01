@@ -214,7 +214,7 @@ def wait_ingress_setup(ingress_namespace, endpoint_namespace, endpoint_name, sta
     updated = False
     tick = time.time()
     while tick - start_time < 200:
-        timer = int(tick - start_time)
+        timer = int(tick - start_time)*10
         tick = time.time()
         try:
             logs = get_logs_of_pod(ingress_namespace, ingress_pod_name, since_seconds=timer)
