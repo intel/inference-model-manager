@@ -86,12 +86,10 @@ let "TESTS_NUMBER++"
 [[ $response =~ "${ENDPOINT_NAME}" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
 
 echo "Waiting for running inference endpoint"
-for i in {1..60}
-do
-	echo -n "*"
-	sleep 1s
-done
-echo -e "\n"
+while [[ $status =~ 'AVAILABLE' ]]; do; status=`python ../examples/grpc_client/grpc_client.py \
+    "${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}:443" ${MODEL_NAME} \
+    --get_model_status --server_cert ${SERVER_CERT} --client_cert ${CLIENT_CERT} --client_key \
+    ${CLIENT_KEY} `; done
 
 echo "Run inference on numpy file"
 response=`./imm ri "${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}:443" ${MODEL_NAME} numpy ${NUMPY_PATH} 10 ${SERVER_CERT} ${CLIENT_CERT} ${CLIENT_KEY}`
