@@ -190,7 +190,8 @@ CORRECT_UPDATE_PARAMS = [
     {'modelName': 'new-name', 'modelVersionPolicy': '{specific {versions: 2}}'},
     {'modelName': 'new-name', 'modelVersionPolicy': '{specific {versions: 2}}', 'resources':
         {'limits.cpu': '500m', 'limits.memory': '500Mi', 'requests.cpu': '200m',
-         'requests.memory': '200Mi'}}
+         'requests.memory': '200Mi'}},
+    {'subjectName': 'updated'}
 ]
 
 
@@ -200,7 +201,9 @@ def test_update_endpoint(get_k8s_custom_obj_client, apps_api_instance,
     namespace, body = tenant_with_endpoint
     crd_server_name = body['spec']['endpointName']
     data = json.dumps(new_values)
-    new_values['modelVersionPolicy'] = normalize_version_policy(new_values['modelVersionPolicy'])
+    if 'modelVersionPolicy' in new_values:
+        new_values['modelVersionPolicy'] = \
+            normalize_version_policy(new_values['modelVersionPolicy'])
 
     url = ENDPOINT_MANAGEMENT_API_URL.format(endpoint_name=crd_server_name, tenant_name=namespace)
 

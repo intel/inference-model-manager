@@ -27,7 +27,6 @@ MINIO_ENDPOINT_ADDR = os.environ.get('MINIO_ENDPOINT_ADDR', 'http://127.0.0.1:90
 MINIO_REGION = os.environ.get('MINIO_REGION', 'us-east-1')
 SIGNATURE_VERSION = 's3v4'
 
-
 CRD_GROUP = 'ai.intel.com'
 CRD_VERSION = 'v1'
 CRD_PLURAL = 'inference-endpoints'

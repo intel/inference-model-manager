@@ -35,13 +35,14 @@ from model_upload import upload_model
 from e2e_tests.management_api_requests import create_tenant, delete_tenant, create_endpoint, \
     update_endpoint
 
-from e2e_tests.config import MODEL_NAME, TENANT_NAME, CREATE_ENDPOINT_VP, UPDATE_ENDPOINT_VP
+from e2e_tests.config import MODEL_NAME, TENANT_NAME, ENDPOINT_NAME, CREATE_ENDPOINT_VP,\
+    UPDATE_ENDPOINT_VP
 from e2e_tests.tf_serving_utils.load_numpy import IMAGES, LABELS, JPG_IMAGE
 from management_api_tests.authenticate import get_user_token
 from config import MANAGEMENT_API_URL, CERT_BAD_CLIENT, CERT_BAD_CLIENT_KEY, CERT_CLIENT, \
     CERT_CLIENT_KEY, CERT_SERVER, SENSIBLE_ENDPOINT_RESOURCES
 from conftest import get_all_pods_in_namespace, get_logs_of_pod, list_namespaces, \
-    download_saved_model_from_path
+    download_saved_model_from_path, get_ingress_subject_name
 
 
 class EndpointInfo:
@@ -146,7 +147,7 @@ def test_create_endpoint():
     params = {
         'modelName': MODEL_NAME,
         'modelVersionPolicy': CREATE_ENDPOINT_VP,
-        'endpointName': MODEL_NAME + 'endpoint',
+        'endpointName': ENDPOINT_NAME,
         'subjectName': 'client',
         'resources': SENSIBLE_ENDPOINT_RESOURCES,
         'servingName': 'tf-serving',
@@ -158,6 +159,8 @@ def test_create_endpoint():
     assert running is True
     endpoint_info.info = get_url_from_response(endpoint_response)
     endpoint_info.pod_name = pod_name
+    subject_name = get_ingress_subject_name(ENDPOINT_NAME, TENANT_NAME)
+    assert subject_name == 'CN=client'
     return endpoint_response
 
 
@@ -179,37 +182,7 @@ def perform_inference(rpc_timeout: float, image=image):
     return prediction_response
 
 
-@pytest.mark.skip
-def test_prediction_with_certificates_and_wrong_subject_name():
-    time.sleep(10)
-    endpoint_info.url = endpoint_info.info
-    trusted_cert, trusted_key, trusted_ca = prepare_certs(
-        CERT_SERVER,
-        CERT_CLIENT_KEY,
-        CERT_CLIENT)
-    endpoint_info.credentials = grpc.ssl_channel_credentials(root_certificates=trusted_cert,
-                                                             private_key=trusted_key,
-                                                             certificate_chain=trusted_ca)
-    # resnet_v1 test
-    prediction_response = perform_inference(10.0)
-    assert prediction_response == "Failed"
-
-
-@pytest.mark.skip
-def test_update_subject_name():
-    params = {'subjectName': 'client'}
-    endpoint_response = update_endpoint(params)
-    assert "patched" in endpoint_response.text
-    assert endpoint_response.status_code == 200
-    time.sleep(10)
-    running, pod_name = wait_endpoint_setup()
-    endpoint_info.pod_name = pod_name
-    assert running is True
-    return endpoint_response
-
-
 def test_prediction_with_certificates():
-    time.sleep(10)
     endpoint_info.url = endpoint_info.info
     trusted_cert, trusted_key, trusted_ca = prepare_certs(
         CERT_SERVER,
