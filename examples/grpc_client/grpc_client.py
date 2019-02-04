@@ -46,6 +46,7 @@ def get_stub_and_request(endpoint_address, model_name, certs, ssl, target_name, 
 
 def get_model_status(stub, request, kwargs):
     result = stub.GetModelStatus(request, RPC_TIMEOUT)  # 5 secs timeout
+    print(result)
     return result
 
 
