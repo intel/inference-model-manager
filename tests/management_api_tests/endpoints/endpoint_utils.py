@@ -114,15 +114,16 @@ def check_server_update_result(apps_api_instance, api_instance, namespace, endpo
     model_config = api_response_configmap.data['tf.conf']
     quota = container.resources.limits
     quota.update(container.resources.requests)
-    model_path = f'{namespace}/{new_values["modelName"]}'
     if 'resources' in new_values:
         new_values['resources'] = transform_quota(new_values['resources'])
         for key, value in new_values['resources']:
             if new_values[key] != quota[key]:
                 return CheckResult.CONTENTS_MISMATCHING
-    if ('name:"' + new_values['modelName']) not in model_config or (
-            's3://' + model_path) not in model_config:
-        return CheckResult.CONTENTS_MISMATCHING
+    if 'modelName' in new_values:
+        model_path = f'{namespace}/{new_values["modelName"]}'
+        if ('name:"' + new_values['modelName']) not in model_config or (
+                's3://' + model_path) not in model_config:
+            return CheckResult.CONTENTS_MISMATCHING
     return CheckResult.CONTENTS_MATCHING
 
 

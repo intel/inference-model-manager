@@ -367,3 +367,15 @@ def resource_quota(api_instance, quota={}, namespace=TENANT_NAME):
     body = client.V1ResourceQuota(spec=resource_quota_spec, metadata=name_object)
     api_instance.create_namespaced_resource_quota(namespace=namespace, body=body)
     return quota
+
+
+def get_endpoint_ingress(name, namespace):
+    extensions_api_instance = client.ExtensionsV1beta1Api(config.load_kube_config())
+    api_response = extensions_api_instance.read_namespaced_ingress(name, namespace)
+    return api_response
+
+
+def get_ingress_subject_name(name, namespace):
+    metadata = get_endpoint_ingress(name, namespace).metadata
+    subject_name = metadata.annotations['allowed-values']
+    return subject_name
