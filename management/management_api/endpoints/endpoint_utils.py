@@ -210,8 +210,8 @@ def get_endpoints_name_status(deployments, namespace):
             name = deployment.metadata.labels['endpoint']
             endpoint_name_status['name'] = name
             endpoint_name_status['url'] = create_url_to_service(name, namespace)['url']
-            endpoint_name_status['status'] = STATUSES[deployment.status.unavailable_replicas,
-                                                      deployment.status.available_replicas]
+            endpoint_name_status['status'] = STATUSES[not None if deployment.status.unavailable_replicas is not None else None,
+                                                      not None if deployment.status.available_replicas is not None else None]
             endpoints_name_status.append(endpoint_name_status)
         name_status = 'Endpoints present in {} tenant: {}\n'.format(
             namespace, endpoints_name_status)
