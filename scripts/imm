@@ -36,10 +36,11 @@ Examples:
 	.${0##*/} up e myendpoint mytenant --resources "{\"requests.cpu\":\"0\",\"requests.memory\":\"0\"}"
 	.${0##*/} u ./saved_model.pb mymodel 2 mytenant
 	.${0##*/} run-inference myendpoint-mytenant.example.com:443 mymodel numpy ../images.npy  10 server.crt client.crt client.key
+	.${0##*/} get model-status myendpoint-mytenant.example.com:443 mymodel server.crt client.crt client.key
 Operations:
-    create (c), remove (rm), update (up), scale (s), list (ls), login, logout, upload (u), run-inference (ri), view (v), get (g)
+	create (c), remove (rm), update (up), scale (s), list (ls), login, logout, upload (u), run-inference (ri), view (v), get (g)
 Resources:
-    tenant (t), endpoint (e), model (m), serving (s), model-status (ms)
+	tenant (t), endpoint (e), model (m), serving (s), model-status (ms)
 Environment variables:
 	IMM_CONFIG_PATH - Inference Model Manager config file
 	MANAGEMENT_API_ADDRESS - management api address
