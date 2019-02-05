@@ -169,6 +169,7 @@ To use this mode please add parameter:
 
 ##### get (g)
 - model-status (ms)
+  - **Currently available only for endpoints with tf-serving**
   - Required parameters: grpc_address, modelName, server_cert_path, client_cert_path, client_key_path 
   - Usage example:
     ```

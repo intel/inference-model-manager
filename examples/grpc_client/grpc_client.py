@@ -167,7 +167,7 @@ def run_grpc_client():
     files.add_argument('--images_numpy_path', help='Numpy in shape [n,w,h,c]')
     files.add_argument('--images_list', help='Images in .jpg format')
     files.add_argument('--get_model_status', action='store_true',
-                       help='Set to get model status')
+                       help='Set to get model status (available for endpoint with tf-serving)')
 
     parser.add_argument('--input_name', required=False, default='in',
                         help='Input tensor of model. Default: in')
