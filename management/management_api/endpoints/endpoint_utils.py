@@ -16,26 +16,22 @@
 
 import os
 import re
-
-from kubernetes.client.rest import ApiException
-
 from botocore.exceptions import ClientError
-
+from kubernetes.client.rest import ApiException
+from management_api.config import CRD_GROUP, CRD_VERSION, CRD_PLURAL, \
+    CRD_API_VERSION, CRD_KIND, PLATFORM_DOMAIN, DELETE_BODY, DEFAULT_MODEL_VERSION_POLICY, \
+    STATUSES
 from management_api.config import minio_resource
+from management_api.tenants.tenants_utils import tenant_exists
 from management_api.utils.errors_handling import KubernetesCreateException, \
     KubernetesDeleteException, KubernetesUpdateException, \
     KubernetesGetException, TenantDoesNotExistException, EndpointDoesNotExistException, \
     EndpointsReachedMaximumException
-from management_api.utils.logger import get_logger
 from management_api.utils.kubernetes_resources import get_crd_subject_name_and_resources, \
-    get_k8s_api_custom_client, get_k8s_api_client, get_k8s_apps_api_client,\
+    get_k8s_api_custom_client, get_k8s_api_client, get_k8s_apps_api_client, \
     validate_quota_compliance, transform_quota, get_replicas, endpoint_exists, \
     get_endpoint_status
-from management_api.config import CRD_GROUP, CRD_VERSION, CRD_PLURAL, \
-    CRD_API_VERSION, CRD_KIND, PLATFORM_DOMAIN, DELETE_BODY, DEFAULT_MODEL_VERSION_POLICY, \
-    STATUSES
-from management_api.tenants.tenants_utils import tenant_exists
-
+from management_api.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -99,10 +95,10 @@ def delete_endpoint(parameters: dict, namespace: str, id_token: str):
 def create_url_to_service(endpoint_name, namespace):
     port = os.getenv("INFERENCE_PORT", 443)
     path = "{endpoint_name}-{namespace}.{platform_domain}:{inference_port}" \
-           .format(endpoint_name=endpoint_name,
-                   namespace=namespace,
-                   platform_domain=PLATFORM_DOMAIN,
-                   inference_port=port)
+        .format(endpoint_name=endpoint_name,
+                namespace=namespace,
+                platform_domain=PLATFORM_DOMAIN,
+                inference_port=port)
     data_for_request = {'url': path}
 
     return data_for_request
@@ -210,8 +206,9 @@ def get_endpoints_name_status(deployments, namespace):
             name = deployment.metadata.labels['endpoint']
             endpoint_name_status['name'] = name
             endpoint_name_status['url'] = create_url_to_service(name, namespace)['url']
-            endpoint_name_status['status'] = STATUSES[not None if deployment.status.unavailable_replicas is not None else None,
-                                                      not None if deployment.status.available_replicas is not None else None]
+            endpoint_name_status['status'] = STATUSES[
+                not None if deployment.status.unavailable_replicas is not None else None,
+                not None if deployment.status.available_replicas is not None else None]
             endpoints_name_status.append(endpoint_name_status)
         name_status = 'Endpoints present in {} tenant: {}\n'.format(
             namespace, endpoints_name_status)
