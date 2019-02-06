@@ -22,11 +22,15 @@ import datetime
 import argparse
 
 import classes
-from grpc_client_utils import prepare_certs, prepare_stub_and_request
+from grpc_client_utils import prepare_certs, prepare_stub_and_request, MODEL_STATUS_REQUEST, \
+                              INFERENCE_REQUEST
 from images_2_numpy import load_images_from_list
 
+RPC_TIMEOUT = 5.0
 
-def get_stub_and_request(endpoint_address, model_name, certs, ssl, target_name):
+
+def get_stub_and_request(endpoint_address, model_name, certs, ssl, target_name, request_type):
+    request_type = INFERENCE_REQUEST if request_type is None else request_type
     if ssl:
         server_ca_cert, client_key, client_cert = prepare_certs(server_cert=certs['server_cert'],
                                                                 client_key=certs['client_key'],
@@ -34,11 +38,19 @@ def get_stub_and_request(endpoint_address, model_name, certs, ssl, target_name):
         creds = grpc.ssl_channel_credentials(root_certificates=server_ca_cert,
                                              private_key=client_key, certificate_chain=client_cert)
         stub, request = prepare_stub_and_request(address=endpoint_address, model_name=model_name,
-                                                 creds=creds, opts=target_name)
+                                                 creds=creds, opts=target_name,
+                                                 request_type=request_type)
     else:
         stub, request = prepare_stub_and_request(address=endpoint_address, model_name=model_name,
-                                                 creds=None, opts=target_name)
+                                                 creds=None, opts=target_name,
+                                                 request_type=request_type)
     return stub, request
+
+
+def get_model_status(stub, request, kwargs):
+    result = stub.GetModelStatus(request, RPC_TIMEOUT)  # 5 secs timeout
+    print(result)
+    return result
 
 
 def prepare_images(kwargs):
@@ -123,19 +135,24 @@ def main(**kwargs):
 
     ssl = False if kwargs['no_ssl'] else True
     stub, request = get_stub_and_request(
-        kwargs['grpc_address'], kwargs['model_name'], certs, ssl, kwargs['target_name'])
+        kwargs['grpc_address'],
+        kwargs['model_name'], certs, ssl, kwargs['target_name'],
+        kwargs['request_type'])
 
-    imgs = prepare_images(kwargs)
+    if kwargs['request_type'] == MODEL_STATUS_REQUEST:
+        output = get_model_status(stub, request, kwargs)
+    else:
+        imgs = prepare_images(kwargs)
 
-    if kwargs['transpose_input']:
-        imgs = imgs.transpose((0, 2, 3, 1))
+        if kwargs['transpose_input']:
+            imgs = imgs.transpose((0, 2, 3, 1))
 
-    output = inference(stub, request, imgs, kwargs)
+        output = inference(stub, request, imgs, kwargs)
 
     return output
 
 
-def run_inference():
+def run_grpc_client():
     parser = argparse.ArgumentParser(
         description='Do requests to Tensorflow Serving using jpg images or images in numpy format')
 
@@ -152,6 +169,8 @@ def run_inference():
     files = parser.add_mutually_exclusive_group(required=True)
     files.add_argument('--images_numpy_path', help='Numpy in shape [n,w,h,c]')
     files.add_argument('--images_list', help='Images in .jpg format')
+    files.add_argument('--request_type',
+                       help='Set to "status" to get model status (available for tf-serving)')
 
     parser.add_argument('--input_name', required=False, default='in',
                         help='Input tensor of model. Default: in')
@@ -179,4 +198,4 @@ def run_inference():
 
 
 if __name__ == "__main__":
-    run_inference()
+    run_grpc_client()

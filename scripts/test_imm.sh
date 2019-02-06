@@ -86,11 +86,7 @@ let "TESTS_NUMBER++"
 [[ $response =~ "${ENDPOINT_NAME}" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
 
 echo "Waiting for running inference endpoint"
-for i in {1..60}
-do
-	echo -n "*"
-	sleep 1s
-done
+while [[ ! $status =~ 'AVAILABLE' ]]; do sleep 5; status=`./imm g ms "${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}:443" ${MODEL_NAME} ${SERVER_CERT} ${CLIENT_CERT} ${CLIENT_KEY}`; echo -n "*"; done
 echo -e "\n"
 
 echo "Run inference on numpy file"

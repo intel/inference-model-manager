@@ -167,6 +167,15 @@ To use this mode please add parameter:
     ./imm v s ovms | yq -y '.'
     ```
 
+##### get (g)
+- model-status (ms)
+  - **Currently available only for endpoints with tf-serving**
+  - Required parameters: grpc_address, modelName, server_cert_path, client_cert_path, client_key_path 
+  - Usage example:
+    ```
+    ./imm g ms myendpoint-mytenant.example.com:443 mymodel ./server-tf.crt ./client-tf.crt ./client-tf.key 
+    ```
+
 #### Environment variables
 - `IMM_CONFIG_PATH` - Inference Model Manager config file, default: `~/.immconfig`
 - `MANAGEMENT_API_ADDRESS` - management api address, can be provided with `-a` option, default: `127.0.0.1`

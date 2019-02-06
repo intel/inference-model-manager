@@ -336,6 +336,7 @@ def test_grpc_client(images_list, images_numpy_path):
                   no_ssl=None,
                   transpose_input=None,
                   performance='',
+                  request_type=None,
                   no_imagenet_classes=None)
 
     assert output is not None

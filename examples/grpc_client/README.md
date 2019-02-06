@@ -20,7 +20,7 @@ pip install -r requirements.txt
 
 ### About
 
-`grpc_client.py` allows to make requests to endpoint which contains served Resnet model. To use it, 
+`grpc_client.py` allows to make requests to endpoint which contains served Resnet model. To use it for inference, 
 you need some images in .jpg format or numpy array in .npy format.  
 Default setting is to use certificate validation. You can change this behaviour by specifying `--no-ssl` flag.  
 
@@ -31,7 +31,7 @@ Run help `python grpc_client --help`:
 usage: grpc_client.py [-h] [--target_name TARGET_NAME]
                       [--server_cert SERVER_CERT] [--client_cert CLIENT_CERT]
                       [--client_key CLIENT_KEY]
-                      (--images_numpy_path IMAGES_NUMPY_PATH | --images_list IMAGES_LIST)
+                      (--images_numpy_path IMAGES_NUMPY_PATH | --images_list IMAGES_LIST | --request_type REQUEST_TYPE)
                       [--input_name INPUT_NAME] [--output_name OUTPUT_NAME]
                       [--image_size IMAGE_SIZE]
                       [--images_number IMAGES_NUMBER]
@@ -75,12 +75,20 @@ optional arguments:
   --performance         Enable processing performance info
   --no_imagenet_classes
                         Set for models without Imagenet classes
+  --request_type        Set to "status" to get model status (available for tf-serving)
 ```
 
 
 #### Example command
+* inference
 ```
 python grpc_client.py endpoint_address.domain.com:443 model-name --images_list image.jpg \
+--server_cert <path_to_server_cert> --client_cert <path_to_client_cert> --client_key <path_to_client_key>
+```
+* getting model status
+**Currently this option is available only for endpoints with tf-serving**
+```
+python grpc_client.py endpoint_address.domain.com:443 model-name --request_type status \
 --server_cert <path_to_server_cert> --client_cert <path_to_client_cert> --client_key <path_to_client_key>
 ```
 
