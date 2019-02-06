@@ -1,3 +1,4 @@
+#!/bin/bash
 . ../utils/fill_template.sh
 . ../utils/messages.sh
 MINIO_ACCESS_KEY=$1
@@ -9,6 +10,7 @@ header "Installing test minio storage"
 cd ../../helm-deployment/minio-subchart
 fill_template "<minio_access_key>" $MINIO_ACCESS_KEY  values.yaml
 fill_template "<minio_secret_key>" $MINIO_SECRET_KEY values.yaml
+helm dep up .
 helm install . -n test-minio
 FAILED=$?
 show_result "$FAILED" "Minio storage installed" "Failed to install Minio storage"

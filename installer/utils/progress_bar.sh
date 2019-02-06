@@ -1,3 +1,4 @@
+#!/bin/bash
 # import from the same directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 . $DIR/messages.sh

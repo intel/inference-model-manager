@@ -1,3 +1,4 @@
+#!/bin/bash
 . ../utils/fill_template.sh
 . ../utils/messages.sh
 

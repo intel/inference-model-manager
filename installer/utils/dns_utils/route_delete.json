@@ -3,9 +3,9 @@
             "Changes": [{
             "Action": "DELETE",
                         "ResourceRecordSet": {
-                                    "Name": "*.krzych.nlpnp.adsdcsp.com",
+                                    "Name": "*.bszelag.nlpnp.adsdcsp.com",
                                     "Type": "A",
                                     "TTL": 300,
-                                 "ResourceRecords": [{ "Value": "35.233.148.9"}]
+                                 "ResourceRecords": [{ "Value": "35.185.244.129"}]
 }}]
 }

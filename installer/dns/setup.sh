@@ -1,3 +1,4 @@
+#!/bin/bash
 . ../utils/messages.sh
 
 DOMAIN_NAME=$1
@@ -8,8 +9,10 @@ do
 if  [[ "$EXTERNAL_IP" != "<pending>" ]]
 then
   break
-fi 
-EXTERNAL_IP=`kubectl get services -n ingress-nginx|grep ingress-nginx|awk '{print $4}'`
+fi
+
+[[ $OSTYPE == "darwin"* ]] && EXTERNAL_IP=`kubectl get services -n ingress-nginx|grep ingress-nginx|awk '{print $4}'` \
+                           || EXTERNAL_IP=`kubectl get services -n ingress-nginx|grep ingress-nginx|awk '{print $3}'`
 success "External ip found: $EXTERNAL_IP"
 sleep 5
 done

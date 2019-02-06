@@ -1,4 +1,4 @@
-
+#!/bin/bash
 function fill_template() {
 PATTERN=$1
 REPLACEMENT=$2

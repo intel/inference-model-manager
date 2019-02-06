@@ -1,3 +1,4 @@
+#!/bin/bash
 . ../utils/messages.sh
 . ../utils/wait_for_pod.sh
 header "Installing ingress controller"

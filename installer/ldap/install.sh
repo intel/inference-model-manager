@@ -1,3 +1,4 @@
+#!/bin/bash
 . ../utils/messages.sh
 cd ../../helm-deployment/ldap
 header "Installing LDAP"

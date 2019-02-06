@@ -1,7 +1,8 @@
+#!/bin/bash
 CLUSTER_NAME=$1
 REGISTRY_URL="gcr.io/constant-cubist-173123/"
 CRD_IMAGE_NAME="server-controller-prod"
-IMAGES_TAG="krzych"
+IMAGES_TAG="latest"
 DNS_DOMAIN_NAME=$2
 #"kops-test.nlpnp.adsdcsp.com"
 MINIO_ACCESS_KEY="my_minio_key"
@@ -11,6 +12,7 @@ MINIO_URL=minio.$DNS_DOMAIN_NAME
 export ISSUER=https://dex.$DNS_DOMAIN_NAME:443/dex # change 443 port if using kubernetes node port instead of load balancer
 export DEX_NAMESPACE=dex
 export DEX_DOMAIN_NAME=dex.$DNS_DOMAIN_NAME
+export DOMAIN_NAME=$DNS_DOMAIN_NAME
 
 echo "All args:[ $@ ]"
 #SKIP_K8S_INSTALL="yes"

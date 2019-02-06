@@ -5,7 +5,6 @@
 
 export PROJECT=`gcloud config get-value project`
 export KOPS_FEATURE_FLAGS=AlphaAllowGCE
-export GOOGLE_APPLICATION_CREDENTIALS="/Users/kbalka/.config/gcloud/legacy_credentials/krzysztof.balka@intel.com/adc.json"
 export KOPS_STATE_STORE=gs://kubernetes-clusters-imm
 ```
 #### Create cluster

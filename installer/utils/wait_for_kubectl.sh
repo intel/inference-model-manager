@@ -1,4 +1,4 @@
-
+#!/bin/bash
 function wait_for_kubectl() {
   seconds=$1 
   steps=$(($seconds/5))      

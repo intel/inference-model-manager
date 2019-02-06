@@ -1,3 +1,4 @@
+#!/bin/bash
 CLUSTER_NAME=$1
 DNS_DOMAIN_NAME=$2
 export SED_CMD="gsed"

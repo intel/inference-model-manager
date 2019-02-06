@@ -1,3 +1,4 @@
+#!/bin/bash
 function header() {
 TEXT="$1"
 YELLOW='\033[1;33m'

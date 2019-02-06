@@ -1,3 +1,4 @@
+#!/bin/bash
 DNS_DOMAIN_NAME="krzych2.nlpnp.adsdcsp.com"
 cd validate
 . test_dex_ldap.sh https://dex.$DNS_DOMAIN_NAME

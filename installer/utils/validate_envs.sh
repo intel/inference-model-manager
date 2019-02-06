@@ -1,4 +1,4 @@
-
+#!/bin/bash
 params=("CLUSTER_NAME" "REGISTRY_URL" "CRD_IMAGE_NAME" "IMAGES_TAG" "DNS_DOMAIN_NAME")
 
 empty=""
