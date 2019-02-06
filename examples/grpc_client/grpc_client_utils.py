@@ -22,6 +22,10 @@ from tensorflow_serving.apis import get_model_status_pb2
 from tensorflow_serving.apis import model_service_pb2_grpc
 
 
+INFERENCE_REQUEST = 'inference'
+MODEL_STATUS_REQUEST = 'status'
+
+
 def prepare_certs(server_cert=None, client_key=None, client_ca=None):
     if server_cert is not None:
         with open(server_cert, 'rb') as f:
@@ -36,7 +40,7 @@ def prepare_certs(server_cert=None, client_key=None, client_ca=None):
 
 
 def prepare_stub_and_request(address, model_name, model_version=None, creds=None, opts=None,
-                             get_model_status=False):
+                             request_type=INFERENCE_REQUEST):
     if opts is not None:
         opts = (('grpc.ssl_target_name_override', opts),)
     if creds is not None:
@@ -45,10 +49,10 @@ def prepare_stub_and_request(address, model_name, model_version=None, creds=None
         channel = grpc.insecure_channel(address, options=opts)
     request = None
     stub = None
-    if get_model_status:
+    if request_type == MODEL_STATUS_REQUEST:
         request = get_model_status_pb2.GetModelStatusRequest()
         stub = model_service_pb2_grpc.ModelServiceStub(channel)
-    else:
+    elif request_type == INFERENCE_REQUEST:
         stub = prediction_service_pb2_grpc.PredictionServiceStub(channel)
         request = predict_pb2.PredictRequest()
     request.model_spec.name = model_name

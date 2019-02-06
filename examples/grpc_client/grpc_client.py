@@ -22,13 +22,13 @@ import datetime
 import argparse
 
 import classes
-from grpc_client_utils import prepare_certs, prepare_stub_and_request
+from grpc_client_utils import prepare_certs, prepare_stub_and_request, MODEL_STATUS_REQUEST
 from images_2_numpy import load_images_from_list
 
 RPC_TIMEOUT = 5.0
 
 
-def get_stub_and_request(endpoint_address, model_name, certs, ssl, target_name, get_model_status):
+def get_stub_and_request(endpoint_address, model_name, certs, ssl, target_name, request_type):
     if ssl:
         server_ca_cert, client_key, client_cert = prepare_certs(server_cert=certs['server_cert'],
                                                                 client_key=certs['client_key'],
@@ -37,10 +37,11 @@ def get_stub_and_request(endpoint_address, model_name, certs, ssl, target_name, 
                                              private_key=client_key, certificate_chain=client_cert)
         stub, request = prepare_stub_and_request(address=endpoint_address, model_name=model_name,
                                                  creds=creds, opts=target_name,
-                                                 get_model_status=get_model_status)
+                                                 request_type=request_type)
     else:
         stub, request = prepare_stub_and_request(address=endpoint_address, model_name=model_name,
-                                                 creds=None, opts=target_name)
+                                                 creds=None, opts=target_name,
+                                                 request_type=request_type)
     return stub, request
 
 
@@ -134,9 +135,9 @@ def main(**kwargs):
     stub, request = get_stub_and_request(
         kwargs['grpc_address'],
         kwargs['model_name'], certs, ssl, kwargs['target_name'],
-        kwargs['get_model_status'])
+        kwargs['request_type'])
 
-    if kwargs['get_model_status']:
+    if kwargs['request_type'] == MODEL_STATUS_REQUEST:
         output = get_model_status(stub, request, kwargs)
     else:
         imgs = prepare_images(kwargs)
@@ -166,8 +167,8 @@ def run_grpc_client():
     files = parser.add_mutually_exclusive_group(required=True)
     files.add_argument('--images_numpy_path', help='Numpy in shape [n,w,h,c]')
     files.add_argument('--images_list', help='Images in .jpg format')
-    files.add_argument('--get_model_status', action='store_true',
-                       help='Set to get model status (available for endpoint with tf-serving)')
+    files.add_argument('--request_type',
+                       help='Set to "status" to get model status (available for tf-serving)')
 
     parser.add_argument('--input_name', required=False, default='in',
                         help='Input tensor of model. Default: in')
