@@ -22,13 +22,15 @@ import datetime
 import argparse
 
 import classes
-from grpc_client_utils import prepare_certs, prepare_stub_and_request, MODEL_STATUS_REQUEST
+from grpc_client_utils import prepare_certs, prepare_stub_and_request, MODEL_STATUS_REQUEST, \
+                              INFERENCE_REQUEST
 from images_2_numpy import load_images_from_list
 
 RPC_TIMEOUT = 5.0
 
 
 def get_stub_and_request(endpoint_address, model_name, certs, ssl, target_name, request_type):
+    request_type = INFERENCE_REQUEST if request_type is None else request_type
     if ssl:
         server_ca_cert, client_key, client_cert = prepare_certs(server_cert=certs['server_cert'],
                                                                 client_key=certs['client_key'],

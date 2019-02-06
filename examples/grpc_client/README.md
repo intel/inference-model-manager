@@ -31,12 +31,12 @@ Run help `python grpc_client --help`:
 usage: grpc_client.py [-h] [--target_name TARGET_NAME]
                       [--server_cert SERVER_CERT] [--client_cert CLIENT_CERT]
                       [--client_key CLIENT_KEY]
-                      (--images_numpy_path IMAGES_NUMPY_PATH | --images_list IMAGES_LIST)
+                      (--images_numpy_path IMAGES_NUMPY_PATH | --images_list IMAGES_LIST | --request_type REQUEST_TYPE)
                       [--input_name INPUT_NAME] [--output_name OUTPUT_NAME]
                       [--image_size IMAGE_SIZE]
                       [--images_number IMAGES_NUMBER]
                       [--batch_size BATCH_SIZE] [--no-ssl] [--transpose_input]
-                      [--performance] [--no_imagenet_classes] [--get_model_status]
+                      [--performance] [--no_imagenet_classes]
                       grpc_address model_name
 
 Do requests to Tensorflow Serving using jpg images or images in numpy format
