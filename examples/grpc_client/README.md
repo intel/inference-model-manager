@@ -75,7 +75,7 @@ optional arguments:
   --performance         Enable processing performance info
   --no_imagenet_classes
                         Set for models without Imagenet classes
-  --get_model_status    Set to get model status (available for endpoint with tf-serving)
+  --request_type        Set to "status" to get model status (available for tf-serving)
 ```
 
 
@@ -88,7 +88,7 @@ python grpc_client.py endpoint_address.domain.com:443 model-name --images_list i
 * getting model status
 **Currently this option is available only for endpoints with tf-serving**
 ```
-python grpc_client.py endpoint_address.domain.com:443 model-name --get_model_status \
+python grpc_client.py endpoint_address.domain.com:443 model-name --request_type status \
 --server_cert <path_to_server_cert> --client_cert <path_to_client_cert> --client_key <path_to_client_key>
 ```
 

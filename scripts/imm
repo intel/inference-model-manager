@@ -375,7 +375,7 @@ case "$OPERATION" in
                 [[ -z ${PARAM_4} ]] && read -p "Please provide path to client cert " PARAM_4
                 [[ -z ${PARAM_5} ]] && read -p "Please provide path to client key " PARAM_5
                 python ../examples/grpc_client/grpc_client.py ${PARAM_1} ${PARAM_2} \
-                --get_model_status --server_cert ${PARAM_3} \
+                --request_type status --server_cert ${PARAM_3} \
                 --client_cert ${PARAM_4} --client_key ${PARAM_5}
                 ;;
         esac        
