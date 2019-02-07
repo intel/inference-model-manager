@@ -58,4 +58,4 @@ def abort_upload(bucket: str, key: str, multipart_id: str):
 
 
 def get_key(body):
-    return f"{body['modelName']}/{body['modelVersion']}/{body['fileName']}"
+    return f"{body['modelName']}/{body['modelVersion']}/{body['fileName']}/{body['key']}"

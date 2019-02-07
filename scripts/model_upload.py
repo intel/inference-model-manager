@@ -18,6 +18,8 @@ import os
 
 import requests
 
+from management_api.config import minio_client
+
 
 def upload_part(url, params, headers, data, parts, verify):
     print("Sending part nr {} of current upload...".format(params['partNumber']))
@@ -31,14 +33,28 @@ def upload_part(url, params, headers, data, parts, verify):
     parts.append({'ETag': part_etag, 'PartNumber': params['partNumber']})
 
 
-def upload_model(url, params, headers, part_size, verify=False):
+def upload_dir(url, params, headers, part_size, verify=False):
+    key = ''
+    i = 0
+    for dir_name, subdir_list, file_list in os.walk(params['file_path']):
+        if i > 1:
+            key += '{}'.format(dir_name.split('/')[-1])
+        print('Found directory: {}'.format(dir_name))
+        for file_name in file_list:
+            params['file_path'] = '{}/{}'.format(dir_name, file_name)
+            upload_model(url, params, headers, part_size, verify, key=key)
+            print('\t{}'.format(file_name))
+        i += 1
+
+
+def upload_model(url, params, headers, part_size, verify=False, key=''):
     model_name = params['model_name']
     model_version = params['model_version']
     file_path = params['file_path']
-    file_name = os.path.basename(file_path)
+    file_name = '{}/{}'.format(key, os.path.basename(file_path))
 
     # --- Initiating upload
-    data = {'modelName': model_name, 'modelVersion': model_version, 'fileName': file_name}
+    data = {'modelName': model_name, 'modelVersion': model_version, 'fileName': file_name, 'key': key}
     response = requests.post(url + "/upload/start", json=data, headers=headers, verify=verify)
     if response.status_code != 200:
         print("Could not initiate upload: {}".format(response.text))
