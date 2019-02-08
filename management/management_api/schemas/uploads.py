@@ -15,7 +15,7 @@
 #
 
 from management_api.schemas.elements.models import model_name, model_version, upload_id, \
-    file_name, parts
+    file_name, parts, dir
 
 multipart_start_schema = {
     "type": "object",
@@ -65,5 +65,17 @@ multipart_abort_schema = {
         "modelVersion": model_version,
         "fileName": file_name,
         "uploadId": upload_id
+    }
+}
+
+
+upload_dir_schema = {
+    "type": "object",
+    "title": "Create directory inside bucket",
+    "required": [
+        "dir"
+    ],
+    "properties": {
+        "dir": dir
     }
 }

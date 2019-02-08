@@ -24,8 +24,8 @@ def create_upload(bucket: str, key: str):
     try:
         response = minio_client.create_multipart_upload(Bucket=bucket, Key=key)
     except ClientError as clientError:
-        raise MinioCallException('An error occurred during multipart upload starting: {}'.
-                                 format(clientError))
+        raise MinioCallException(f'An error occurred during multipart upload starting: '
+                                 f'{clientError}')
     return response['UploadId']
 
 
@@ -35,8 +35,7 @@ def upload_part(data: bytes, part_number: int, bucket: str, key: str, multipart_
         response = minio_client.upload_part(Body=data, PartNumber=part_number,
                                             Bucket=bucket, Key=key, UploadId=multipart_id)
     except ClientError as clientError:
-        raise MinioCallException('An error occurred during part uploading: {}'.
-                                 format(clientError))
+        raise MinioCallException(f'An error occurred during part uploading: {clientError}')
     return response['ETag']
 
 
@@ -45,9 +44,8 @@ def complete_upload(bucket: str, key: str, multipart_id: str, parts: list):
         minio_client.complete_multipart_upload(Bucket=bucket, Key=key, UploadId=multipart_id,
                                                MultipartUpload={'Parts': parts})
     except ClientError as clientError:
-        raise MinioCallException('An error occurred during multipart upload finishing: {}'.
-                                 format(clientError))
-
+        raise MinioCallException(f'An error occurred during multipart upload finishing: '
+                                 f'{clientError}')
 
 def abort_upload(bucket: str, key: str, multipart_id: str):
     try:
@@ -58,4 +56,17 @@ def abort_upload(bucket: str, key: str, multipart_id: str):
 
 
 def get_key(body):
-    return f"{body['modelName']}/{body['modelVersion']}/{body['fileName']}/{body['key']}"
+    return f"{body['modelName']}/{body['modelVersion']}/{body['fileName']}"
+
+
+def get_dir_key(body):
+    return f"{body['modelName']}/{body['modelVersion']}/{body['dir']}/"
+
+
+def create_dir(bucket, key):
+    try:
+        response = minio_client.put_object(Bucket=bucket, Key=key, Body='')
+    except ClientError as clientError:
+        raise MinioCallException(f'An error occurred during creation of dir in Minio: '
+                                 f'{clientError}')
+    return response

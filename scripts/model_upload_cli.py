@@ -21,7 +21,7 @@ import time
 from os import getenv
 from os.path import expanduser, join
 
-from model_upload import upload_model, upload_dir
+from model_upload import upload
 
 
 def read_config():
@@ -71,16 +71,14 @@ def main():
         'model_name': args.model_name,
         'model_version': args.model_version,
         'file_path': os.path.abspath(args.file_path),
+        'tenant': args.tenant
     }
     url = "https://{}:{}/tenants/{}".format(config['management_api_address'],
                                             config['management_api_port'], args.tenant)
 
     start_time = time.time()
     try:
-        if os.path.isfile(params['file_path']):
-            upload_model(url, params, headers, args.part, verify)
-        elif os.path.isdir(params['file_path']):
-            upload_dir(url, params, headers, args.part, verify)
+        upload(url, params, headers, args.part, verify)
     except Exception as e:
         print("Unexpected error ocurred while uploading: {}".format(e))
     end_time = time.time()

@@ -23,9 +23,9 @@ from management_api.tenants.tenants_utils import tenant_exists
 from management_api.utils.errors_handling import TenantDoesNotExistException, \
     MissingParamException, InvalidParamException
 from management_api.upload.multipart_utils import create_upload, get_key, complete_upload, \
-    upload_part, abort_upload
+    upload_part, abort_upload, create_dir, get_dir_key
 from management_api.schemas.uploads import multipart_start_schema, multipart_done_schema,\
-    multipart_abort_schema
+    multipart_abort_schema, upload_dir_schema
 
 
 logger = get_logger(__name__)
@@ -39,7 +39,6 @@ class StartMultiModel(object):
         key = get_key(body)
         if not tenant_exists(namespace, id_token=req.get_header('Authorization')):
             raise TenantDoesNotExistException(tenant_name=namespace)
-
         upload_id = create_upload(bucket=namespace, key=key)
         logger.info("Key: " + key + " ID: " + upload_id)
         resp.status = falcon.HTTP_200
@@ -105,3 +104,16 @@ class AbortMultiModel(object):
         abort_upload(bucket=namespace, key=key, multipart_id=body['uploadId'])
         resp.status = falcon.HTTP_200
         resp.body = f"Upload with ID: {body['uploadId']} aborted successfully"
+
+
+class UploadDir(object):
+    @jsonschema.validate(upload_dir_schema)
+    def on_post(self, req, resp, tenant_name):
+        namespace = tenant_name
+        body = req.media
+        key = get_dir_key(body)
+        if not tenant_exists(namespace, id_token=req.get_header('Authorization')):
+            raise TenantDoesNotExistException(tenant_name=namespace)
+        response = create_dir(tenant_name, key)
+        resp.status = falcon.HTTP_200
+        resp.body = f"Dir created: {response}"
