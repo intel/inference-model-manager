@@ -215,7 +215,24 @@ More information: `./imm -h`.
 Recommended way to upload models is to use `model_upload_cli.py` script.  
 Example:
 ```
-python model_upload_cli.py model-name model-version tenant-name
+python model_upload_cli.py model.pb model-name model-version tenant-name
 ```
 
+It is possible to upload saved models also. For Tensorflow Serving saved models have specific dir tree, for example:
+```
+resnet/
+    1/
+        saved_model.pb
+        variables/
+            variables.data-0000-of-00001
+            variables.index
+``` 
+For directory upload pass a path to a directory:
+```
+python model_upload_cli.py dir-path model-name model-version tenant-name
+```
+Example:
+```
+python model_upload_cli.py resnet resnet-model 1 tenant
+```
 More info: `python model_upload_cli.py -h`
