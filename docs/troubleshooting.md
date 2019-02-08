@@ -71,4 +71,3 @@ kubectl -n kube-system create serviceaccount tiller
 ### How to configure helm on kubespray
 
 Set flag `helm_enabled: true` in `inventory/<clustername>/k8s-cluster/addons.yml`
-

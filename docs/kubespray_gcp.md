@@ -2,16 +2,22 @@
 ## Example on Google Cloud Platform
 
 Create VMs with gcloud:
+
 ```
 gcloud compute instances create instance-1 instance-2 instance-3 --zone <zone>
 ```
+
 Clone kubespray repository.
+
 Check IP adresses of above instances and add them to inventory definition of your cluster.
+
 Note that your ssh key must be copied to all machines mentioned in inventory configuration.
 
-Run ansible playbook inside clone of kubespray repository
-ansible-playbook -u <user> -e ansible_ssh_user=admin -e cloud_provider=gce -b --become-user=root -i inventory/<your inventory configuration> cluster.yml --private-key=~/.ssh/private_key
 
+Run ansible playbook inside clone of kubespray repository
+```
+ansible-playbook -u <user> -e ansible_ssh_user=admin -e cloud_provider=gce -b --become-user=root -i inventory/<your inventory configuration> cluster.yml --private-key=~/.ssh/private_key
+```
 
 Clone inference-model-manager repository and go through installation procedure.
 
@@ -24,6 +30,7 @@ cd /etc/kubernetes/manifests/
 vi kube-apiserver.yaml
 ```
 Add following flags with desired values
+
 [More information about oidc flags here](../blob/master/docs/deployment.md)
 
 ```
