@@ -18,9 +18,6 @@ header "Generating certificates for IMM Management API"
 ./generate-management-api-certs.sh
 ./scriptcert.sh
 
-
-#kubectl get secret ca-secret-dex -n dex -o yaml > dex_ca.yaml && yq r dex_ca.yaml data|awk '{ print $2 }'|base64 --decode > ca-dex.crt
-#kubectl get secret -n dex ca-secret-dex -o yaml | yq r - '.data | .["ca.crt"]' | base64 --decode > ca-dex.crt
 kubectl get secret -n dex ca-secret-dex -o yaml | yq r - 'data."ca.crt"' | base64 --decode > ca-dex.crt
 
 cd -
@@ -38,8 +35,6 @@ fill_template "<minio_endpoint_url>" http://$MINIO_ENDPOINT values.yaml
 fill_template "<groupName>" admin values.yaml
 fill_template "<adminScope>" admin values.yaml
 fill_template "<platformAdmin>" admin values.yaml
-fill_template "<image_path>" gcr.io/constant-cubist-173123/management-api values.yaml
-fill_template "<image_tag>" latest values.yaml
 
 helm install .
 show_result $? "Installation of Management API succeded" "Failed to install Management API"
