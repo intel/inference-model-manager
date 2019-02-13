@@ -1,8 +1,9 @@
-dex/dex_config.yaml
-k8s/cluster.yaml
-k8s/config.yaml
-k8s/config_oidc.yaml
-k8s/oidc.yaml
-minio/minio_ing.yaml
-validate/__pycache__/
-utils/dns_utils/.venvaws
+installer/dex/dex_config.yaml
+installer/k8s/ca-ing-dex.crt
+installer/k8s/cluster.yaml
+installer/k8s/config.yaml
+installer/k8s/config_oidc.yaml
+installer/k8s/oidc.yaml
+installer/minio/minio_ing.yaml
+installer/validate/__pycache__/
+installer/utils/dns_utils/.venvaws

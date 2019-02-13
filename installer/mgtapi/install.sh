@@ -20,7 +20,8 @@ header "Generating certificates for IMM Management API"
 
 
 #kubectl get secret ca-secret-dex -n dex -o yaml > dex_ca.yaml && yq r dex_ca.yaml data|awk '{ print $2 }'|base64 --decode > ca-dex.crt
-kubectl get secret -n dex ca-secret-dex -o yaml | yq r '.data | .["ca.crt"]' | base64 --decode > ca-dex.crt
+#kubectl get secret -n dex ca-secret-dex -o yaml | yq r - '.data | .["ca.crt"]' | base64 --decode > ca-dex.crt
+kubectl get secret -n dex ca-secret-dex -o yaml | yq r - 'data."ca.crt"' | base64 --decode > ca-dex.crt
 
 cd -
 
