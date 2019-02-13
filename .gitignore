@@ -100,3 +100,31 @@ ENV/
 
 config
 .pytest_cache/
+
+# Installer additional files
+installer/dex/dex_config.yaml
+installer/k8s/ca-ing-dex.crt
+installer/k8s/cluster.yaml
+installer/k8s/config.yaml
+installer/k8s/config_oidc.yaml
+installer/k8s/oidc.yaml
+installer/minio/minio_ing.yaml
+installer/validate/__pycache__/
+installer/utils/dns_utils/.venvaws
+
+helm-deployment/*/*/*.crt
+helm-deployment/*/*/*.key
+helm-deployment/dex-subchart/certs/dex.csr
+helm-deployment/dex-subchart/certs/ing-dex.csr
+helm-deployment/management-api-subchart/certs/certindex
+helm-deployment/management-api-subchart/certs/certserial
+helm-deployment/management-api-subchart/certs/client-tf.csr
+helm-deployment/management-api-subchart/certs/crlnumber
+helm-deployment/management-api-subchart/certs/crlnumber.old
+helm-deployment/management-api-subchart/certs/dex_ca.yaml
+helm-deployment/management-api-subchart/certs/ing-mgt-api.csr
+helm-deployment/management-api-subchart/certs/mgt-api.csr
+helm-deployment/management-api-subchart/certs/root.crl.pem
+helm-deployment/minio-subchart/charts/
+helm-deployment/minio-subchart/requirements.lock
+dex_ca.yaml
