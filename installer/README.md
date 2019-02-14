@@ -4,7 +4,7 @@
 * [yq](https://github.com/mikefarah/yq)
 
 ## Run
-* ./install.sh -k <name> -d <domain>
+* `./install.sh -k <name> -d <domain>`
 
 ### Update DNS records for new domain
 #### Using AWS
