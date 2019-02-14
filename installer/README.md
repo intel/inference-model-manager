@@ -32,24 +32,26 @@ edit file route_record.json
 ```
 
 ## Tests
-* run smoke tests available
+* Prerequisites:
+  * python3.6 or higher
+  * run smoke tests available
   [here](https://github.com/IntelAI/inference-model-manager/blob/installer-bszelag/scripts/test_imm.sh)
-  ```
-  cd inference-model-manager/
+      ```
+      cd inference-model-manager/
 
-  export CLUSTER_NAME_SHORT=<your_cluster_name>
-  export REQUESTS_CA_BUNDLE=/etc/ssl/certs/
-  export DEX_DOMAIN_NAME="dex.${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com"
-  export MGMT_DOMAIN_NAME="mgmt.${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com"
-  export DOMAIN_NAME="${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com"
-  export DEX_NAMESPACE="dex"
-  export MGT_NAMESPACE="mgt-api"
-  export DEX_URL=https://${DEX_DOMAIN_NAME}:443
-  export CERT=`cat ./helm-deployment/management-api-subchart/certs/ca-cert-tf.crt | base64 -w0`
+      export CLUSTER_NAME_SHORT=<your_cluster_name>
+      export REQUESTS_CA_BUNDLE=/etc/ssl/certs/
+      export DEX_DOMAIN_NAME="dex.${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com"
+      export MGMT_DOMAIN_NAME="mgmt.${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com"
+      export DOMAIN_NAME="${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com"
+      export DEX_NAMESPACE="dex"
+      export MGT_NAMESPACE="mgt-api"
+      export DEX_URL=https://${DEX_DOMAIN_NAME}:443
+      export CERT=`cat ./helm-deployment/management-api-subchart/certs/ca-cert-tf.crt | base64 -w0`
 
-  cd scripts/
-  ./test_imm.sh
-  ```
+      cd scripts/
+      ./test_imm.sh
+      ```
 
 
 
