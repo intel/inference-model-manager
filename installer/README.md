@@ -2,6 +2,12 @@
 
 ## Prerequisites
 * [yq](https://github.com/mikefarah/yq)
+* [kops](https://github.com/IntelAI/inference-model-manager/tree/master/kops) or other tool for
+  creating k8s cluster
+* unbuffer
+  * ubuntu: `sudo apt-get install expect-dev` or `sudo apt-get install expect`
+  * for mac it is downloaded during installation
+* `export GOOGLE_APPLICATION_CREDENTIALS` if using kops  
 
 ## Run
 * `./install.sh -k <name> -d <domain>`
