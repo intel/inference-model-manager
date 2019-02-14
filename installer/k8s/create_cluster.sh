@@ -13,8 +13,10 @@ export KOPS_STATE_STORE=gs://kubernetes-clusters-imm
 header "Installing kubernetes cluster"
 
 CLUSTER_NAME=$1
+GCE_REGION=$2
 cp cluster_template.yaml cluster.yaml
 fill_template toreplacebyclustername $CLUSTER_NAME cluster.yaml
+fill_template us-west1 ${GCE_REGION} cluster.yaml
 kops create -f cluster.yaml
 kops update cluster $CLUSTER_NAME.k8s.local --yes
 show_result $? "Installation succeeded" "Failed to create cluster" 

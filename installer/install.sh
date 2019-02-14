@@ -3,9 +3,10 @@
 OPTIND=1 
 kops_env=""
 domain=""
+gce_zone="us-west1"
 quiet="no"
 
-while getopts "h?qk:d:" opt; do
+while getopts "h?qk:d:z:" opt; do
     case "$opt" in
     h|\?)
         show_help
@@ -16,7 +17,9 @@ while getopts "h?qk:d:" opt; do
     k)  kops_env=$OPTARG
         ;;
     d)  domain=$OPTARG
-        ;;  
+        ;;
+    z)  gce_zone=$OPTARG
+        ;;      
     esac
 done
 
@@ -37,5 +40,5 @@ echo "Enabling quiet mode"
 FILTER_CMD="grep --color=none '[[:cntrl:]]'"
 fi
 
-unbuffer ./main.sh $kops_env $domain 2>&1 | tee install.log | ${FILTER_CMD}
+unbuffer ./main.sh $kops_env $domain $gce_zone 2>&1 | tee install.log | ${FILTER_CMD}
 

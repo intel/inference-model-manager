@@ -17,6 +17,6 @@ echo "Waiting for tiller pod to be ready"
 wait_for_pod 60 tiller-deploy kube-system
 # extra wait because presence of tiller is not enough
 echo "Extra wait for 10s"
-progress_bar 10
+progress_bar 60
 
 
