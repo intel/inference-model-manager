@@ -34,6 +34,7 @@ TEXT="$1"
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 printf "${RED}$TEXT${NC}\n"
+exit 1
 }
 
 function show_result() {
@@ -44,6 +45,7 @@ if [ "$RESULT" -eq 0 ]; then
     success "$SUCCESS_MSG"
 else
     failure "$FAIL_MSG"
+    exit 1
 fi        
 }
 

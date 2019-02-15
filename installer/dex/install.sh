@@ -6,7 +6,7 @@ export ISSUER=$1
 export DEX_NAMESPACE=$2
 export DEX_DOMAIN_NAME=$3
 header "Generating certificates for DEX"
-cd ../../helm-deployment/dex-subchart/certs
+cd $HELM_TEMP_DIR/dex-subchart/certs
 ./generate-dex-certs.sh 
 ./generate-ing-dex-certs.sh
 cd -

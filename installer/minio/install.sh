@@ -7,7 +7,7 @@ MINIO_EXTERNAL_URL=$3
 
 header "Installing test minio storage"
 
-cd ../../helm-deployment/minio-subchart
+cd $HELM_TEMP_DIR/minio-subchart
 fill_template "<minio_access_key>" $MINIO_ACCESS_KEY  values.yaml
 fill_template "<minio_secret_key>" $MINIO_SECRET_KEY values.yaml
 helm dep up .

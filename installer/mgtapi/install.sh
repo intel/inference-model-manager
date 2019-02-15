@@ -22,7 +22,7 @@ kubectl get secret -n dex ca-secret-dex -o yaml | yq r - 'data."ca.crt"' | base6
 
 cd -
 
-cd ../../helm-deployment/management-api-subchart
+cd $HELM_TEMP_DIR/management-api-subchart
 
 header "Installation of Management API"
 

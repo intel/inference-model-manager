@@ -40,10 +40,5 @@ echo "Enabling quiet mode"
 FILTER_CMD="grep --color=none '[[:cntrl:]]'"
 fi
 
-cd ..
-# clean up templates in helm-deployment directory
-git checkout HEAD -- helm-deployment/
-cd -
-
-unbuffer ./main.sh $kops_env $domain $gce_zone 2>&1 | tee install.log | ${FILTER_CMD}
+unbuffer ./main.sh "$kops_env" "$domain" "$gce_zone" 2>&1 | tee install.log | ${FILTER_CMD}
 

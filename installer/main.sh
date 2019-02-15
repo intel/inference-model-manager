@@ -1,8 +1,8 @@
 #!/bin/bash
-CLUSTER_NAME=$1
-REGISTRY_URL="gcr.io/constant-cubist-173123/"
-CRD_IMAGE_NAME="server-controller-prod"
-IMAGES_TAG="latest"
+
+echo "All args:[ $@ ]"
+
+DESIRED_KOPS_CLUSTER_NAME=$1
 DNS_DOMAIN_NAME=$2
 GCE_ZONE=$3
 #"kops-test.nlpnp.adsdcsp.com"
@@ -15,16 +15,22 @@ export DEX_NAMESPACE=dex
 export DEX_DOMAIN_NAME=dex.$DNS_DOMAIN_NAME
 export DOMAIN_NAME=$DNS_DOMAIN_NAME
 
-echo "All args:[ $@ ]"
-#SKIP_K8S_INSTALL="yes"
+export HELM_TEMP_DIR=`pwd`/helm-temp-dir
+
+cd ..
+rm -fr $HELM_TEMP_DIR
+cp -r helm-deployment $HELM_TEMP_DIR
+cd -
+
 
 . utils/validate_envs.sh
 . utils/progress_bar.sh
 . utils/wait_for_pod.sh
+. utils/messages.sh
 
-if [ -z "$SKIP_K8S_INSTALL" ]; then
+if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ]; then
 cd k8s
-. create_cluster.sh $CLUSTER_NAME $GCE_ZONE
+. create_cluster.sh $DESIRED_KOPS_CLUSTER_NAME $GCE_ZONE
 . install_tiller.sh 
 cd ..
 fi
@@ -34,7 +40,7 @@ cd ingress
 cd ..
 
 cd crd
-. install.sh $REGISTRY_URL $CRD_IMAGE_NAME $IMAGES_TAG $DNS_DOMAIN_NAME
+. install.sh $DNS_DOMAIN_NAME
 cd ..
 
 cd dns
@@ -59,14 +65,15 @@ cd validate
 .  ./test_dex_ldap.sh https://$DEX_DOMAIN_NAME
 cd ..
 
-if [ -z "$SKIP_K8S_INSTALL" ]; then
+if [ -z "$DESIRED_KOPS_CLUSTER_NAME" ]; then
 cd k8s
-. ./restart_k8sapi.sh $CLUSTER_NAME $ISSUER $DEX_NAMESPACE 
+. ./restart_k8sapi.sh $DESIRED_KOPS_CLUSTER_NAME $ISSUER $DEX_NAMESPACE 
 cd ..
 fi
 
 cd mgtapi
 . ./install.sh $DOMAIN_NAME $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL 
+show_result $? "Done" "Aborting"
 cd ..
 
 

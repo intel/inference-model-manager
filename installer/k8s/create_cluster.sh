@@ -19,7 +19,7 @@ fill_template toreplacebyclustername $CLUSTER_NAME cluster.yaml
 fill_template us-west1 ${GCE_REGION} cluster.yaml
 kops create -f cluster.yaml
 kops update cluster $CLUSTER_NAME.k8s.local --yes
-show_result $? "Installation succeeded" "Failed to create cluster" 
+show_result $? "Kubernetes cluster created" "Failed to create cluster" 
 echo "Waiting 300 seconds for cluster to be ready"
 progress_bar 300
 header "Installing weave"
