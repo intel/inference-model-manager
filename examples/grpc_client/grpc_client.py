@@ -70,7 +70,10 @@ def inference(stub, request, imgs, kwargs):
     print(f"\tImages in shape: {imgs.shape}\n")
     processing_times = np.zeros((0), int)
     batch_size = int(kwargs['batch_size'])
-    iterations = int((imgs.shape[0]//batch_size) if not (kwargs.get('images_number') or kwargs.get('images_number') != 0) else kwargs.get('images_number'))
+    if not (kwargs.get('images_number') or kwargs.get('images_number') != 0):
+        iterations = int((imgs.shape[0]//batch_size))
+    else:
+        iterations = int(kwargs.get('images_number'))
     iteration = 0
     while iteration <= iterations:
         for x in range(0, imgs.shape[0] - batch_size + 1, batch_size):
@@ -84,7 +87,8 @@ def inference(stub, request, imgs, kwargs):
             request.inputs[kwargs['input_name']].CopyFrom(
                 tf_contrib_util.make_tensor_proto(batch, shape=(batch.shape)))
             start_time = datetime.datetime.now()
-            result = stub.Predict(request, RPC_TIMEOUT)  # result includes a dictionary with all model outputs
+            result = stub.Predict(request, RPC_TIMEOUT)
+            # result includes a dictionary with all model outputs
             end_time = datetime.datetime.now()
             if kwargs['output_name'] not in result.outputs:
                 print("Invalid output name", kwargs['output_name'])
@@ -93,12 +97,15 @@ def inference(stub, request, imgs, kwargs):
                     print(Y)
                 exit(1)
             duration = (end_time - start_time).total_seconds() * 1000
-            processing_times = np.append(processing_times, np.array([int(duration)]))
-            output = tf_contrib_util.make_ndarray(result.outputs[kwargs['output_name']])
+            processing_times = \
+                np.append(processing_times, np.array([int(duration)]))
+            output = \
+                tf_contrib_util.make_ndarray(result.outputs[kwargs['output_name']])
 
-            print(f'Iteration {iteration}; '
-                  f'Processing time: {round(np.average(duration), 2):.2f} ms; '
-                  f'speed {round(1000 * batch_size / np.average(duration), 2):.2f} fps')
+            print('Iteration {}; Processing time: {} ms; speed {} fps'
+                  .format(iteration, round(np.average(duration)),
+                          round(1000 * batch_size / np.average(duration))))
+
             if kwargs['no_imagenet_classes']:
                 continue
             print(f'\tImagenet top results in a single batch:')
@@ -106,7 +113,7 @@ def inference(stub, request, imgs, kwargs):
                 single_result = output[[i], ...]
                 max_class = np.argmax(single_result)
                 print(f'\t\t {i+1} image in batch: {classes.imagenet_classes[max_class]}')
- 
+
     if kwargs['performance']:
         get_processing_performance(processing_times, batch_size)
 
