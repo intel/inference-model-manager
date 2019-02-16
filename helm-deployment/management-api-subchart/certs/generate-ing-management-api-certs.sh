@@ -17,11 +17,9 @@
 
 # Example how to create self-signed CA for Management API external interface
 
-# Generate valid CA for Ing Management api
-openssl genrsa -out ca-ing-mgt-api.key 4096
-openssl req -new -x509 -days 365 -key ca-ing-mgt-api.key -out ca-ing-mgt-api.crt -subj "/CN=ca-ing-mgt-api"
 
 # Generate server key/cert
 openssl genrsa -out ing-mgt-api.key 4096
 openssl req -new -key ing-mgt-api.key -out ing-mgt-api.csr -subj "/CN=${MGMT_DOMAIN_NAME}"
-openssl x509 -req -days 365 -in ing-mgt-api.csr -CA ca-ing-mgt-api.crt -CAkey ca-ing-mgt-api.key -set_serial 01 -out ing-mgt-api.crt
+openssl x509 -req -days 365 -in ing-mgt-api.csr -CA ca-ing.crt -CAkey ca-ing.key -set_serial 01 -out ing-mgt-api.crt
+cat ca-ing.crt >> ing-mgt-api.crt

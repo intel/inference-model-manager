@@ -17,11 +17,9 @@
 
 # Example script generating TLS certificates for dex external interface to be configured in K8S ingress records.
 
-# Generate valid CA for ing-dex
-openssl genrsa -out ca-ing-dex.key 4096
-openssl req -new -x509 -days 365 -key ca-ing-dex.key -out ca-ing-dex.crt -subj "/CN=ca-ing-dex"
 
 # Generate valid ing-dex server key/cert
 openssl genrsa -out ing-dex.key 4096
 openssl req -new -key ing-dex.key -out ing-dex.csr -subj "/CN=${DEX_DOMAIN_NAME}"
-openssl x509 -req -days 365 -in ing-dex.csr -CA ca-ing-dex.crt -CAkey ca-ing-dex.key -set_serial 01 -out ing-dex.crt
+openssl x509 -req -days 365 -in ing-dex.csr -CA ca-ing.crt -CAkey ca-ing.key -set_serial 01 -out ing-dex.crt
+cat ca-ing.crt >> ing-dex.crt

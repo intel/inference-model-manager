@@ -10,9 +10,12 @@ export DOMAIN_NAME=$DOMAIN_NAME
 . ../utils/fill_template.sh
 . ../utils/messages.sh
 
-cd ../../helm-deployment/management-api-subchart/certs
+cd $HELM_TEMP_DIR/management-api-subchart/certs
 
 header "Generating certificates for IMM Management API"
+
+# Copy previously generated ca-ing 
+cp $HELM_TEMP_DIR/dex-subchart/certs/ca-ing.* ./ 
 
 ./generate-ing-management-api-certs.sh
 ./generate-management-api-certs.sh

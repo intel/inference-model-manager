@@ -28,6 +28,7 @@ cd -
 . utils/wait_for_pod.sh
 . utils/messages.sh
 
+
 if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ]; then
 cd k8s
 . create_cluster.sh $DESIRED_KOPS_CLUSTER_NAME $GCE_ZONE
@@ -65,10 +66,16 @@ cd validate
 .  ./test_dex_ldap.sh https://$DEX_DOMAIN_NAME
 cd ..
 
-if [ -z "$DESIRED_KOPS_CLUSTER_NAME" ]; then
+if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ]; then
 cd k8s
 . ./restart_k8sapi.sh $DESIRED_KOPS_CLUSTER_NAME $ISSUER $DEX_NAMESPACE 
 cd ..
+else
+cd k8s
+DEX_CA=`./get_ca_ing_cert.sh`
+action_required "Please restart K8S API with OIDC config: issuer: $ISSUER: CA: $DEX_CA"
+read -p "Press [ENTER] when ready"
+cd -
 fi
 
 cd mgtapi

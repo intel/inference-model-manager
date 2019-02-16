@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: ca-ing-dex
-  namespace: {{ .Values.namespace }}
+  name: ca-ing
+  namespace: default 
   labels:
     app: {{ template "fullname" . }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
@@ -11,4 +11,4 @@ metadata:
 type: Opaque
 data:
   "ca.crt": |-
-  {{ .Files.Get "certs/ca-ing-dex.crt" | b64enc | indent 4 }}
+  {{ .Files.Get "certs/ca-ing.crt" | b64enc | indent 4 }}

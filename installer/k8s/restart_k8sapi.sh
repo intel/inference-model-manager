@@ -19,9 +19,11 @@ cp oidc_tmpl.yaml oidc.yaml
 
 fill_template toreplacebyissuer $ISSUER oidc.yaml
 
-DEX_ING_CA=`kubectl get secret ca-ing-dex -n $DEX_NAMESPACE -o yaml|grep ca.crt|awk '{ print $2 }'|base64 --decode > ca-ing-dex.crt`
-${SED_CMD} -i -e 's/^/      /' ca-ing-dex.crt 
-${SED_CMD} -i -e '/replacebycertificate/{r ca-ing-dex.crt' -e 'd}' oidc.yaml
+DEX_ING_CA=`./get_ing_ca_crt.sh`
+echo "Found certificate: $DEX_ING_CA"
+echo "$DEX_ING_CA" > ca-ing.crt
+${SED_CMD} -i -e 's/^/      /' ca-ing.crt 
+${SED_CMD} -i -e '/replacebycertificate/{r ca-ing.crt' -e 'd}' oidc.yaml
 OIDC_CFG=`cat oidc.yaml`
 
 kops get cluster --name $CLUSTER_NAME.k8s.local --output json > config.yaml
