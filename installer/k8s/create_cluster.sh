@@ -15,7 +15,6 @@ header "Installing kubernetes cluster"
 CLUSTER_NAME=$1
 GCE_REGION=$2
 cp cluster_template.yaml cluster.yaml
-sed -i "s/us-west1/northamerica-northeast1/g" cluster_template.yaml
 fill_template toreplacebyclustername $CLUSTER_NAME cluster.yaml
 fill_template us-west1 ${GCE_REGION} cluster.yaml
 kops create -f cluster.yaml
