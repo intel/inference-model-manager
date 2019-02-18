@@ -75,7 +75,7 @@ cd ..
 else
 cd k8s
 DEX_CA=`./get_ca_ing_cert.sh`
-action_required "Please restart K8S API with OIDC config: issuer: $ISSUER: CA: $DEX_CA"
+action_required "Please restart K8S API with OIDC config:\n oidcIssuerURL: $ISSUER: \noidcCA: $DEX_CA\noidcClientID: example-app\noidcGroupsClaim: groups\noidcUsernameClaim: email"
 read -p "Press [ENTER] when ready"
 cd -
 fi

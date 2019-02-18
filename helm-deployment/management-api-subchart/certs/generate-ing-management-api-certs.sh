@@ -15,9 +15,6 @@
 # limitations under the License.
 #
 
-# Example how to create self-signed CA for Management API external interface
-
-
 # Generate server key/cert
 openssl genrsa -out ing-mgt-api.key 4096
 openssl req -new -key ing-mgt-api.key -out ing-mgt-api.csr -subj "/CN=${MGMT_DOMAIN_NAME}"
