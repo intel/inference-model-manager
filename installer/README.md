@@ -13,7 +13,7 @@
 * `export GOOGLE_APPLICATION_CREDENTIALS` if using kops  
 
 ## Run
-* `./install.sh -k <name> -d <domain>`
+* `./install.sh -k <name> -d <domain> -z <gce_zone>`
 
 ### Update DNS records for new domain
 #### Using AWS

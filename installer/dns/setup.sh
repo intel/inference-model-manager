@@ -11,8 +11,7 @@ then
   break
 fi
 
-[[ $OSTYPE == "darwin"* ]] && EXTERNAL_IP=`kubectl get services -n ingress-nginx|grep ingress-nginx|awk '{print $4}'` \
-                           || EXTERNAL_IP=`kubectl get services -n ingress-nginx|grep ingress-nginx|awk '{print $3}'`
+EXTERNAL_IP=`kubectl get services -n ingress-nginx|grep ingress-nginx|awk '{ print $(NF-2) }'` 
 success "External ip found: $EXTERNAL_IP"
 sleep 5
 done

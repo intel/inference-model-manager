@@ -4,6 +4,7 @@ REGISTRY_URL="gcr.io/constant-cubist-173123/"
 CRD_IMAGE_NAME="server-controller-prod"
 IMAGES_TAG="latest"
 DNS_DOMAIN_NAME=$2
+GCE_ZONE=$3
 #"kops-test.nlpnp.adsdcsp.com"
 MINIO_ACCESS_KEY="my_minio_key"
 MINIO_SECRET_KEY="my_minio_secret"
@@ -23,7 +24,7 @@ echo "All args:[ $@ ]"
 
 if [ -z "$SKIP_K8S_INSTALL" ]; then
 cd k8s
-. create_cluster.sh $CLUSTER_NAME 
+. create_cluster.sh $CLUSTER_NAME $GCE_ZONE
 . install_tiller.sh 
 cd ..
 fi
