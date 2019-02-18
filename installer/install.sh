@@ -1,4 +1,5 @@
 #!/bin/bash
+. utils/show_help.sh
 
 OPTIND=1 
 kops_env=""
@@ -6,7 +7,7 @@ domain=""
 gce_zone="us-west1"
 quiet="no"
 
-while getopts "h?qk:d:z:" opt; do
+while getopts "h?qsk:d:z:" opt; do
     case "$opt" in
     h|\?)
         show_help
@@ -20,6 +21,8 @@ while getopts "h?qk:d:z:" opt; do
         ;;
     z)  gce_zone=$OPTARG
         ;;      
+    s)  export SKIP_K8S_INSTALLATION="True"
+        ;;
     esac
 done
 

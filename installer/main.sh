@@ -29,11 +29,13 @@ cd -
 . utils/messages.sh
 
 
-if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ]; then
+if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ] && [ -z "$SKIP_K8S_INSTALLATION" ]; then
 cd k8s
 . create_cluster.sh $DESIRED_KOPS_CLUSTER_NAME $GCE_ZONE
 . install_tiller.sh 
 cd ..
+else
+header "Skipping kubernetes cluster installation" 
 fi
 
 cd ingress
@@ -66,7 +68,7 @@ cd validate
 .  ./test_dex_ldap.sh https://$DEX_DOMAIN_NAME
 cd ..
 
-if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ]; then
+if [ -z "$SKIP_K8S_INSTALLATION" ]; then
 cd k8s
 . ./restart_k8sapi.sh $DESIRED_KOPS_CLUSTER_NAME $ISSUER $DEX_NAMESPACE 
 cd ..
