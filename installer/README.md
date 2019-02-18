@@ -1,7 +1,7 @@
 # Installation
 
 ## Prerequisites
-* [yq](https://github.com/mikefarah/yq) **Please use this specific version of yq**
+* [yq](https://github.com/mikefarah/yq) *(Use this specific version of yq)*
 * [jq](https://stedolan.github.io/jq/)
 * [helm](https://github.com/helm/helm)
 * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
@@ -14,7 +14,18 @@
 * domain for IMM
 
 ## Run
-* `./install.sh -k <name> -d <domain> -z <gce_zone>`
+* Required optons:
+  * `-k` - cluster name
+  * `-d` - domain name
+* Additional options
+  * `-z` - GCE cluster zone (if using kops and GCE)
+  * `-q` - silent mode (shows only important logs)
+  * `-s` - skip cluster creation via kops
+  * `-h/?` - show help
+* Usage examples  
+  * `./install.sh -k <name> -d <domain>`
+  * `./install.sh -k <name> -d <domain> -z <gce_zone>`
+  * `./install.sh -k <name> -d <domain> -s -q`
 
 ### Update DNS records for new domain
 #### Using AWS
