@@ -17,9 +17,9 @@ TESTS_NUMBER=0
 PASSED_TESTS=0
 JPEGS_INFERENCE_ACCURACY=0
 
-SERVER_CERT="../helm-deployment/management-api-subchart/certs/server-tf.crt"
-CLIENT_CERT="../helm-deployment/management-api-subchart/certs/client-tf.crt"
-CLIENT_KEY="../helm-deployment/management-api-subchart/certs/client-tf.key"
+SERVER_CERT="$HELM_INSTALL_DIR/management-api-subchart/certs/server-tf.crt"
+CLIENT_CERT="$HELM_INSTALL_DIR/management-api-subchart/certs/client-tf.crt"
+CLIENT_KEY="$HELM_INSTALL_DIR/management-api-subchart/certs/client-tf.key"
 
 SAVED_MODEL_SRC="https://storage.googleapis.com/inference-eu/models_zoo/resnet_V1_50/saved_model/saved_model.pb"
 IMAGES_NUMPY_SRC="https://storage.googleapis.com/inference-eu/models_zoo/resnet_V1_50/datasets/10_v1_imgs.npy"

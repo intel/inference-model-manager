@@ -62,12 +62,6 @@ cd dex
 . install.sh $ISSUER $DEX_NAMESPACE $DEX_DOMAIN_NAME
 cd .. 
 
-pwd 
-
-cd validate
-.  ./test_dex_ldap.sh https://$DEX_DOMAIN_NAME
-cd ..
-
 if [ -z "$SKIP_K8S_INSTALLATION" ]; then
 cd k8s
 . ./restart_k8sapi.sh $DESIRED_KOPS_CLUSTER_NAME $ISSUER $DEX_NAMESPACE 
@@ -84,5 +78,7 @@ cd mgtapi
 . ./install.sh $DOMAIN_NAME $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL 
 show_result $? "Done" "Aborting"
 cd ..
+
+./validate.sh $DOMAIN_NAME
 
 

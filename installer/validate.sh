@@ -1,8 +1,16 @@
 #!/bin/bash
-DNS_DOMAIN_NAME="krzych2.nlpnp.adsdcsp.com"
-cd validate
-. test_dex_ldap.sh https://dex.$DNS_DOMAIN_NAME
-cd ..
+. ./utils/messages.sh
 
-python3 webbrowser_authenticate.py --address mgt.krzych2.nlpnp.adsdcsp.com --proxy_host proxy-mu.intel.com --proxy_port 911 -k
-
+DOMAIN_NAME=$1
+cd ../scripts
+header "Validating IMM platform installation"
+header "Preparing python environment"
+virtualenv -p python3 .testvenv
+. .testvenv/bin/activate
+pip install -r requirements.txt
+header "Preparing env variables and installing CA"
+. ./prepare_test_env.sh $DOMAIN_NAME
+header "Running tests"
+./test_imm.sh
+deactivate
+cd -
