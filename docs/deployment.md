@@ -79,7 +79,7 @@ Specifically kube-apiserver component in kubernetes needs to have included addit
 | --oidc-username-prefix | optional prefix to user name on K8S side | infer: |
 | --oidc-groups-claim | the claim name from JWT token scope | group |
 | --oidc-groups-prefix | optional prefix to group name on K8S side | infer: |
-| --oidc-ca-file | CA certificate used in DEX endpoint | /etc/kubernetes/ssl/dex_ca.crt |
+| --oidc-ca-file | CA certificate used in DEX endpoint | /etc/kubernetes/pki/ca-ing-dex.crt |
 
 `oidc-ca-file` parameter is needed in case DEX URL is exposed via ingress with self-signed certificate 
 (needed to establish a trust with DEX service to validate the tokens).
