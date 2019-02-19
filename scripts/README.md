@@ -44,11 +44,16 @@ To use this mode please add parameter:
 
 #### List of available options
 ##### login
+  - Additional parameters: --proxy_host, --proxy_port
   - Additional parameters provided with environment variables: certificate path with 
       MANAGEMENT_CA_CERT_PATH
   - Usage example:
     ```
     ./imm -a mgmt.example.com login
+    ```
+  - Using proxy and offline login option:
+    ```
+    ./imm -o login --proxy_port 911 --proxy_host example.proxy.com
     ```
 ##### logout
   - Usage example:
