@@ -9,7 +9,7 @@
 ## Description
 Script available under this directory allow users to execute on their own load tests. Prepared [Locust class](image_locust.py)
 on start loads environment variables and images also create grpc stub. In hatching phase this client only perform request to GRPC service using earlier loaded images. 
-Size of request batch is configurable by setting
+The number of comma-delimited photo paths determines the size of the batch. Now this tests only support resnet model.
 
 ## Configurable parameters
 ````

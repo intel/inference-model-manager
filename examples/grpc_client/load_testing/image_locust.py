@@ -5,8 +5,7 @@ import datetime
 import tensorflow.contrib.util as tf_contrib_util
 
 sys.path.append(os.path.realpath(os.path.join(os.path.realpath(__file__), '../../')))  # noqa
-from grpc_client_utils import prepare_certs, prepare_stub_and_request, MODEL_STATUS_REQUEST, \
-    INFERENCE_REQUEST
+from grpc_client_utils import INFERENCE_REQUEST
 from images_2_numpy import load_images_from_list
 from grpc_client import get_stub_and_request
 
@@ -39,9 +38,10 @@ class MyTaskSet(TaskSet):
         certs['server_cert'] = self.SERVER_CERT
         certs['client_cert'] = self.CLIENT_CERT
         certs['client_key'] = self.CLIENT_KEY
-        self.stub, self.request = get_stub_and_request(self.GRPC_ADDRESS, self.MODEL_NAME, certs, True, None,
-                                             INFERENCE_REQUEST)
-        self.request.inputs[self.TENSOR_NAME].CopyFrom(tf_contrib_util.make_tensor_proto(self.imgs, shape=(self.imgs.shape)))
+        self.stub, self.request = get_stub_and_request(self.GRPC_ADDRESS, self.MODEL_NAME, certs,
+                                                       True, None, INFERENCE_REQUEST)
+        self.request.inputs[self.TENSOR_NAME].CopyFrom(
+            tf_contrib_util.make_tensor_proto(self.imgs, shape=(self.imgs.shape)))
 
     def on_stop(self):
         print("Tasks was stopped")
@@ -50,15 +50,17 @@ class MyTaskSet(TaskSet):
     def my_task(self):
         start_time = datetime.datetime.now()
         try:
-            result = self.stub.Predict(self.request, self.TIMEOUT)
+            response = self.stub.Predict(self.request, self.TIMEOUT)
         except Exception as e:
             end_time = datetime.datetime.now()
             duration = (end_time - start_time).total_seconds() * 1000
-            events.request_failure.fire(request_type="grpc", name='grpc', response_time=duration, exception=e)
+            events.request_failure.fire(request_type="grpc", name='grpc', response_time=duration,
+                                        exception=e)
         else:
             end_time = datetime.datetime.now()
             duration = (end_time - start_time).total_seconds() * 1000
-            events.request_success.fire(request_type="grpc", name='grpc', response_time=duration, response_length=0)
+            events.request_success.fire(request_type="grpc", name='grpc', response_time=duration,
+                                        response_length=response.ByteSize())
 
 
 class MyLocust(Locust):
