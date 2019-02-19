@@ -155,7 +155,7 @@ management-api-5c45d856c7-4kzv4   1/1       Running   0          8s
 ```
 ### 7. Enable openId authentication in kubernetes api server
 You need to restart kubeapi-server after changes.
-Use this link for details https://github.com/IntelAI/inference-model-manager/blob/update-docs/docs/deployment.md#kubernetes-configuration-for-oid-authentication
+Use this link for details https://github.com/IntelAI/inference-model-manager/blob/master/docs/deployment.md#kubernetes-configuration-for-oid-authentication
   
 ### 8. Verify installation
 Obtain token from dex
