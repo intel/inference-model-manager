@@ -31,7 +31,7 @@ Examples:
 	.${0##*/} -a mgmt.example.com -p 443 -v create tenant mytenant
 	.${0##*/} create t mytenant myscope
 	.${0##*/} create e myendpoint mymodel "{specific{versions:1}}" mytenant tf-serving subjectName
-	.${0##*/} -a 127.0.0.1 login
+	.${0##*/} -a 127.0.0.1 login --proxy_host example.com --proxy_port 911
 	.${0##*/} logout
 	.${0##*/} up e myendpoint mytenant --resources "{\"requests.cpu\":\"0\",\"requests.memory\":\"0\"}"
 	.${0##*/} u ./saved_model.pb mymodel 2 mytenant
@@ -259,8 +259,30 @@ case "$OPERATION" in
 			echo "Please provide management api address"
 			read MANAGEMENT_API_ADDRESS
 		fi
+		parameters=($RESOURCE $PARAM_1 $PARAM_2 $PARAM_3)
+		i=0
+		while [ $i -lt 3 ] ; do
+		  case ${parameters[i]} in
+			--proxy_port)
+			  [[ "${parameters[($i+1)]}" ]] && proxy_port=${parameters[($i+1)]} || { echo '"--proxy_port" requires argument' && exit 1; }
+			  ;;
+			--proxy_host)
+			  [[ "${parameters[($i+1)]}" ]] && proxy_host=${parameters[($i+1)]} || { echo '"--proxy_host" requires argument' && exit 1; }
+			  ;;
+			-?*)	
+			  [[ ${parameter[$i]} ]] && echo "Unknown option: ${parameter[i]}" 
+			  ;;
+			*)
+			  break      
+		  esac
+		  i=$(( $i + 2 ))
+		done
+        ADDITIONAL_PARAMS=""
+		[[ -n $proxy_port ]] && ADDITIONAL_PARAMS="${ADDITIONAL_PARAMS} --proxy_port $proxy_port"
+		[[ -n $proxy_host ]] && ADDITIONAL_PARAMS="${ADDITIONAL_PARAMS} --proxy_host $proxy_host"
 		[[ -z ${MANAGEMENT_CA_CERT_PATH} ]] && MANAGEMENT_CA_CERT_PATH="" || MANAGEMENT_CA_CERT_PATH="--ca_cert ${MANAGEMENT_CA_CERT_PATH}"
-		python webbrowser_authenticate.py $OFFLINE --address ${MANAGEMENT_API_ADDRESS} --port ${MANAGEMENT_API_PORT} ${MANAGEMENT_CA_CERT_PATH}
+		python webbrowser_authenticate.py $OFFLINE --address ${MANAGEMENT_API_ADDRESS} --port \
+        ${MANAGEMENT_API_PORT} ${MANAGEMENT_CA_CERT_PATH} ${ADDITIONAL_PARAMS}
 		IMM_TOKEN=`cat "${IMM_CONFIG_PATH}" | jq -r '.id_token'`
 		echo ${IMM_TOKEN}
 		;;
