@@ -1,11 +1,11 @@
 {
             "Comment": "CREATE/DELETE/UPSERT a record ",
             "Changes": [{
-            "Action": "DELETE",
+            "Action": "<operation>",
                         "ResourceRecordSet": {
-                                    "Name": "*.bszelag.nlpnp.adsdcsp.com",
+                                    "Name": "*.<dns_domain_name>" ,
                                     "Type": "A",
                                     "TTL": 300,
-                                 "ResourceRecords": [{ "Value": "35.185.244.129"}]
+                                 "ResourceRecords": [{ "Value": "<ip_address>"}]
 }}]
 }
