@@ -2,7 +2,6 @@ export DOMAIN_NAME=$1
 export DEX_DOMAIN_NAME="dex.$DOMAIN_NAME"
 export MGMT_DOMAIN_NAME="mgt.$DOMAIN_NAME"
 echo "Fetching CA for $MGMT_DOMAIN_NAME"
-rm -fr ca.pem
 ./get_ca_cert.sh $MGMT_DOMAIN_NAME > ca.pem
 cat ./ca.pem
 export REQUESTS_CA_BUNDLE=`pwd`/ca.pem
