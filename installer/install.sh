@@ -8,7 +8,7 @@ domain=""
 gce_zone="us-west1"
 quiet="no"
 
-while getopts "h?qsk:d:z:g:" opt; do
+while getopts "h?qsk:d:z:g:p" opt; do
     case "$opt" in
     h|\?)
         show_help
@@ -25,6 +25,8 @@ while getopts "h?qsk:d:z:g:" opt; do
     s)  export SKIP_K8S_INSTALLATION="True"
         ;;
     g) export GCE_USER=$OPTARG
+	;;
+    p) export PROXY="Proxy"
 	;;
     esac
 done
