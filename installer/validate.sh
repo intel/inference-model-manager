@@ -5,7 +5,7 @@ DOMAIN_NAME=$1
 cd ../scripts
 header "Validating IMM platform installation"
 header "Preparing python environment"
-virtualenv -p python3 .testvenv
+virtualenv -p python3.6 .testvenv
 . .testvenv/bin/activate
 pip install -r requirements.txt
 header "Preparing env variables and installing CA"

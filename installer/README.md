@@ -10,7 +10,7 @@
 * unbuffer
   * ubuntu: `sudo apt-get install expect-dev` or `sudo apt-get install expect`
   * for mac it is downloaded during installation
-* `export GOOGLE_APPLICATION_CREDENTIALS` if using kops  
+* `export GOOGLE_APPLICATION_CREDENTIALS` if using kops (or use -g switch with installer)  
 * domain for IMM
 
 ## Run
@@ -21,26 +21,26 @@
   * `-z` - GCE cluster zone (if using kops and GCE)
   * `-q` - silent mode (shows only important logs)
   * `-s` - skip cluster creation via kops
+  * `-g` - GCE user name (usually email), used to create cluster in GCE
   * `-h/?` - show help
 * Usage examples  
   * `./install.sh -k <name> -d <domain>`
-  * `./install.sh -k <name> -d <domain> -z <gce_zone>`
+  * `./install.sh -k <name> -d <domain> -z <gce_zone> -g john.doe@example.com`
   * `./install.sh -k <name> -d <domain> -s -q`
 
 ### Update DNS records for new domain
-#### Using AWS
+#### Using AWS Route53
 * set up [awscli](https://aws.amazon.com/cli/)
+* ```aws configure```
 * create
 ```
-cd utils/dns_utils
-edit file route_record.json
-./create_domain.sh
+cd utils/route53
+./apply.sh CREATE $IP_ADDRESS $DOMAIN_NAME
 ```
 * delete
 ```
-cd utils/dns_utils
-edit file route_record.json
-./create_domain.sh
+cd utils/route53
+./apply.sh DELETE $IP_ADDRESS $DOMAIN_NAME
 ```
 
 ## Tests

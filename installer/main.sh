@@ -24,10 +24,10 @@ cd -
 
 
 . utils/validate_envs.sh
+
 . utils/progress_bar.sh
 . utils/wait_for_pod.sh
 . utils/messages.sh
-
 
 if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ] && [ -z "$SKIP_K8S_INSTALLATION" ]; then
 cd k8s
