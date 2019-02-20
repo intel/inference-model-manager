@@ -53,7 +53,7 @@ def image_to_array(file_path, image_size):
 
 
 def load_images_from_list(images_list, image_size, number_of_images):
-    print(f'Number of images: {number_of_images}')
+    print('Number of images: {}'.format(number_of_images))
     images = np.zeros((0, image_size, image_size, 3), np.dtype('<f'))
     for image in images_list:
         image_data = image_to_array(image, image_size)
