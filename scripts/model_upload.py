@@ -36,29 +36,41 @@ def upload(url, params, headers, part_size, verify=False):
         upload_model(url, params, headers, part_size, verify)
     elif os.path.isdir(params['file_path']):
         upload_dir(url, params, headers, part_size, verify)
+    else:
+        raise Exception("Unrecognized type of upload")
 
 
 def upload_dir(url, params, headers, part_size, verify=False):
+    model_name = params['file_path'].split('/')[-1]
+    params['model_name'] = model_name
     for dir_name, subdir_list, file_list in os.walk(params['file_path']):
+        relative_path_dir = dir_name.split('/')[-1]
+        if relative_path_dir == params['model_name'] \
+                or relative_path_dir == str(params['model_version']):
+            params['additional_key'] = None
+        else:
+            params['additional_key'] = relative_path_dir
         print('Found directory: {}'.format(dir_name))
         for file_name in file_list:
-            params['file_path'] = '{}/{}'.format(dir_name, file_name)
+            params['file_path'] = os.path.join(dir_name, file_name)
+            print('\tUploading {} to {}/{}/{}'.format(
+                file_name, params['model_name'], params['model_version'], params['additional_key']))
             upload_model(url, params, headers, part_size, verify)
-            print('\t{}'.format(file_name))
         if len(os.listdir(dir_name)) == 0:
-            params['dir'] = dir_name.split('/')[-1]
-            print(dir_name)
-            aa = create_empty_dir(url, params, headers, verify)
-            print(aa)
+            print('\tCreating empty directory: {}/{}/{}'.format(
+                params['model_name'], params['model_version'], params['additional_key']))
+            create_empty_dir(url, params, headers, verify)
 
 
 def create_empty_dir(url, params, headers, verify=False):
-    model_name = params['model_name']
-    model_version = params['model_version']
-    dir_path = params['dir']
-    data = {"modelName": model_name, "modelVersion": model_version, "dir": dir_path}
+    data = {'modelName': params['model_name'],
+            'modelVersion': params['model_version'],
+            'key': params['additional_key']}
     response = requests.post(url + "/upload/dir", json=data, headers=headers, verify=verify)
-    return response
+    if response.status_code != 200:
+        print("Could not create directory: {}".format(response.text))
+        raise Exception(response)
+    print('Empty directory {} created'.format(data['key']))
 
 
 def upload_model(url, params, headers, part_size, verify=False):
@@ -66,9 +78,12 @@ def upload_model(url, params, headers, part_size, verify=False):
     model_version = params['model_version']
     file_path = params['file_path']
     file_name = os.path.basename(file_path)
+    additional_key = params['additional_key'] if 'additional_key' in params \
+                                                 and params['additional_key'] is not None else None
 
     # --- Initiating upload
-    data = {'modelName': model_name, 'modelVersion': model_version, 'fileName': file_name}
+    data = {'modelName': model_name, 'modelVersion': model_version, 'fileName': file_name,
+            'key': additional_key}
     response = requests.post(url + "/upload/start", json=data, headers=headers, verify=verify)
     if response.status_code != 200:
         print("Could not initiate upload: {}".format(response.text))
@@ -86,6 +101,7 @@ def upload_model(url, params, headers, part_size, verify=False):
                   'modelName': model_name,
                   'modelVersion': model_version,
                   'fileName': file_name,
+                  'key': additional_key
                   }
         with open(file_path, 'rb') as file:
             print("Preparing data for part nr {} of current upload...".format(part_number))
@@ -105,7 +121,7 @@ def upload_model(url, params, headers, part_size, verify=False):
         print("Exception: {}".format(e))
         print("Aborting upload with id: {} ...".format(upload_id))
         data = {'modelName': model_name, 'modelVersion': model_version, 'fileName': file_name,
-                'uploadId': upload_id}
+                'uploadId': upload_id, 'key': additional_key}
         response = requests.post(url + "/upload/abort", json=data, headers=headers, verify=verify)
         if response.status_code != 200:
             print("Could not abort upload: {}".format(response.text))
@@ -119,7 +135,7 @@ def upload_model(url, params, headers, part_size, verify=False):
     # --- Completing upload
     print("Completing update with id: {} ...".format(upload_id))
     data = {'modelName': model_name, 'modelVersion': model_version, 'fileName': file_name,
-            'uploadId': upload_id, 'parts': parts}
+            'uploadId': upload_id, 'parts': parts, 'key': additional_key}
     response = requests.post(url + "/upload/done", json=data, headers=headers, verify=verify)
 
     if response.status_code != 200:

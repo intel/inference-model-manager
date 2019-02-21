@@ -47,6 +47,7 @@ def complete_upload(bucket: str, key: str, multipart_id: str, parts: list):
         raise MinioCallException(f'An error occurred during multipart upload finishing: '
                                  f'{clientError}')
 
+
 def abort_upload(bucket: str, key: str, multipart_id: str):
     try:
         minio_client.abort_multipart_upload(Bucket=bucket, Key=key, UploadId=multipart_id)
@@ -56,11 +57,14 @@ def abort_upload(bucket: str, key: str, multipart_id: str):
 
 
 def get_key(body):
-    return f"{body['modelName']}/{body['modelVersion']}/{body['fileName']}"
+    key = f"{body['modelName']}/{body['modelVersion']}/{body['fileName']}"
+    if 'key' in body and body['key'] is not None:
+        key = f"{body['modelName']}/{body['modelVersion']}/{body['key']}/{body['fileName']}"
+    return key
 
 
 def get_dir_key(body):
-    return f"{body['modelName']}/{body['modelVersion']}/{body['dir']}/"
+    return f"{body['modelName']}/{body['modelVersion']}/{body['key']}/"
 
 
 def create_dir(bucket, key):

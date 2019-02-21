@@ -68,14 +68,13 @@ multipart_abort_schema = {
     }
 }
 
-
 upload_dir_schema = {
     "type": "object",
     "title": "Create directory inside bucket",
     "required": [
-        "dir"
+        "key"
     ],
     "properties": {
-        "dir": dir
+        "key": dir
     }
 }
