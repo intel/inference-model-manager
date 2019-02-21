@@ -1,5 +1,5 @@
 #!/bin/bash
-tools=("unbuffer" "kops" "kubectl" "helm" "jq" "yq" "virtualenv" "python3.6")
+tools=("ping" "unbuffer" "kops" "kubectl" "helm" "jq" "yq" "virtualenv" "python3.6")
 
 missing=""
 for cmd in "${tools[@]}"

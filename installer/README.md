@@ -38,7 +38,7 @@ On Ubuntu, you can use script to install dependencies
   * Installation on GCE with `kops` (user must be logged with `gcloud auth login`)
   * `./install.sh -k <name> -d <domain> -z <gce_zone> -g john.doe@example.com`
   * Installation on existing kubernetes cluster ( requires access to existing kubernetes via `kubectl` )
-  * `./install.sh -d <domain> -s
+  * `./install.sh -d <domain> -s`
 
 ### Update DNS records for new domain
 #### Using AWS Route53

@@ -1,3 +1,4 @@
+sudo apt-get install iputils-ping -y
 sudo apt-get install expect expect-dev -y
 sudo apt-get install -y software-properties-common
 KOPS=`command -v kops`
