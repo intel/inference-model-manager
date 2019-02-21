@@ -10,7 +10,7 @@ from images_2_numpy import load_images_from_list
 from grpc_client import get_stub_and_request
 
 
-class MyTaskSet(TaskSet):
+class PredictTaskSet(TaskSet):
     data_for_requests = []
     GRPC_ADDRESS = os.environ.get('GRPC_ADDRESS', "URL")
     MODEL_NAME = os.environ.get('MODEL_NAME', "resnet")
@@ -44,7 +44,7 @@ class MyTaskSet(TaskSet):
             tf_contrib_util.make_tensor_proto(self.imgs, shape=(self.imgs.shape)))
 
     def on_stop(self):
-        print("Tasks was stopped")
+        print("Tasks have been stopped")
 
     @task
     def my_task(self):
@@ -63,8 +63,8 @@ class MyTaskSet(TaskSet):
                                         response_length=response.ByteSize())
 
 
-class MyLocust(Locust):
-    task_set = MyTaskSet
+class PredictLocust(Locust):
+    task_set = PredictTaskSet
     min_wait = 0
     max_wait = 0
 
