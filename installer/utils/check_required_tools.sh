@@ -7,7 +7,7 @@ do
    result=`command -v $cmd`
    if [ -z "$result" ]
    then
-      missing="$empty $cmd "
+      missing="$missing $cmd "
    fi
 done
 
