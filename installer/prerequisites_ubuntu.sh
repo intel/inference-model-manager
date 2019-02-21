@@ -1,4 +1,5 @@
-sudo apt-get install expect-dev -y
+sudo apt-get install expect expect-dev -y
+sudo apt-get install -y software-properties-common
 KOPS=`command -v kops`
 if [ -z "$KOPS" ]; then
 curl -LO https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
@@ -24,12 +25,17 @@ sudo apt-get install -y kubectl
 fi
 
 sudo apt-get install jq -y
+YQ=`command -v yq`
+if [ -z "$YQ" ]; then
 wget https://github.com/mikefarah/yq/releases/download/2.2.1/yq_linux_amd64
 chmod a+x yq_linux_amd64
 sudo mv yq_linux_amd64 /usr/local/bin/yq
-sudo add-apt-repository ppa:jonathonf/python-3.6
-sudo apt-get update 
+fi
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt-get update
 sudo apt-get install python3.6 -y
 sudo apt-get install proxytunnel -y
-sudo pip install --upgrade virtualenv
-sudo pip install --upgrade pip
+sudo apt-get install python-pip -y
+sudo apt-get install python3-pip -y
+sudo pip3 install --upgrade virtualenv 
+sudo pip3 install --upgrade pip 
