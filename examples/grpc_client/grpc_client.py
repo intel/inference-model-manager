@@ -145,7 +145,7 @@ def main(**kwargs):
         imgs = prepare_images(kwargs)
 
         if kwargs['transpose_input']:
-            imgs = imgs.transpose((0, 2, 3, 1))
+            imgs = imgs.transpose((0, 3, 1, 2))
 
         output = inference(stub, request, imgs, kwargs)
 

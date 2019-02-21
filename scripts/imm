@@ -99,6 +99,11 @@ PARAM_5=$1; shift
 PARAM_6=$1; shift
 PARAM_7=$1; shift
 PARAM_8=$1; shift
+PARAM_9=$1; shift
+PARAM_10=$1; shift
+PARAM_11=$1; shift
+PARAM_12=$1; shift
+PARAM_13=$1; shift
 IMM_TOKEN=${IMM_TOKEN}
 
 if [[ -s ${IMM_CONFIG_PATH} ]]; then
@@ -352,6 +357,31 @@ case "$OPERATION" in
 		[[ -z ${PARAM_5} ]] && read -p "Please provide path to server cert " PARAM_5
 		[[ -z ${PARAM_6} ]] && read -p "Please provide path to client cert " PARAM_6
 		[[ -z ${PARAM_7} ]] && read -p "Please provide path to client key " PARAM_7
+
+		parameters=($PARAM_8 $PARAM_9 $PARAM_10 $PARAM_11 $PARAM_12)
+		i=0
+        	while [ $i -lt 5 ] ; do
+        	  case ${parameters[i]} in
+        		--input_name)
+        		  [[ "${parameters[($i+1)]}" ]] && input_name=${parameters[($i+1)]} || { echo '"--input_name" requires argument' && exit 1; }
+        		  i=$(( $i + 2 ))
+        		  ;;
+        		--transpose_input)
+        		  transpose_input=1;
+        		  i=$(( $i + 1 ))
+        		  ;;
+        		--output_name)
+        		  [[ "${parameters[($i+1)]}" ]] && output_name=${parameters[($i+1)]} || { echo '"--output_name" requires argument' && exit 1; }
+        		  i=$(( $i + 2 ))
+        		  ;;
+        		-?*)
+        		  [[ ${parameter[$i]} ]] && echo "Unknown option: ${parameter[i]}"
+        		  break
+        		  ;;
+        		*)
+        		  break
+        	  esac
+        	done
 		case "${PARAM_2}" in
 				list)   INPUT_TYPE="--images_list"
 					;;
@@ -361,9 +391,13 @@ case "$OPERATION" in
 					exit 0
 					;;
 		esac
+		ADDITIONAL_PARAMS=""
+        	[[ -n $input_name ]] && ADDITIONAL_PARAMS="${ADDITIONAL_PARAMS} --input_name $input_name"
+        	[[ -n $transpose_input ]] && ADDITIONAL_PARAMS="${ADDITIONAL_PARAMS} --transpose_input"
+        	[[ -n $output_name ]] && ADDITIONAL_PARAMS="${ADDITIONAL_PARAMS} --output_name $output_name"
 		python ../examples/grpc_client/grpc_client.py ${RESOURCE} ${PARAM_1} \
 		${INPUT_TYPE} ${PARAM_3} --batch_size ${PARAM_4} --server_cert ${PARAM_5} \
-		--client_cert ${PARAM_6} --client_key ${PARAM_7}
+		--client_cert ${PARAM_6} --client_key ${PARAM_7} ${ADDITIONAL_PARAMS}
 		;;
 	view | v)
 		case "$RESOURCE" in
