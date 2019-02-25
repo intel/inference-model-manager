@@ -24,10 +24,10 @@ while getopts "h?qsk:d:z:g:p" opt; do
         ;;      
     s)  export SKIP_K8S_INSTALLATION="True"
         ;;
-    g) export GCE_USER=$OPTARG
-	;;
-    p) export PROXY="Proxy"
-	;;
+    g)  export GCE_USER=$OPTARG
+	    ;;
+    p)  export PROXY=$OPTARG
+	    ;;
     esac
 done
 

@@ -20,6 +20,7 @@ import requests
 from requests import urllib3
 urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
 
+
 def upload_part(url, params, headers, data, parts, verify):
     print("Sending part nr {} of current upload...".format(params['partNumber']))
     response = requests.put(url + "/upload", data, headers=headers, params=params, verify=verify)

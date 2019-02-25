@@ -1,3 +1,4 @@
+#!/bin/bash
 export DOMAIN_NAME=$1
 export PROXY=$2
 export DEX_DOMAIN_NAME="dex.$DOMAIN_NAME"
