@@ -41,12 +41,12 @@ def upload(url, params, headers, part_size, verify=False):
 
 
 def upload_dir(url, params, headers, part_size, verify=False):
-    model_name = params['file_path'].split('/')[-1]
-    params['model_name'] = model_name
+    root_dir_name = params['file_path'].split('/')[-1]
     for dir_name, subdir_list, file_list in os.walk(params['file_path']):
-        relative_path_dir = dir_name.split('/')[-1]
-        if relative_path_dir == params['model_name'] \
-                or relative_path_dir == str(params['model_version']):
+        current_dir_name = dir_name.split('/')
+        relative_path_dir = current_dir_name[-1]
+        previous_relative_path_dir = current_dir_name[-2]
+        if relative_path_dir == root_dir_name or previous_relative_path_dir == root_dir_name:
             params['additional_key'] = None
         else:
             params['additional_key'] = relative_path_dir
