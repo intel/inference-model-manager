@@ -143,9 +143,14 @@ To use this mode please add parameter:
     ```
 ##### run-inference (ri)
   - Required parameters: grpc_address, modelName, input_type (numpy/list), input_path, batch_size, server_cert_path, client_cert_path, client_key_path
+  - Optional parameters: --input_name, --transpose_input, --output_name
   - Usage example:
     ```
     ./imm ri myendpoint-mytenant.example.com:443 mymodel numpy ../images.npy  10 ../server-tf.crt ../client-tf.crt ../client-tf.key
+    ```
+    or with optional parameters:
+    ```
+    ./imm ri myendpoint-mytenant.example.com:443 mymodel numpy ../images.npy  10 ../server-tf.crt ../client-tf.crt ../client-tf.key --input_name input --transpose_input --output_name output
     ```
     In order to run inference on images (with `list` as `input_type`) you need to provide list of
      paths to those images like:
