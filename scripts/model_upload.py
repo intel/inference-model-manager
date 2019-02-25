@@ -38,7 +38,8 @@ def upload(url, params, headers, part_size, verify=False):
     if os.path.isfile(file_path):
         if tarfile.is_tarfile(file_path):
             untar_and_upload(url, params, headers, part_size, verify)
-        upload_model(url, params, headers, part_size, verify)
+        else:
+            upload_model(url, params, headers, part_size, verify)
     elif os.path.isdir(file_path):
         upload_dir(url, params, headers, part_size, verify)
     else:
@@ -52,7 +53,7 @@ def untar_and_upload(url, params, headers, part_size, verify=False):
     tmp_path = '{}{}'.format('/tmp', tar.members[0].path.strip('.'))
     params['file_path'] = tmp_path
     upload_dir(url, params, headers, part_size, verify)
-    shutil.rmtree(tmp_path)
+    shutil.rmtree(tmp_path, ignore_errors=True)
 
 
 def upload_dir(url, params, headers, part_size, verify=False):
@@ -67,12 +68,18 @@ def upload_dir(url, params, headers, part_size, verify=False):
             params['additional_key'] = relative_path_dir
         print('Found directory: {}'.format(dir_name))
         for file_name in file_list:
+            print('Found file: {}'.format(file_name))
             params['file_path'] = os.path.join(dir_name, file_name)
-            print('\tUploading {} to {}/{}/{}'.format(
-                file_name, params['model_name'], params['model_version'], params['additional_key']))
+            message = 'Uploading {} to {}/{}'.format(file_name, params['model_name'],
+                                                     params['model_version'])
+            if params['additional_key'] is not None:
+                message = 'Uploading {} to {}/{}/{}'.format(file_name, params['model_name'],
+                                                            params['model_version'],
+                                                            params['additional_key'])
+            print(message)
             upload_model(url, params, headers, part_size, verify)
         if len(os.listdir(dir_name)) == 0:
-            print('\tCreating empty directory: {}/{}/{}'.format(
+            print('Creating empty directory: {}/{}/{}'.format(
                 params['model_name'], params['model_version'], params['additional_key']))
             create_empty_dir(url, params, headers, verify)
 

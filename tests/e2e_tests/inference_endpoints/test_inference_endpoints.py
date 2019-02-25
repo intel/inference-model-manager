@@ -107,6 +107,19 @@ def test_upload_models():
         params['model_version'] = 2
         upload(url, params, headers, 30)
         os.remove('saved_model.pb')
+
+        # resnet model from tarball
+        file_name = 'resnet_v2_fp16_savedmodel_NCHW.tar.gz'
+        params = {
+            'model_name': MODEL_NAME+'-tar',
+            'model_version': 1,
+            'file_path': os.path.abspath(file_name),
+        }
+        download_saved_model_from_path('http://download.tensorflow.org/models/official'
+                                       '/20181001_resnet/savedmodels'
+                                       '/resnet_v2_fp16_savedmodel_NCHW.tar.gz', file_name)
+        upload(url, params, headers, 30)
+        os.remove(file_name)
     except Exception as e:
         pytest.fail(f"Unexpected error during upload test: {e.text}")
 
@@ -143,11 +156,14 @@ def wait_endpoint_setup():
     return running, pod_name
 
 
-def test_create_endpoint():
+@pytest.mark.parametrize("model_name, endpoint_name",
+                         [(MODEL_NAME+'-tar', ENDPOINT_NAME+'-tar'),
+                          (MODEL_NAME, ENDPOINT_NAME)])
+def test_create_endpoint(model_name, endpoint_name):
     params = {
-        'modelName': MODEL_NAME,
+        'modelName': model_name,
         'modelVersionPolicy': CREATE_ENDPOINT_VP,
-        'endpointName': ENDPOINT_NAME,
+        'endpointName': endpoint_name,
         'subjectName': 'client',
         'resources': SENSIBLE_ENDPOINT_RESOURCES,
         'servingName': 'tf-serving',
@@ -192,7 +208,7 @@ def test_prediction_with_certificates():
                                                              private_key=trusted_key,
                                                              certificate_chain=trusted_ca)
     # resnet_v1 test
-    prediction_response = perform_inference(10.0)
+    prediction_response = perform_inference(30.0)
     assert not prediction_response == "Failed"
     response = numpy.array(prediction_response.outputs[model_output].float_val)
 
@@ -208,7 +224,7 @@ def test_jpeg_prediction_with_certificates():
     time.sleep(10)
 
     # resnet_v1 test
-    prediction_response = perform_inference(10.0, jpeg_image)
+    prediction_response = perform_inference(30.0, jpeg_image)
     assert not prediction_response == "Failed"
     response = numpy.array(prediction_response.outputs[model_output].float_val)
     assert response.size == 1000
