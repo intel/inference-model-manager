@@ -66,8 +66,8 @@ def prepare_images(kwargs):
 
 def inference(stub, request, imgs, kwargs):
     print("Start processing:")
-    print(f"\tModel name: {kwargs['model_name']}")
-    print(f"\tImages in shape: {imgs.shape}\n")
+    print('\tModel name: {}'.format(kwargs['model_name']))
+    print('\tImages in shape: {}\n'.format(imgs.shape))
     processing_times = np.zeros((0), int)
     batch_size = int(kwargs['batch_size'])
     if not (kwargs.get('images_number') or kwargs.get('images_number') != 0):
@@ -102,17 +102,19 @@ def inference(stub, request, imgs, kwargs):
             output = \
                 tf_contrib_util.make_ndarray(result.outputs[kwargs['output_name']])
 
-            print('Iteration {}; Processing time: {} ms; speed {} fps'
-                  .format(iteration, round(np.average(duration)),
-                          round(1000 * batch_size / np.average(duration))))
+            print('Iteration {}; Processing time: {:.2f} ms; speed {:.2f} fps'.format(
+                iteration, round(np.average(duration), 2),
+                round(1000 * batch_size / np.average(duration), 2)))
 
             if kwargs['no_imagenet_classes']:
                 continue
-            print(f'\tImagenet top results in a single batch:')
+
+            print('\tImagenet top results in a single batch:')
             for i in range(output.shape[0]):
                 single_result = output[[i], ...]
                 max_class = np.argmax(single_result)
-                print(f'\t\t {i+1} image in batch: {classes.imagenet_classes[max_class]}')
+                print('\t\t {} image in batch: {}'.format(
+                    i + 1, classes.imagenet_classes[max_class]))
 
     if kwargs['performance']:
         get_processing_performance(processing_times, batch_size)
@@ -121,23 +123,27 @@ def inference(stub, request, imgs, kwargs):
 
 
 def get_processing_performance(processing_times, batch_size):
-    print(f'\nProcessing time for all iterations')
-    print(f'Average time: {round(np.average(processing_times), 2):.2f} ms; '
-          f'Average speed: {round(1000 * batch_size / np.average(processing_times), 2):.2f} fps')
-    print(f'Median time: {round(np.median(processing_times), 2):.2f} ms; '
-          f'Median speed: {round(1000 * batch_size / np.median(processing_times), 2):.2f} fps')
-    print(f'Max time: {round(np.max(processing_times), 2):.2f} ms; '
-          f'Max speed: {round(1000 * batch_size / np.max(processing_times), 2):.2f} fps')
-    print(f'Min time: {round(np.min(processing_times), 2):.2f} ms; '
-          f'Min speed: {round(1000 * batch_size / np.min(processing_times), 2):.2f} fps')
-    print(f'Time percentile 90: {round(np.percentile(processing_times, 90), 2):.2f} ms; '
-          f'Speed percentile 90: '
-          f'{round(1000 * batch_size / np.percentile(processing_times, 90), 2):.2f} fps')
-    print(f'Time percentile 50: {round(np.percentile(processing_times, 50), 2):.2f} ms; '
-          f'Speed percentile 50: '
-          f'{round(1000 * batch_size / np.percentile(processing_times, 50), 2):.2f} fps')
-    print(f'Time standard deviation: {round(np.std(processing_times), 2):.2f}')
-    print(f'Time variance: {round(np.var(processing_times), 2):.2f}')
+    print('\nProcessing time for all iterations')
+    print('Average time: {:.2f} ms; Average speed: {:.2f} fps'.format(
+        round(np.average(processing_times), 2),
+        round(1000 * batch_size / np.average(processing_times), 2)))
+    print('Median time: {:.2f} ms; Median speed: {:.2f} fps'.format(
+        round(np.median(processing_times), 2),
+        round(1000 * batch_size / np.median(processing_times), 2)))
+    print('Max time: {:.2f} ms; Max speed: {:.2f} fps'.format(
+        round(np.max(processing_times), 2),
+        round(1000 * batch_size / np.max(processing_times), 2)))
+    print('Min time: {:.2f} ms; Min speed: {:.2f}'.format(
+        round(np.min(processing_times), 2),
+        round(1000 * batch_size / np.min(processing_times), 2)))
+    print('Time percentile 90: {:.2f} ms; Speed percentile 90: {:.2f} fps'.format(
+        round(np.percentile(processing_times, 90), 2),
+        round(1000 * batch_size / np.percentile(processing_times, 90), 2)))
+    print('Time percentile 50: {:.2f} ms; Speed percentile {:.2f} fps'.format(
+        round(np.percentile(processing_times, 50), 2),
+        round(1000 * batch_size / np.percentile(processing_times, 50), 2)))
+    print('Time standard deviation: {:.2f}'.format(round(np.std(processing_times), 2)))
+    print('Time variance: {:.2f}'.format(round(np.var(processing_times), 2)))
 
 
 def main(**kwargs):
