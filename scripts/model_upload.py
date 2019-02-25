@@ -15,6 +15,8 @@
 #
 
 import os
+import shutil
+import tarfile
 
 import requests
 
@@ -32,12 +34,25 @@ def upload_part(url, params, headers, data, parts, verify):
 
 
 def upload(url, params, headers, part_size, verify=False):
-    if os.path.isfile(params['file_path']):
+    file_path = params['file_path']
+    if os.path.isfile(file_path):
+        if tarfile.is_tarfile(file_path):
+            untar_and_upload(url, params, headers, part_size, verify)
         upload_model(url, params, headers, part_size, verify)
-    elif os.path.isdir(params['file_path']):
+    elif os.path.isdir(file_path):
         upload_dir(url, params, headers, part_size, verify)
     else:
         raise Exception("Unrecognized type of upload")
+
+
+def untar_and_upload(url, params, headers, part_size, verify=False):
+    tar = tarfile.open(params['file_path'])
+    tar.extractall(path='/tmp')
+    tar.close()
+    tmp_path = '{}{}'.format('/tmp', tar.members[0].path.strip('.'))
+    params['file_path'] = tmp_path
+    upload_dir(url, params, headers, part_size, verify)
+    shutil.rmtree(tmp_path)
 
 
 def upload_dir(url, params, headers, part_size, verify=False):

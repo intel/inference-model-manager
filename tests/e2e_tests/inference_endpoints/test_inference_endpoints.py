@@ -30,7 +30,7 @@ sys.path.append(os.path.realpath(os.path.join(os.path.realpath(__file__), '../..
 from grpc_client import main
 import classes
 from grpc_client_utils import prepare_certs, prepare_stub_and_request
-from model_upload import upload_model
+from model_upload import upload
 
 from e2e_tests.management_api_requests import create_tenant, delete_tenant, create_endpoint, \
     update_endpoint
@@ -81,7 +81,7 @@ def test_fail_upload_model():
     }
     url = f"{MANAGEMENT_API_URL}/tenants/{TENANT_NAME}"
     with pytest.raises(Exception):
-        upload_model(url, params, headers, 30)
+        upload(url, params, headers, 30)
 
 
 def test_upload_models():
@@ -98,14 +98,14 @@ def test_upload_models():
         download_saved_model_from_path('https://storage.googleapis.com/inference-eu/models_zoo/'
                                        'resnet_V1_50/saved_model/saved_model.pb')
 
-        upload_model(url, params, headers, 30)
+        upload(url, params, headers, 30)
         os.remove('saved_model.pb')
 
         # resnet_v2_50 upload
         download_saved_model_from_path('https://storage.googleapis.com/inference-eu/models_zoo/'
                                        'resnet_V2_50/saved_model/saved_model.pb')
         params['model_version'] = 2
-        upload_model(url, params, headers, 30)
+        upload(url, params, headers, 30)
         os.remove('saved_model.pb')
     except Exception as e:
         pytest.fail(f"Unexpected error during upload test: {e.text}")

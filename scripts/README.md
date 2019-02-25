@@ -235,4 +235,10 @@ Example:
 ```
 python model_upload_cli.py resnet resnet-model 1 tenant
 ```
+
+Tarballs with saved model upload:
+```
+python resnet_v2_fp16_savedmodel_NCHW.tar.gz resnet-model 1 tenant
+```
+
 More info: `python model_upload_cli.py -h`
