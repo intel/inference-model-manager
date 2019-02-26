@@ -260,10 +260,7 @@ case "$OPERATION" in
 		esac
 		;;
 	login)
-		if [ -z "${MANAGEMENT_API_ADDRESS}" ]; then
-			echo "Please provide management api address"
-			read MANAGEMENT_API_ADDRESS
-		fi
+        [[ -z ${MANAGEMENT_API_ADDRESS} ]] && read -p "Please provide management api address " MANAGEMENT_API_ADDRESS
 		parameters=($RESOURCE $PARAM_1 $PARAM_2 $PARAM_3)
 		i=0
 		while [ $i -lt 3 ] ; do
@@ -286,7 +283,7 @@ case "$OPERATION" in
 		[[ -n $proxy_port ]] && ADDITIONAL_PARAMS="${ADDITIONAL_PARAMS} --proxy_port $proxy_port"
 		[[ -n $proxy_host ]] && ADDITIONAL_PARAMS="${ADDITIONAL_PARAMS} --proxy_host $proxy_host"
 		[[ -z ${MANAGEMENT_CA_CERT_PATH} ]] && MANAGEMENT_CA_CERT_PATH="" || MANAGEMENT_CA_CERT_PATH="--ca_cert ${MANAGEMENT_CA_CERT_PATH}"
-		python webbrowser_authenticate.py $OFFLINE --address ${MANAGEMENT_API_ADDRESS} --port \
+		python webbrowser_authenticate.py $INSECURE $OFFLINE --address ${MANAGEMENT_API_ADDRESS} --port \
         ${MANAGEMENT_API_PORT} ${MANAGEMENT_CA_CERT_PATH} ${ADDITIONAL_PARAMS}
 		IMM_TOKEN=`cat "${IMM_CONFIG_PATH}" | jq -r '.id_token'`
 		echo ${IMM_TOKEN}
