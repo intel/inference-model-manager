@@ -1,5 +1,9 @@
 ## Scripts
 
+__Note:__ To use all features of imm you need to install packages from requirements with
+```pip install -r requirements.txt```, if you don't have them already.
+
+
 ### Authenticate
 **WARNING**:
 If you use self-signed certificate you have to pass path to ca-cert file to scripts using ```--ca_cert``` flag.
@@ -44,11 +48,16 @@ To use this mode please add parameter:
 
 #### List of available options
 ##### login
+  - Additional parameters: --proxy_host, --proxy_port
   - Additional parameters provided with environment variables: certificate path with 
       MANAGEMENT_CA_CERT_PATH
   - Usage example:
     ```
     ./imm -a mgmt.example.com login
+    ```
+  - Using proxy and offline login option:
+    ```
+    ./imm -o login --proxy_port 911 --proxy_host example.proxy.com
     ```
 ##### logout
   - Usage example:
@@ -138,9 +147,14 @@ To use this mode please add parameter:
     ```
 ##### run-inference (ri)
   - Required parameters: grpc_address, modelName, input_type (numpy/list), input_path, batch_size, server_cert_path, client_cert_path, client_key_path
+  - Optional parameters: --input_name, --transpose_input, --output_name
   - Usage example:
     ```
     ./imm ri myendpoint-mytenant.example.com:443 mymodel numpy ../images.npy  10 ../server-tf.crt ../client-tf.crt ../client-tf.key
+    ```
+    or with optional parameters:
+    ```
+    ./imm ri myendpoint-mytenant.example.com:443 mymodel numpy ../images.npy  10 ../server-tf.crt ../client-tf.crt ../client-tf.key --input_name input --transpose_input --output_name output
     ```
     In order to run inference on images (with `list` as `input_type`) you need to provide list of
      paths to those images like:

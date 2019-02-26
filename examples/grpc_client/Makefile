@@ -15,4 +15,4 @@
 #
 
 style:
-	flake8 --max-line-length 100 images_2_numpy.py grpc_client_utils.py grpc_client.py
+	flake8 --max-line-length 100 images_2_numpy.py grpc_client_utils.py grpc_client.py load_testing/image_locust.py
