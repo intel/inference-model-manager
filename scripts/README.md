@@ -1,5 +1,9 @@
 ## Scripts
 
+__Note:__ To use all features of imm you need to install packages from requirements with
+```pip install -r requirements.txt```, if you don't have them already.
+
+
 ### Authenticate
 **WARNING**:
 If you use self-signed certificate you have to pass path to ca-cert file to scripts using ```--ca_cert``` flag.
