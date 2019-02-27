@@ -11,7 +11,6 @@ import (
 	"github.com/intel/crd-reconciler-for-kubernetes/pkg/resource"
 	"github.com/intel/crd-reconciler-for-kubernetes/pkg/states"
 
-	"fmt"
 	crv1 "github.com/IntelAI/inference-model-manager/server-controller/apis/cr/v1"
 	"os"
 	"strings"
