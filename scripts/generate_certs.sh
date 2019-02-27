@@ -10,5 +10,8 @@ echo 01 > /tmp/crlnumber
 touch /tmp/certindex
 openssl ca -config ca.conf -gencrl -keyfile ca-cert-tf.key -cert ca-cert-tf.crt -out root.crl.pem
 cat root.crl.pem >> ca-cert-tf.crt
-export CERT=`cat ca-cert-tf.crt|base64 -w0`
-
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    export CERT=`cat ca-cert-tf.crt|base64`
+else
+    export CERT=`cat ca-cert-tf.crt|base64 -w0`
+fi
