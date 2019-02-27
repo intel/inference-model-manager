@@ -17,9 +17,9 @@ TESTS_NUMBER=0
 PASSED_TESTS=0
 JPEGS_INFERENCE_ACCURACY=0
 
-SERVER_CERT="$HELM_INSTALL_DIR/management-api-subchart/certs/server-tf.crt"
-CLIENT_CERT="$HELM_INSTALL_DIR/management-api-subchart/certs/client-tf.crt"
-CLIENT_KEY="$HELM_INSTALL_DIR/management-api-subchart/certs/client-tf.key"
+SERVER_CERT="server-tf.crt"
+CLIENT_CERT="client-tf.crt"
+CLIENT_KEY="client-tf.key"
 
 SAVED_MODEL_SRC="https://storage.googleapis.com/inference-eu/models_zoo/resnet_V1_50/saved_model/saved_model.pb"
 IMAGES_NUMPY_SRC="https://storage.googleapis.com/inference-eu/models_zoo/resnet_V1_50/datasets/10_v1_imgs.npy"
@@ -48,7 +48,7 @@ echo "****************************ADMIN****************************"
 get_token admin
 
 echo "Create tenant"
-response=`yes n | ./imm c t ${TENANT_NAME} ${ADMIN_SCOPE}`
+response=`yes | ./imm c t ${TENANT_NAME} ${ADMIN_SCOPE}`
 let "TESTS_NUMBER++"
 [[ $response =~ "${TENANT_NAME} created" ]] && { echo "Test passed" && let "++PASSED_TESTS"; } || { echo "Test failed: $response" && exit 1; }
 
@@ -86,6 +86,7 @@ let "TESTS_NUMBER++"
 [[ $response =~ "${ENDPOINT_NAME}" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
 
 echo "Waiting for running inference endpoint"
+./get_server_cert.sh ${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME} > ${SERVER_CERT}
 while [[ ! $status =~ 'AVAILABLE' ]]; do sleep 5; status=`./imm g ms "${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}:443" ${MODEL_NAME} ${SERVER_CERT} ${CLIENT_CERT} ${CLIENT_KEY}`; echo -n "*"; done
 echo -e "\n"
 
