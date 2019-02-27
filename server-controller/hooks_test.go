@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"log"
@@ -10,26 +11,26 @@ import (
 	"github.com/intel/crd-reconciler-for-kubernetes/pkg/resource"
 	"github.com/intel/crd-reconciler-for-kubernetes/pkg/states"
 
+	"fmt"
 	crv1 "github.com/IntelAI/inference-model-manager/server-controller/apis/cr/v1"
 	"os"
 	"strings"
-	"k8s.io/client-go/rest"
 )
 
 type mockClient struct {
-	mockRestClient rest.Interface
+	err error
 }
 
-func NewMockClient() resource.Client {
-	return &mockClient{}
+func NewMockClient(err error) resource.Client {
+	return &mockClient{err}
 }
 
 func (*mockClient) Reify(templateValues interface{}) ([]byte, error) {
 	return nil, nil
 }
 
-func (*mockClient) Create(namespace string, templateValues interface{}) error {
-	return nil
+func (c *mockClient) Create(namespace string, templateValues interface{}) error {
+	return c.err
 }
 
 func (*mockClient) Delete(namespace string, name string) error {
@@ -68,16 +69,77 @@ func (*mockClient) GetStatusState(runtime.Object) states.State {
 	return states.Pending
 }
 
+type clientErr struct {
+	configMapError        error
+	deploymentClientError error
+	serviceClientError    error
+	ingressClientError    error
+}
+
 var inferenceEndpointsTest = []struct {
 	name              string
 	inferenceEndpoint crv1.InferenceEndpoint
 	expected          string
+	clientErrors      clientErr
 }{
-	{"No template provided", crv1.InferenceEndpoint{metav1.TypeMeta{}, metav1.ObjectMeta{}, crv1.InferenceEndpointSpec{}, crv1.InferenceEndpointStatus{}}, "There is no such template"},
-	{"Success to create template", crv1.InferenceEndpoint{metav1.TypeMeta{}, metav1.ObjectMeta{}, crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test"}, crv1.InferenceEndpointStatus{}}, "ERROR"},
+	{
+		name: "No template provided",
+		inferenceEndpoint: crv1.InferenceEndpoint{
+			TypeMeta:   metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{},
+			Spec:       crv1.InferenceEndpointSpec{},
+			Status:     crv1.InferenceEndpointStatus{},
+		},
+		expected:     "There is no such template",
+		clientErrors: clientErr{nil, nil, nil, nil}},
+	{
+		name: "Success to create template",
+		inferenceEndpoint: crv1.InferenceEndpoint{
+			TypeMeta:   metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{},
+			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test"},
+			Status:     crv1.InferenceEndpointStatus{}},
+		expected:     "created successfully",
+		clientErrors: clientErr{nil, nil, nil, nil}},
+	{
+		name: "Config map creation error",
+		inferenceEndpoint: crv1.InferenceEndpoint{
+			TypeMeta:   metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{},
+			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test"},
+			Status:     crv1.InferenceEndpointStatus{}},
+		expected:     "ERROR during configMap creation",
+		clientErrors: clientErr{errors.New(""), nil, nil, nil}},
+	{
+		name: "Deployment creation error",
+		inferenceEndpoint: crv1.InferenceEndpoint{
+			TypeMeta:   metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{},
+			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test"},
+			Status:     crv1.InferenceEndpointStatus{}},
+		expected:     "ERROR during deployment creation",
+		clientErrors: clientErr{nil, errors.New(""), nil, nil}},
+	{
+		name: "Service creation error",
+		inferenceEndpoint: crv1.InferenceEndpoint{
+			TypeMeta:   metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{},
+			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test"},
+			Status:     crv1.InferenceEndpointStatus{}},
+		expected:     "ERROR during service creation",
+		clientErrors: clientErr{nil, nil, errors.New(""), nil}},
+	{
+		name: "Ingress creation error",
+		inferenceEndpoint: crv1.InferenceEndpoint{
+			TypeMeta:   metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{},
+			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test"},
+			Status:     crv1.InferenceEndpointStatus{}},
+		expected:     "ERROR during ingress creation",
+		clientErrors: clientErr{nil, nil, nil, errors.New("")}},
 }
 
-func serverAdd(infer crv1.InferenceEndpoint) string {
+func serverAdd(infer crv1.InferenceEndpoint, errs clientErr) string {
 	var buf bytes.Buffer
 	log.SetOutput(&buf)
 	defer func() {
@@ -85,10 +147,10 @@ func serverAdd(infer crv1.InferenceEndpoint) string {
 	}()
 
 	updateMap := make(map[string]templateClients)
-	deploymentClient := NewMockClient()
-	serviceClient := NewMockClient()
-	ingressClient := NewMockClient()
-	configMapClient := NewMockClient()
+	configMapClient := NewMockClient(errs.configMapError)
+	deploymentClient := NewMockClient(errs.deploymentClientError)
+	serviceClient := NewMockClient(errs.serviceClientError)
+	ingressClient := NewMockClient(errs.ingressClientError)
 	k8sClients := templateClients{deploymentClient, serviceClient, ingressClient, configMapClient}
 	updateMap["test"] = k8sClients
 	hooks := serverHooks{updateMap}
@@ -100,8 +162,8 @@ func serverAdd(infer crv1.InferenceEndpoint) string {
 func TestAdd(t *testing.T) {
 	for _, tt := range inferenceEndpointsTest {
 		t.Run(tt.name, func(t *testing.T) {
-			got := serverAdd(tt.inferenceEndpoint)
-			if strings.Contains(tt.expected, got) {
+			got := serverAdd(tt.inferenceEndpoint, tt.clientErrors)
+			if !strings.Contains(got, tt.expected) {
 				t.Logf("Expected: (%s), got: (%s)\n", tt.expected, got)
 				t.Fail()
 			}
