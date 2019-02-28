@@ -26,7 +26,7 @@ from grpc_client_utils import prepare_certs, prepare_stub_and_request, MODEL_STA
                               INFERENCE_REQUEST
 from images_2_numpy import load_images_from_list
 
-RPC_TIMEOUT = 5.0
+RPC_TIMEOUT = 30.0
 
 
 def get_stub_and_request(endpoint_address, model_name, certs, ssl, target_name, request_type):
@@ -48,7 +48,7 @@ def get_stub_and_request(endpoint_address, model_name, certs, ssl, target_name, 
 
 
 def get_model_status(stub, request, kwargs):
-    result = stub.GetModelStatus(request, RPC_TIMEOUT)  # 5 secs timeout
+    result = stub.GetModelStatus(request, RPC_TIMEOUT)  # 30 secs timeout
     print(result)
     return result
 

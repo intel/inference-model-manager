@@ -268,7 +268,7 @@ def test_update_version_policy():
 def test_prediction_with_certificates_v2():
     time.sleep(10)
     # resnet_v2_test
-    prediction_response = perform_inference(10.0)
+    prediction_response = perform_inference(30.0)
 
     assert not prediction_response == "Failed"
     response = numpy.array(prediction_response.outputs[model_output].float_val)
@@ -283,7 +283,7 @@ def test_version_not_served():
     request.inputs[model_input].CopyFrom(
         tf.contrib.util.make_tensor_proto(image, shape=image.shape))
     with pytest.raises(grpc.RpcError) as context:
-        stub.Predict(request, 10.0)
+        stub.Predict(request, 30.0)
 
     logs = get_logs_of_pod(TENANT_NAME, endpoint_info.pod_name)
     logging.info(filter_serving_logs(logs))
