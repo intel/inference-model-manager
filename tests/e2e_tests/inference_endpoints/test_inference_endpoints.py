@@ -175,7 +175,7 @@ def test_create_endpoint(model_name, endpoint_name):
     assert running is True
     endpoint_info.info = get_url_from_response(endpoint_response)
     endpoint_info.pod_name = pod_name
-    subject_name = get_ingress_subject_name(ENDPOINT_NAME, TENANT_NAME)
+    subject_name = get_ingress_subject_name(endpoint_name, TENANT_NAME)
     assert subject_name == 'CN=client'
     return endpoint_response
 
