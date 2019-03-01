@@ -266,7 +266,11 @@ def test_update_version_policy():
 
 
 def test_prediction_with_certificates_v2():
-    time.sleep(10)
+    time.sleep(30)
+    running, pod_name = wait_endpoint_setup()
+    endpoint_info.pod_name = pod_name
+    assert running is True
+
     # resnet_v2_test
     prediction_response = perform_inference(30.0)
 
