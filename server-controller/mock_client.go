@@ -12,7 +12,7 @@ type mockClient struct {
 	err error
 }
 
-func NewMockClient(err error) resource.Client {
+func newMockClient(err error) resource.Client {
 	return &mockClient{err}
 }
 

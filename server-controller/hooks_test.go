@@ -91,10 +91,10 @@ func serverAdd(infer crv1.InferenceEndpoint, errs clientErr) string {
 	}()
 
 	updateMap := make(map[string]templateClients)
-	configMapClient := NewMockClient(errs.configMapError)
-	deploymentClient := NewMockClient(errs.deploymentClientError)
-	serviceClient := NewMockClient(errs.serviceClientError)
-	ingressClient := NewMockClient(errs.ingressClientError)
+	configMapClient := newMockClient(errs.configMapError)
+	deploymentClient := newMockClient(errs.deploymentClientError)
+	serviceClient := newMockClient(errs.serviceClientError)
+	ingressClient := newMockClient(errs.ingressClientError)
 	k8sClients := templateClients{deploymentClient, serviceClient, ingressClient, configMapClient}
 	updateMap["test"] = k8sClients
 	hooks := serverHooks{updateMap}
