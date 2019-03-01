@@ -126,9 +126,9 @@ jobs:
             
             sed -i "s/toreplacebyclustername/${CLUSTER_NAME_SHORT}/g" desiredcni.yaml
             sed -i "s@toreplacebyissuer@${ISSUER}@g" desiredcni.yaml
-            cp ~/inference-model-manager/helm-deployment/dex-subchart/certs/ca-ing-dex.crt .
-            sed -i 's/^/      /' ca-ing-dex.crt
-            sed -i -e '/replace_by_certificate/{r ca-ing-dex.crt' -e 'd}' desiredcni.yaml
+            cp ~/inference-model-manager/helm-deployment/dex-subchart/certs/ca-ing.crt .
+            sed -i 's/^/      /' ca-ing.crt
+            sed -i -e '/replace_by_certificate/{r ca-ing.crt' -e 'd}' desiredcni.yaml
             kops create -f desiredcni.yaml
             kops update cluster ${CLUSTER_NAME} --yes
             sleep 300
@@ -203,14 +203,11 @@ jobs:
       - run:
           name: Install Certificates
           command: |
-            sudo cp ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-ing-mgt-api.crt /usr/local/share/ca-certificates/ca-ing-mgt-api.crt
-            sudo cp ~/inference-model-manager/helm-deployment/dex-subchart/certs/ca-ing-dex.crt /usr/local/share/ca-certificates/ca-ing-dex.crt
+            sudo cp ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-ing.crt /usr/local/share/ca-certificates/ca-ing.crt
             sudo update-ca-certificates
             # Commands below are necessary to enable developers debug their builds
-            echo "MANAGEMENT API CA"
-            cat ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-ing-mgt-api.crt
-            echo "DEX CA"
-            cat ~/inference-model-manager/helm-deployment/dex-subchart/certs/ca-ing-dex.crt
+            echo "CA"
+            cat ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-ing.crt
             echo 'export CERT=`cat ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-cert-tf.crt | base64 -w0`' >> $BASH_ENV
             echo 'export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt' >> $BASH_ENV
       - store_artifacts:
