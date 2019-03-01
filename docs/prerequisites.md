@@ -41,8 +41,38 @@ Versions below 0.13.0 are not supported as they do not support gRPC traffic
 load-balancing. 
 
 Typically between the clients and the ingress controller service in Kubernetes should be employed also 
-L3 load-balancer pointing the traffic to nginx controller nodes and monitoring their health status.
+[L3/L4 load-balancer](https://www.nginx.com/resources/glossary/layer-4-load-balancing/)
+pointing the traffic to nginx controller nodes.
 Make sure it support gRPC traffic and http2 protocol.
+An example of such load-balancer in `baremetal` Kubernetes cluster and nginx-ingress controller exposed as a NodePort
+might be nginx service with the following configuration:
+```bash
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+
+events {
+	worker_connections 768;
+	# multi_accept on;
+}
+
+stream {
+    upstream stream_backend {
+        server node1.domain.com:<ingress service node port>;
+        server node2.domain.com:<ingress service node port>;
+    }
+
+    server {
+        listen     443;
+        proxy_pass stream_backend;
+    }
+}
+```
+
+Another alternative to consider for on-premise installation might be with [MetalLB](https://metallb.universe.tf/concepts/layer2/)(currently in beta).
+
+Read more about the options on [ingress-nginx baremetal considerations](https://github.com/kubernetes/ingress-nginx/blob/master/docs/deploy/baremetal.md).
+
 
 ## Docker registry
 You can use prebuilt public docker images or optionally, build platform components’ docker images on your own. In that case push them to a docker registry accessible
