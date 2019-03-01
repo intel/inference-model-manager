@@ -100,6 +100,7 @@ jobs:
           name: Generate certificates for dex external service
           command: |
             cd ~/inference-model-manager/helm-deployment/dex-subchart/certs
+            ./generate-ing-ca.sh
             ./generate-ing-dex-certs.sh
       - run:
           name: Create k8s cluster
