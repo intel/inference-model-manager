@@ -4,13 +4,21 @@
 Create VMs with gcloud:
 
 ```
-gcloud compute instances create instance-1 instance-2 instance-3 --zone <zone>
+gcloud compute instances create instance-1 instance-2 instance-3 --zone <zone> --can-ip-forward --tags=<network tags that manage firewall rules required for k8s cluster>
 ```
 
 Clone kubespray repository.
 
-Check IP adresses of above instances and add them to inventory definition of your cluster.
+Check IP adresses of above instances.
 
+```
+gcloud compute instances list --filter="name ~ instance-1" --format='value(EXTERNAL_IP)'
+gcloud compute instances list --filter="name ~ instance-1" --format='value(INTERNAL_IP)'
+```
+Add following variables to inventory file (host.ini)
+```
+ansible_ssh_host=EXTERNAL_IP ansible_host=INTERNAL_IP access_ip=INTERNAL_IP ip=INTERNAL_IP
+```
 Note that your ssh key must be copied to all machines mentioned in inventory configuration.
 
 
@@ -31,14 +39,14 @@ vi kube-apiserver.yaml
 ```
 Add following flags with desired values
 
-[More information about oidc flags here](../blob/master/docs/deployment.md)
+[More information about oidc flags here](../docs/deployment.md)
 
 ```
 --oidc-issuer-url
 --oidc-client-id
 --oidc-groups-claim
 --oidc-username-claim
---oidc-ca-file # path to file
+--oidc-ca-file
 ```
 After saving changes in kube-apiserver.yaml file, kubeapi server pod will be restarted automatically, what means that until pod is up & running again, kubectl commands will return connection refused errors.
 ```
