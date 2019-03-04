@@ -206,7 +206,7 @@ jobs:
             . ~/inference-model-manager/.venv/bin/activate
             pip install --upgrade pip
             pip install -q -r ~/inference-model-manager/tests/requirements.txt
-            pip install -q -r ~/inference-model-manager/scriptsrequirements.txt
+            pip install -q -r ~/inference-model-manager/scripts/requirements.txt
       - run:
           name: Get certificates
           command: |
