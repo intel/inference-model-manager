@@ -20,7 +20,7 @@ IMM_CONFIG_PATH=~/.immconfig
 get_token() {
 	user=$1
 	echo "Get $user token"
-	TOKEN=`python -W ignore ../tests/management_api_tests/authenticate.py $user`
+	TOKEN=`python ../tests/management_api_tests/authenticate.py $user`
 	TOKEN=`echo $TOKEN | tr \' \"`
 	ACCESS_TOKEN=`echo $TOKEN | jq -r '.access_token'`
 	TOKEN_TYPE=`echo $TOKEN | jq -r '.token_type'`
