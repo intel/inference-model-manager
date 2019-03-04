@@ -173,7 +173,7 @@
   version = "v0.3.6"
 
 [[projects]]
-  digest = "1:a77dfc787c69bac2a88844cab6d0ffcffc4c636ea693c2cd1843aa345af9a1c2"
+  digest = "1:cb11f0eccce5c09130e0dfcd6262d298d4024cfc97844a213e1782c706be99a7"
   name = "github.com/intel/crd-reconciler-for-kubernetes"
   packages = [
     "pkg/controller",
