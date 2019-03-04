@@ -13,8 +13,6 @@ MODEL_PATH="saved_model.pb"
 NUMPY_PATH="10_v1_imgs.npy"
 IMAGE_LIST="images/airliner.jpeg,images/arctic-fox.jpeg,images/bee.jpeg,images/golden_retriever.jpeg,images/gorilla.jpeg,images/magnetic_compass.jpeg,images/peacock.jpeg,images/pelican.jpeg,images/snail.jpeg,images/zebra.jpeg"
 LABEL_LIST=" airliner, Arctic fox, bee, golden retriever, gorilla, magnetic compass, peacock, pelican, snail, zebra"
-TESTS_NUMBER=0
-PASSED_TESTS=0
 JPEGS_INFERENCE_ACCURACY=0
 
 SERVER_CERT="../helm-deployment/management-api-subchart/certs/server-tf.crt"
@@ -47,112 +45,108 @@ get_inference_accuracy(){
 echo "****************************ADMIN****************************"
 get_token admin
 
-echo "Create tenant"
+@test "Create tenant" {
 response=`yes n | ./imm c t ${TENANT_NAME} ${ADMIN_SCOPE}`
-let "TESTS_NUMBER++"
-[[ $response =~ "${TENANT_NAME} created" ]] && { echo "Test passed" && let "++PASSED_TESTS"; } || { echo "Test failed: $response" && exit 1; }
+[[ $response =~ "${TENANT_NAME} created" ]]
+}
 
-echo "List tenants"
+@test "List tenants" {
 response=`./imm ls t`
-let "TESTS_NUMBER++"
-[[ $response =~ "${TENANT_NAME}" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response" 
+[[ $response =~ "${TENANT_NAME}" ]]  
+}
 
-echo "Logout"
+@test "Logout" {
 response=`yes | ./imm logout`
-let "TESTS_NUMBER++"
-[[ $response =~ "Signed out" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
+[[ $response =~ "Signed out" ]]
+}
 
 echo "*****************************USER*****************************"
 get_token user
 
-echo "Model upload"
+@test "Model upload" {
 response=`./imm u ${MODEL_PATH} ${MODEL_NAME} ${MODEL_VERSION} ${TENANT_NAME}`
-let "TESTS_NUMBER++"
-[[ $response =~ "completed successfully" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || { echo "Test failed: $response" && remove_resources "model upload" ${TENANT_NAME}; }
+[[ $response =~ "completed successfully" ]]
+}
 
-echo "List models"
+@test "List models" {
 response=`./imm ls m ${TENANT_NAME}`
-let "TESTS_NUMBER++"
-[[ $response =~ ${MODEL_NAME} ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
+[[ $response =~ ${MODEL_NAME} ]]
+}
 
-echo "Create endpoint"
+@test "Create endpoint" {
 response=`./imm c e ${ENDPOINT_NAME} ${MODEL_NAME} "${MODEL_VERSION_POLICY}" ${TENANT_NAME} ${SERVING_NAME}`
-let "TESTS_NUMBER++"
-[[ $response =~ "${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || { echo "Test failed: $response" && remove_resources "create endpoint" ${TENANT_NAME}; }
+[[ $response =~ "${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}" ]]
+}
 
-echo "List endpoints"
+@test "List endpoints" {
 response=`./imm ls e ${TENANT_NAME}`
-let "TESTS_NUMBER++"
-[[ $response =~ "${ENDPOINT_NAME}" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
+[[ $response =~ "${ENDPOINT_NAME}" ]]
+}
 
 echo "Waiting for running inference endpoint"
 while [[ ! $status =~ 'AVAILABLE' ]]; do sleep 5; status=`./imm g ms "${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}:443" ${MODEL_NAME} ${SERVER_CERT} ${CLIENT_CERT} ${CLIENT_KEY}`; echo -n "*"; done
 echo -e "\n"
 
-echo "Run inference on numpy file"
+@test "Run inference on numpy file" {
 response=`./imm ri "${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}:443" ${MODEL_NAME} numpy ${NUMPY_PATH} 10 ${SERVER_CERT} ${CLIENT_CERT} ${CLIENT_KEY}`
-let "TESTS_NUMBER++"
-[[ $response =~ "Imagenet top results in a single batch" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
+[[ $response =~ "Imagenet top results in a single batch" ]]
+}
 
-echo "Run inference on jpg images"
+@test "Run inference on jpg images" {
 response=`./imm ri "${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}:443" ${MODEL_NAME} list ${IMAGE_LIST} 1 ${SERVER_CERT} ${CLIENT_CERT} ${CLIENT_KEY}`
-let "TESTS_NUMBER++"
 get_inference_accuracy $response
-[[ $JPEGS_INFERENCE_ACCURACY -ge 60  ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
+[[ $JPEGS_INFERENCE_ACCURACY -ge 60  ]]
+}
 
-echo "Scale endpoint"
+@test "Scale endpoint" {
 response=`./imm s e ${ENDPOINT_NAME} ${REPLICAS} ${TENANT_NAME}`
-let "TESTS_NUMBER++"
-[[ $response =~ "patched successfully. New values: {'replicas': ${REPLICAS}}" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
+[[ $response =~ "patched successfully. New values: {'replicas': ${REPLICAS}}" ]]
+}
 
-echo "List endpoints"
+@test "List endpoints after scale" {
 response=`./imm ls e ${TENANT_NAME}`
-let "TESTS_NUMBER++"
-[[ $response =~ "${ENDPOINT_NAME}" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
+[[ $response =~ "${ENDPOINT_NAME}" ]]
+}
 
-echo "Delete endpoint"
+@test "Delete endpoint" {
 response=`./imm rm e ${ENDPOINT_NAME} ${TENANT_NAME}`
-let "TESTS_NUMBER++"
-[[ $response =~ ${ENDPOINT_NAME}.*deleted ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
+[[ $response =~ ${ENDPOINT_NAME}.*deleted ]]
+}
 
-echo "List endpoints"
+@test "List endpoints after removal" {
 response=`./imm ls e ${TENANT_NAME}`
-let "TESTS_NUMBER++"
-[[ $response =~ "no endpoints present in ${TENANT_NAME} tenant" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
+[[ $response =~ "no endpoints present in ${TENANT_NAME} tenant" ]]
+}
 
-echo "Delete model"
+@test "Delete model" {
 response=`./imm rm m ${MODEL_NAME} ${MODEL_VERSION} ${TENANT_NAME}`
-let "TESTS_NUMBER++"
-[[ $response =~ "Model deleted: ${MODEL_NAME}" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
+[[ $response =~ "Model deleted: ${MODEL_NAME}" ]]
+}
 
-echo "List models"
+@test "List models after removal" {
 response=`./imm ls m ${TENANT_NAME}`
-let "TESTS_NUMBER++"
-[[ $response =~ "no models present in ${TENANT_NAME} tenant" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
+[[ $response =~ "no models present in ${TENANT_NAME} tenant" ]]
+}
 
-echo "Logout"
+@test "User logout" {
 response=`yes | ./imm logout`
-let "TESTS_NUMBER++"
-[[ $response =~ "Signed out" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
+[[ $response =~ "Signed out" ]]
+}
 
 echo "****************************ADMIN****************************"
 get_token admin
 
-echo "Delete tenant"
+@test "Delete tenant" {
 response=`./imm rm t ${TENANT_NAME}`
-let "TESTS_NUMBER++"
-[[ $response =~ "${TENANT_NAME} deleted" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
+[[ $response =~ "${TENANT_NAME} deleted" ]]
+}
 
-echo "List tenants"
+@test "List tenants after removal" {
 response=`./imm ls t`
-let "TESTS_NUMBER++"
-[[ ! $response =~ "${TENANT_NAME}" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
+[[ ! $response =~ "${TENANT_NAME}" ]]
+}
 
-echo "Logout"
+@test "Admin logout" {
 response=`yes | ./imm logout`
-let "TESTS_NUMBER++"
-[[ $response =~ "Signed out" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
-
-echo "Tests: ${TESTS_NUMBER}"
-echo "Passed: ${PASSED_TESTS}"
-[[ ${TESTS_NUMBER} -ne ${PASSED_TESTS} ]] && { echo "Tests failed" && exit 1; } || { echo "All tests passed" && exit 0; }
+[[ $response =~ "Signed out" ]]
+}
