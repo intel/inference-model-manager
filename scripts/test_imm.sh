@@ -85,8 +85,12 @@ response=`./imm ls e ${TENANT_NAME}`
 let "TESTS_NUMBER++"
 [[ $response =~ "${ENDPOINT_NAME}" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
 
+echo "Waiting for server certificate"
+sleep 15
+./get_server_cert.sh "${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}" > ${SERVER_CERT}
+cat ${SERVER_CERT}
+
 echo "Waiting for running inference endpoint"
-./get_server_cert.sh ${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME} > ${SERVER_CERT}
 while [[ ! $status =~ 'AVAILABLE' ]]; do sleep 5; status=`./imm g ms "${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}:443" ${MODEL_NAME} ${SERVER_CERT} ${CLIENT_CERT} ${CLIENT_KEY}`; echo -n "*"; done
 echo -e "\n"
 

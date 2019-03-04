@@ -201,15 +201,15 @@ jobs:
             while [ "$STATUS" = "INSYNC" ]; do sleep 10; export STATUS=$(aws route53 get-change --id `echo ${AWS_DNS_ID} | tr -d "\""` | jq '.ChangeInfo.Status'); echo $STATUS; done
             deactivate
       - run:
-          name: Install Certificates
+          name: Get certificates
           command: |
-            sudo cp ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-ing.crt /usr/local/share/ca-certificates/ca-ing.crt
-            sudo update-ca-certificates
-            # Commands below are necessary to enable developers debug their builds
-            echo "CA ING"
-            cat ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-ing.crt
+            cd ~/inference-model-manager/scripts
+            ./get_ca_cert.sh $MGMT_DOMAIN_NAME > ca.pem
+            echo "CA ing:"
+            cat ./ca.pem
+            echo 'export REQUESTS_CA_BUNDLE=`pwd`/ca.pem' >> $BASH_ENV
+            echo 'export CURL_CA_BUNDLE=`pwd`/ca.pem' >> $BASH_ENV
             echo 'export CERT=`cat ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-cert-tf.crt | base64 -w0`' >> $BASH_ENV
-            echo 'export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt' >> $BASH_ENV
       - store_artifacts:
           path: ~/inference-model-manager/helm-deployment/dex-subchart/certs
       - store_artifacts:
