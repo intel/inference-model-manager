@@ -201,6 +201,13 @@ jobs:
             while [ "$STATUS" = "INSYNC" ]; do sleep 10; export STATUS=$(aws route53 get-change --id `echo ${AWS_DNS_ID} | tr -d "\""` | jq '.ChangeInfo.Status'); echo $STATUS; done
             deactivate
       - run:
+          name: Install tests requirements
+          command: |
+            . ~/inference-model-manager/.venv/bin/activate
+            pip install --upgrade pip
+            pip install -q -r ~/inference-model-manager/tests/requirements.txt
+            pip install -q -r ~/inference-model-manager/scriptsrequirements.txt
+      - run:
           name: Get certificates
           command: |
             cd ~/inference-model-manager/scripts
@@ -214,11 +221,9 @@ jobs:
           path: ~/inference-model-manager/helm-deployment/dex-subchart/certs
       - store_artifacts:
           path: ~/inference-model-manager/helm-deployment/management-api-subchart/certs
-      - run:
+      - run:        
           name: Check if platform is ready for tests, fail build if not ready after 10 min
           command: |
-            . ~/inference-model-manager/.venv/bin/activate
-            pip install -q -r ~/inference-model-manager/tests/requirements.txt
             cd ~/inference-model-manager/scripts
             . ./imm_utils.sh
             get_token admin
@@ -229,14 +234,12 @@ jobs:
           command: |
             . ~/inference-model-manager/.venv/bin/activate
             cd ~/inference-model-manager/scripts
-            pip install -r -q requirements.txt
             ./test_imm.sh
       - run:
           name: Run tests
           command: |
             . ~/inference-model-manager/.venv/bin/activate
             cd ~/inference-model-manager/tests
-            pip install -q -r requirements.txt
             . run_test.sh
       - run:
           name: Set images tags to latest on master
