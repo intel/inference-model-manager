@@ -26,7 +26,7 @@ from grpc_client_utils import prepare_certs, prepare_stub_and_request, MODEL_STA
                               INFERENCE_REQUEST
 from images_2_numpy import load_images_from_list
 
-RPC_TIMEOUT = 5.0
+RPC_TIMEOUT = 30
 
 
 def get_stub_and_request(endpoint_address, model_name, certs, ssl, target_name, request_type):
@@ -56,11 +56,11 @@ def get_model_status(stub, request, kwargs):
 def prepare_images(kwargs):
     if kwargs['images_numpy_path']:
         imgs = np.load(kwargs['images_numpy_path'])
-        if kwargs['images_number']:
-            imgs = imgs[:int(kwargs['images_number'])]
     if kwargs['images_list']:
         images = kwargs['images_list'].split(',')
         imgs = load_images_from_list(images, kwargs['image_size'], len(images))
+    while int(kwargs['batch_size']) >= imgs.shape[0]:
+        imgs = np.append(imgs, imgs, axis=0)
     return imgs
 
 
@@ -70,37 +70,51 @@ def inference(stub, request, imgs, kwargs):
     print('\tImages in shape: {}\n'.format(imgs.shape))
     processing_times = np.zeros((0), int)
     batch_size = int(kwargs['batch_size'])
+    if not (kwargs.get('images_number') or kwargs.get('images_number') != 0):
+        iterations = int((imgs.shape[0]//batch_size))
+    else:
+        iterations = int(kwargs.get('images_number'))
     iteration = 0
-    for x in range(0, imgs.shape[0], batch_size):
-        iteration += 1
-        if iteration > imgs.shape[0]:
-            break
-        end_batch = x + batch_size
-        if end_batch > imgs.shape[0]:
-            end_batch = imgs.shape[0]
-        batch = imgs[x:end_batch]
-        request.inputs[kwargs['input_name']].CopyFrom(
-            tf_contrib_util.make_tensor_proto(batch, shape=(batch.shape)))
-        start_time = datetime.datetime.now()
-        result = stub.Predict(request, 30.0)  # result includes a dictionary with all model outputs
-        end_time = datetime.datetime.now()
-        duration = (end_time - start_time).total_seconds() * 1000
-        processing_times = np.append(processing_times, np.array([int(duration)]))
-        output = tf_contrib_util.make_ndarray(result.outputs[kwargs['output_name']])
+    while iteration <= iterations:
+        for x in range(0, imgs.shape[0] - batch_size + 1, batch_size):
+            iteration += 1
+            if iteration > iterations:
+                break
+            end_batch = x + batch_size
+            if end_batch > imgs.shape[0]:
+                end_batch = imgs.shape[0]
+            batch = imgs[x:end_batch]
+            request.inputs[kwargs['input_name']].CopyFrom(
+                tf_contrib_util.make_tensor_proto(batch, shape=(batch.shape)))
+            start_time = datetime.datetime.now()
+            result = stub.Predict(request, RPC_TIMEOUT)
+            # result includes a dictionary with all model outputs
+            end_time = datetime.datetime.now()
+            if kwargs['output_name'] not in result.outputs:
+                print("Invalid output name", kwargs['output_name'])
+                print("Available outputs:")
+                for Y in result.outputs:
+                    print(Y)
+                exit(1)
+            duration = (end_time - start_time).total_seconds() * 1000
+            processing_times = \
+                np.append(processing_times, np.array([int(duration)]))
+            output = \
+                tf_contrib_util.make_ndarray(result.outputs[kwargs['output_name']])
 
-        print('Iteration {}; Processing time: {:.2f} ms; speed {:.2f} fps'.format(
-            iteration, round(np.average(duration), 2),
-            round(1000 * batch_size / np.average(duration), 2)))
+            print('Iteration {}; Processing time: {:.2f} ms; speed {:.2f} fps'.format(
+                iteration, round(np.average(duration), 2),
+                round(1000 * batch_size / np.average(duration), 2)))
 
-        if kwargs['no_imagenet_classes']:
-            continue
+            if kwargs['no_imagenet_classes']:
+                continue
 
-        print('\tImagenet top results in a single batch:')
-        for i in range(output.shape[0]):
-            single_result = output[[i], ...]
-            max_class = np.argmax(single_result)
-            print('\t\t {} image in batch: {}'.format(i+1,
-                                                      classes.imagenet_classes[max_class]))
+            print('\tImagenet top results in a single batch:')
+            for i in range(output.shape[0]):
+                single_result = output[[i], ...]
+                max_class = np.argmax(single_result)
+                print('\t\t {} image in batch: {}'.format(
+                    i + 1, classes.imagenet_classes[max_class]))
 
     if kwargs['performance']:
         get_processing_performance(processing_times, batch_size)
@@ -184,7 +198,7 @@ def run_grpc_client():
 
     parser.add_argument('--image_size', required=False, default=224,
                         help='Size of images. Default: 224')
-    parser.add_argument('--images_number', required=False,
+    parser.add_argument('--images_number', required=False, default=0,
                         help='Define number of images to inference. '
                              'Specify if you want to use only part of numpy array')
     parser.add_argument('--batch_size', required=False, default=1,
