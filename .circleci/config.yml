@@ -208,14 +208,13 @@ jobs:
             pip install -q -r ~/inference-model-manager/tests/requirements.txt
             pip install -q -r ~/inference-model-manager/scripts/requirements.txt
       - run:
-          name: Get certificates
+          name: Install Certificates
           command: |
-            cd ~/inference-model-manager/scripts
-            ./get_ca_cert.sh $MGMT_DOMAIN_NAME > ca.pem
+            sudo cp ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-ing.crt /usr/local/share/ca-certificates/
+            sudo update-ca-certificates
             echo "CA ing:"
-            cat ./ca.pem
-            echo 'export REQUESTS_CA_BUNDLE=~/inference-model-manager/scripts/ca.pem' >> $BASH_ENV
-            echo 'export CURL_CA_BUNDLE=~/inference-model-manager/scripts/ca.pem' >> $BASH_ENV
+            cat ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-ing.crt
+            echo 'export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt' >> $BASH_ENV
             echo 'export CERT=`cat ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-cert-tf.crt | base64 -w0`' >> $BASH_ENV
       - store_artifacts:
           path: ~/inference-model-manager/helm-deployment/dex-subchart/certs
@@ -228,7 +227,7 @@ jobs:
             cd ~/inference-model-manager/scripts
             . ./imm_utils.sh
             get_token admin
-            while [ "$TENANTS" != "There are no tenants present on platform" ]; do sleep 5; TENANTS=$(./imm -vv ls t); echo $TENANTS; done
+            while [[ "$TENANTS" != "There are no tenants present on platform" ]]; do sleep 5; TENANTS=`./imm -vv ls t`; echo $TENANTS; done
           no_output_timeout: 10m
       - run:
           name: Run imm test
