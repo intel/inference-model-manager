@@ -207,8 +207,8 @@ jobs:
             ./get_ca_cert.sh $MGMT_DOMAIN_NAME > ca.pem
             echo "CA ing:"
             cat ./ca.pem
-            echo 'export REQUESTS_CA_BUNDLE=`pwd`/ca.pem' >> $BASH_ENV
-            echo 'export CURL_CA_BUNDLE=`pwd`/ca.pem' >> $BASH_ENV
+            echo 'export REQUESTS_CA_BUNDLE=~/inference-model-manager/scripts/ca.pem' >> $BASH_ENV
+            echo 'export CURL_CA_BUNDLE=~/inference-model-manager/scripts/ca.pem' >> $BASH_ENV
             echo 'export CERT=`cat ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-cert-tf.crt | base64 -w0`' >> $BASH_ENV
       - store_artifacts:
           path: ~/inference-model-manager/helm-deployment/dex-subchart/certs
