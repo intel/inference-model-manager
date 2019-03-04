@@ -204,7 +204,7 @@ jobs:
           name: Install tests requirements
           command: |
             . ~/inference-model-manager/.venv/bin/activate
-            pip install --upgrade pip
+            pip install -q --upgrade pip
             pip install -q -r ~/inference-model-manager/tests/requirements.txt
             pip install -q -r ~/inference-model-manager/scripts/requirements.txt
       - run:
@@ -224,6 +224,7 @@ jobs:
       - run:        
           name: Check if platform is ready for tests, fail build if not ready after 10 min
           command: |
+            . ~/inference-model-manager/.venv/bin/activate
             cd ~/inference-model-manager/scripts
             . ./imm_utils.sh
             get_token admin
