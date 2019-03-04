@@ -206,7 +206,7 @@ jobs:
             sudo cp ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-ing.crt /usr/local/share/ca-certificates/ca-ing.crt
             sudo update-ca-certificates
             # Commands below are necessary to enable developers debug their builds
-            echo "CA"
+            echo "CA ING"
             cat ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-ing.crt
             echo 'export CERT=`cat ~/inference-model-manager/helm-deployment/management-api-subchart/certs/ca-cert-tf.crt | base64 -w0`' >> $BASH_ENV
             echo 'export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt' >> $BASH_ENV
@@ -228,9 +228,8 @@ jobs:
           name: Run imm test
           command: |
             . ~/inference-model-manager/.venv/bin/activate
-            pip install -q -r ~/inference-model-manager/tests/requirements.txt
-            pip install -q -r ~/inference-model-manager/examples/grpc_client/requirements.txt
             cd ~/inference-model-manager/scripts
+            pip install -r -q requirements.txt
             ./test_imm.sh
       - run:
           name: Run tests
