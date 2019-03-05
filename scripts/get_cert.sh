@@ -15,9 +15,15 @@
 #
 #!/bin/bash
 
-function fill_template() {
-PATTERN=$1
-REPLACEMENT=$2
-FILE=$3
-CMD="${SED_CMD}  -i s@$PATTERN@$REPLACEMENT@g $FILE" && echo "$CMD" && `$CMD`
-}
+
+MGT_API=$1
+SUBJECT=$2
+PROXY=$3
+
+if [ ! -z "$PROXY" ]; then
+    proxytunnel -p $PROXY -d $MGT_API:443 -a 7000 &
+    openssl s_client -connect localhost:7000 -servername $MGT_API -showcerts  < /dev/null 2>/dev/null |grep "s:.*CN.*$SUBJECT" -A 100 | openssl x509 -outform pem
+    kill `ps -ef | grep proxytunnel | awk '{print $2}'`
+else
+    openssl s_client -connect $MGT_API:443 -servername $MGT_API -showcerts  < /dev/null 2>/dev/null | grep "s:.*CN.*$SUBJECT" -A 100|  openssl x509 -outform pem
+fi
