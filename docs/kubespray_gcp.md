@@ -1,5 +1,5 @@
 ## Deploy Kubernetes with Kubespray
-## Example on Google Cloud Platform
+### Example on Google Cloud Platform
 
 Create VMs with gcloud:
 
