@@ -58,7 +58,7 @@ def abort_upload(bucket: str, key: str, multipart_id: str):
 
 def get_key(body):
     key = f"{body['modelName']}/{body['modelVersion']}/{body['fileName']}"
-    if 'key' in body and body['key'] is not None:
+    if body.get('key'):
         key = f"{body['modelName']}/{body['modelVersion']}/{body['key']}/{body['fileName']}"
     return key
 
@@ -69,7 +69,7 @@ def get_dir_key(body):
 
 def create_dir(bucket, key):
     try:
-        response = minio_client.put_object(Bucket=bucket, Key=key, Body='')
+        response = minio_client.put_object(Bucket=bucket, Key=key)
     except ClientError as clientError:
         raise MinioCallException(f'An error occurred during creation of dir in Minio: '
                                  f'{clientError}')

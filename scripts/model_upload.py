@@ -47,52 +47,57 @@ def upload(url, params, headers, part_size, verify=False):
 
 
 def untar_and_upload(url, params, headers, part_size, verify=False):
+    tmp_dir = '/tmp/imm'
     tar = tarfile.open(params['file_path'])
-    tar.extractall(path='/tmp')
+    tar.extractall(path=tmp_dir)
     tar.close()
-    tmp_path = '{}{}'.format('/tmp', tar.members[0].path.strip('.'))
-    params['file_path'] = tmp_path
+    params['file_path'] = tmp_dir
     upload_dir(url, params, headers, part_size, verify)
-    shutil.rmtree(tmp_path, ignore_errors=True)
+    shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
 def upload_dir(url, params, headers, part_size, verify=False):
-    root_dir_name = params['file_path'].split('/')[-1]
+    uploaded_tree = []
     for dir_name, subdir_list, file_list in os.walk(params['file_path']):
-        current_dir_name = dir_name.split('/')
-        relative_path_dir = current_dir_name[-1]
-        previous_relative_path_dir = current_dir_name[-2]
-        if relative_path_dir == root_dir_name or previous_relative_path_dir == root_dir_name:
-            params['additional_key'] = None
-        else:
-            params['additional_key'] = relative_path_dir
         print('Found directory: {}'.format(dir_name))
-        for file_name in file_list:
-            print('Found file: {}'.format(file_name))
-            params['file_path'] = os.path.join(dir_name, file_name)
-            message = 'Uploading {} to {}/{}'.format(file_name, params['model_name'],
-                                                     params['model_version'])
-            if params['additional_key'] is not None:
-                message = 'Uploading {} to {}/{}/{}'.format(file_name, params['model_name'],
-                                                            params['model_version'],
-                                                            params['additional_key'])
-            print(message)
-            upload_model(url, params, headers, part_size, verify)
-        if len(os.listdir(dir_name)) == 0:
-            print('Creating empty directory: {}/{}/{}'.format(
-                params['model_name'], params['model_version'], params['additional_key']))
+        if len(file_list) == 0 and len(subdir_list) == 1:
+            print('Another dir only in current dir, omitting....')
+        else:
+            file_path = dir_name
+            break
+
+    for dir_name, subdir_list, file_list in os.walk(file_path):
+        additional_key = os.path.relpath(dir_name, file_path)
+        path = '{}/{}'.format(params['model_name'], params['model_version'])
+        if additional_key is not '.':
+            params['additional_key'] = additional_key
+            print('Found directory: {}'.format(dir_name))
+            path += '/{}'.format(params['additional_key'])
+        if len(file_list) != 0:
+            for file_name in file_list:
+                print('Found file: {}'.format(file_name))
+                params['file_path'] = os.path.join(dir_name, file_name)
+                print('Uploading {} to {}'.format(file_name, path))
+                upload_model(url, params, headers, part_size, verify)
+                uploaded_tree.append(path + '/' + file_name)
+        elif len(file_list) == 0 and len(subdir_list) == 0:
+            print('Creating empty directory: {}'.format(path))
             create_empty_dir(url, params, headers, verify)
+            uploaded_tree.append(path)
+    print('Uploaded to:')
+    print('\n'.join(uploaded_tree))
 
 
 def create_empty_dir(url, params, headers, verify=False):
     data = {'modelName': params['model_name'],
-            'modelVersion': params['model_version'],
-            'key': params['additional_key']}
+            'modelVersion': params['model_version']}
+    if params.get('additional_key'):
+        data['key'] = params['additional_key']
     response = requests.post(url + "/upload/dir", json=data, headers=headers, verify=verify)
     if response.status_code != 200:
-        print("Could not create directory: {}".format(response.text))
-        raise Exception(response)
-    print('Empty directory {} created'.format(data['key']))
+        print("Could not create directory: {}".format(response.status_code))
+        raise
+    print('Empty directory created')
 
 
 def upload_model(url, params, headers, part_size, verify=False):

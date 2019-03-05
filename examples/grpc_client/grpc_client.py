@@ -48,7 +48,7 @@ def get_stub_and_request(endpoint_address, model_name, certs, ssl, target_name, 
 
 
 def get_model_status(stub, request, kwargs):
-    result = stub.GetModelStatus(request, RPC_TIMEOUT)  # 30 secs timeout
+    result = stub.GetModelStatus(request, RPC_TIMEOUT)
     print(result)
     return result
 
@@ -82,7 +82,7 @@ def inference(stub, request, imgs, kwargs):
         request.inputs[kwargs['input_name']].CopyFrom(
             tf_contrib_util.make_tensor_proto(batch, shape=(batch.shape)))
         start_time = datetime.datetime.now()
-        result = stub.Predict(request, 30.0)  # result includes a dictionary with all model outputs
+        result = stub.Predict(request, RPC_TIMEOUT)  # result includes a dictionary with all model outputs
         end_time = datetime.datetime.now()
         duration = (end_time - start_time).total_seconds() * 1000
         processing_times = np.append(processing_times, np.array([int(duration)]))
