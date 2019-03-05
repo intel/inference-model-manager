@@ -33,13 +33,13 @@ def upload_part(url, params, headers, data, parts, verify):
     parts.append({'ETag': part_etag, 'PartNumber': params['partNumber']})
 
 
-def upload(url, params, headers, part_size, verify=False):
+def upload_model(url, params, headers, part_size, verify=False):
     file_path = params['file_path']
     if os.path.isfile(file_path):
         if tarfile.is_tarfile(file_path):
             untar_and_upload(url, params, headers, part_size, verify)
         else:
-            upload_model(url, params, headers, part_size, verify)
+            upload_file(url, params, headers, part_size, verify)
     elif os.path.isdir(file_path):
         upload_dir(url, params, headers, part_size, verify)
     else:
@@ -78,7 +78,7 @@ def upload_dir(url, params, headers, part_size, verify=False):
                 print('Found file: {}'.format(file_name))
                 params['file_path'] = os.path.join(dir_name, file_name)
                 print('Uploading {} to {}'.format(file_name, path))
-                upload_model(url, params, headers, part_size, verify)
+                upload_file(url, params, headers, part_size, verify)
                 uploaded_tree.append(path + '/' + file_name)
         elif len(file_list) == 0 and len(subdir_list) == 0:
             print('Creating empty directory: {}'.format(path))
@@ -96,11 +96,11 @@ def create_empty_dir(url, params, headers, verify=False):
     response = requests.post(url + "/upload/dir", json=data, headers=headers, verify=verify)
     if response.status_code != 200:
         print("Could not create directory: {}".format(response.status_code))
-        raise
+        raise Exception(response)
     print('Empty directory created')
 
 
-def upload_model(url, params, headers, part_size, verify=False):
+def upload_file(url, params, headers, part_size, verify=False):
     model_name = params['model_name']
     model_version = params['model_version']
     file_path = params['file_path']

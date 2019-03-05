@@ -30,7 +30,7 @@ sys.path.append(os.path.realpath(os.path.join(os.path.realpath(__file__), '../..
 from grpc_client import main
 import classes
 from grpc_client_utils import prepare_certs, prepare_stub_and_request
-from model_upload import upload
+from model_upload import upload_model
 
 from e2e_tests.management_api_requests import create_tenant, delete_tenant, create_endpoint, \
     update_endpoint
@@ -63,6 +63,8 @@ first_label = labels[0]
 model_input = "in"
 model_output = "out"
 KIT_FOX_CLASS = 278
+UPLOAD_PART_SIZE = 30
+RPC_TIMEOUT = 30
 
 
 def test_create_tenant():
@@ -81,7 +83,7 @@ def test_fail_upload_model():
     }
     url = f"{MANAGEMENT_API_URL}/tenants/{TENANT_NAME}"
     with pytest.raises(Exception):
-        upload(url, params, headers, 30)
+        upload(url, params, headers, UPLOAD_PART_SIZE)
 
 
 def test_upload_models():
@@ -98,14 +100,14 @@ def test_upload_models():
         download_saved_model_from_path('https://storage.googleapis.com/inference-eu/models_zoo/'
                                        'resnet_V1_50/saved_model/saved_model.pb')
 
-        upload(url, params, headers, 30)
+        upload_model(url, params, headers, UPLOAD_PART_SIZE)
         os.remove('saved_model.pb')
 
         # resnet_v2_50 upload
         download_saved_model_from_path('https://storage.googleapis.com/inference-eu/models_zoo/'
                                        'resnet_V2_50/saved_model/saved_model.pb')
         params['model_version'] = 2
-        upload(url, params, headers, 30)
+        upload_model(url, params, headers, UPLOAD_PART_SIZE)
         os.remove('saved_model.pb')
 
         # resnet model from tarball
@@ -118,7 +120,7 @@ def test_upload_models():
         download_saved_model_from_path('http://download.tensorflow.org/models/official'
                                        '/20181001_resnet/savedmodels'
                                        '/resnet_v2_fp16_savedmodel_NCHW.tar.gz', file_name)
-        upload(url, params, headers, 30)
+        upload_model(url, params, headers, UPLOAD_PART_SIZE)
         os.remove(file_name)
     except Exception as e:
         pytest.fail(f"Unexpected error during upload test: {e.text}")
@@ -180,7 +182,7 @@ def test_create_endpoint(model_name, endpoint_name):
     return endpoint_response
 
 
-def perform_inference(rpc_timeout: float, image=image):
+def perform_inference(rpc_timeout=RPC_TIMEOUT, image=image):
     stub, request = prepare_stub_and_request(endpoint_info.url, MODEL_NAME,
                                              creds=endpoint_info.credentials)
 
@@ -208,7 +210,7 @@ def test_prediction_with_certificates():
                                                              private_key=trusted_key,
                                                              certificate_chain=trusted_ca)
     # resnet_v1 test
-    prediction_response = perform_inference(30.0)
+    prediction_response = perform_inference()
     assert not prediction_response == "Failed"
     response = numpy.array(prediction_response.outputs[model_output].float_val)
 
@@ -224,7 +226,7 @@ def test_jpeg_prediction_with_certificates():
     time.sleep(10)
 
     # resnet_v1 test
-    prediction_response = perform_inference(30.0, jpeg_image)
+    prediction_response = perform_inference(image=jpeg_image)
     assert not prediction_response == "Failed"
     response = numpy.array(prediction_response.outputs[model_output].float_val)
     assert response.size == 1000
@@ -234,7 +236,7 @@ def test_jpeg_prediction_with_certificates():
 
 def test_prediction_batch_with_certificates():
     time.sleep(10)
-    prediction_response = perform_inference(30.0)
+    prediction_response = perform_inference()
     assert not prediction_response == "Failed"
     response = numpy.array(prediction_response.outputs[model_output].float_val)
 
@@ -272,7 +274,7 @@ def test_prediction_with_certificates_v2():
     assert running is True
 
     # resnet_v2_test
-    prediction_response = perform_inference(30.0)
+    prediction_response = perform_inference()
 
     assert not prediction_response == "Failed"
     response = numpy.array(prediction_response.outputs[model_output].float_val)
@@ -287,7 +289,7 @@ def test_version_not_served():
     request.inputs[model_input].CopyFrom(
         tf.contrib.util.make_tensor_proto(image, shape=image.shape))
     with pytest.raises(grpc.RpcError) as context:
-        stub.Predict(request, 30.0)
+        stub.Predict(request, RPC_TIMEOUT)
 
     logs = get_logs_of_pod(TENANT_NAME, endpoint_info.pod_name)
     logging.info(filter_serving_logs(logs))
@@ -312,7 +314,7 @@ def test_wrong_certificates():
         tf.contrib.util.make_tensor_proto(numpy_input, shape=[1, 224, 224, 3]))
 
     with pytest.raises(grpc.RpcError) as context:
-        stub.Predict(request, 10.0)
+        stub.Predict(request, RPC_TIMEOUT)
 
     assert context.value.details() == 'Received http2 header with status: 403'
 
@@ -329,7 +331,7 @@ def test_no_certificates():
         tf.contrib.util.make_tensor_proto(numpy_input, shape=[1, 224, 224, 3]))
 
     with pytest.raises(grpc.RpcError) as context:
-        stub.Predict(request, 10.0)
+        stub.Predict(request, RPC_TIMEOUT)
 
     assert context.value.details() == 'Received http2 header with status: 400'
 

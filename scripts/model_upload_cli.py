@@ -21,7 +21,7 @@ import time
 from os import getenv
 from os.path import expanduser, join
 
-from model_upload import upload
+from model_upload import upload_model
 
 
 def read_config():
@@ -78,7 +78,7 @@ def main():
 
     start_time = time.time()
     try:
-        upload(url, params, headers, args.part, verify)
+        upload_model(url, params, headers, args.part, verify)
     except Exception as e:
         print("Unexpected error ocurred while uploading: {}".format(e))
     end_time = time.time()
