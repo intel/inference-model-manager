@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Copyright (c) 2018-2019 Intel Corporation
 #
@@ -13,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#!/bin/bash
 
 OP=$1 # CREATE, UPSERT, DELETE
 IP_ADDR=$2
@@ -29,9 +29,4 @@ $SED_CMD -i "s/<ip_address>/$IP_ADDR/g" route_record.json
 $SED_CMD -i "s/<dns_domain_name>/$DOMAIN/g" route_record.json
 echo "Created Route53 config:"
 cat route_record.json
-[[ ! -d .venvaws ]] && virtualenv .venvaws -p python3
-. .venvaws/bin/activate
-pip install awscli --upgrade 
 aws route53 change-resource-record-sets --hosted-zone-id Z11DOV0M5AJEBB --change-batch file://./route_record.json
-deactivate
-

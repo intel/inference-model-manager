@@ -103,7 +103,6 @@ config
 
 # Installer additional files
 installer/dex/dex_config.yaml
-installer/k8s/ca-ing-dex.crt
 installer/k8s/cluster.yaml
 installer/k8s/config.yaml
 installer/k8s/config_oidc.yaml
@@ -114,19 +113,14 @@ installer/utils/dns_utils/.venvaws
 installer/utils/route53/route_record.json
 installer/helm-temp-dir
 installer/hooks/dns_entry_hook.sh
-installer/*.pem
-installer/*/*.crt
-
-helm-deployment/*/*/*.crt
-helm-deployment/*/*/*.key
-helm-deployment/*/*/*.csr
 helm-deployment/*/charts
 helm-deployment/*/*.lock
 
-scripts/*.pem
-scripts/*.crt
-scripts/*.key
-scripts/*.csr
-scripts/*.npy
-scripts/*.pb
-
+**/*.pem
+**/*.crt
+**/*.csr
+**/*.key
+**/*.pb
+**/*.npy
+**/*.jpeg
+**/*.jpg

@@ -1,4 +1,4 @@
-#
+#!/bin/bash
 # Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#!/bin/bash
 
 # Generate a CA to be used for creating client certificates
 openssl genrsa -out ca-cert-tf.key 4096

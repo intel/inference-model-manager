@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Copyright (c) 2018-2019 Intel Corporation
 #
@@ -13,6 +14,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#!/bin/bash
 
 kubectl get secret ca-ing -n default -o yaml|grep ca.crt|awk '{ print $2 }'|base64 --decode

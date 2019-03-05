@@ -16,6 +16,17 @@
 On Ubuntu, you can use script to install dependencies
 `./prerequisites_ubuntu.sh`
 
+* Install required dependencies:
+  ```
+    cd inference-model-manager
+    virtualenv -p python3.6 .venv
+    . .venv/bin/activate
+    pip install -q --upgrade pip &&  pip install -q -r tests/requirements.txt && pip install -q -r scripts/requirements.txt
+  ```
+  * if using AWS Route53 please install awscli:
+    ```
+	  pip install -q awscli --upgrade
+	```
 ## DNS hook (optional)
 * For deployment automation, you can provide script which will setup the DNS for IMM cluster.
   Place the script in `./hooks/dns_entry_hook.sh`. 
@@ -58,33 +69,13 @@ cd utils/route53
 ## Tests
 * Prerequisites:
   * python3.6 or higher
-  * installed certificates 
-     ```
-     sudo cp inference-model-manager/helm-deployment/management-api-subchart/certs/ca-ing-mgt-api.crt /usr/local/share/ca-certificates/ca-ing-mgt-api.crt
-     sudo cp inference-model-manager/helm-deployment/dex-subchart/certs/ca-ing-dex.crt /usr/local/share/ca-certificates/ca-ing-dex.crt
-     sudo update-ca-certificates
-     ```
-  * installed dependencies
-      ```
-      pip install -r inference-model-manager/tests/requirements.txt
-      pip install -r inference-model-manager/examples/grpc_client/requirements.txt
-      ```
-  * exported variables
-      ```
-      cd inference-model-manager/
+  * activated virtualenv (described in the Prerequisites section)
+* Run:
+  ```
+  . validate.sh <domain_name> 
+  ```
+  * using proxy
+  ```
+  . validate.sh <domain_name> <proxy_with_port>
+  ```
 
-      export DOMAIN_NAME=<your_domain>
-      export DEX_DOMAIN_NAME="dex.${DOMAIN_NAME}"
-      export MGMT_DOMAIN_NAME="mgt.${DOMAIN_NAME}"
-      export DEX_NAMESPACE="dex"
-      export MGT_NAMESPACE="mgt-api"
-      export DEX_URL=https://${DEX_DOMAIN_NAME}:443
-      export CERT=`cat ./helm-deployment/management-api-subchart/certs/ca-cert-tf.crt | base64 -w0`
-      export REQUESTS_CA_BUNDLE=/etc/ssl/certs/
-      ```
-* Run smoke tests available
-  [here](https://github.com/IntelAI/inference-model-manager/blob/installer-bszelag/scripts/test_imm.sh)
-  ```
-  cd scripts/
-  ./test_imm.sh
-  ```

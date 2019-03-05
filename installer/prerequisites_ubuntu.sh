@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Copyright (c) 2018-2019 Intel Corporation
 #
@@ -13,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#!/bin/bash
 
 sudo apt-get install -y iputils-ping expect expect-dev software-properties-common
 KOPS=`command -v kops`

@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Copyright (c) 2018-2019 Intel Corporation
 #
@@ -13,15 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#!/bin/bash
-
 
 echo "All args:[ $@ ]"
 
 DESIRED_KOPS_CLUSTER_NAME=$1
 DNS_DOMAIN_NAME=$2
 GCE_ZONE=$3
-#"kops-test.nlpnp.adsdcsp.com"
 MINIO_ACCESS_KEY="my_minio_key"
 MINIO_SECRET_KEY="my_minio_secret"
 MINIO_URL=minio.$DNS_DOMAIN_NAME
@@ -32,6 +30,12 @@ export DEX_DOMAIN_NAME=dex.$DNS_DOMAIN_NAME
 export DOMAIN_NAME=$DNS_DOMAIN_NAME
 
 export HELM_TEMP_DIR=`pwd`/helm-temp-dir
+
+if [[ ! -d ../.venv ]]; then
+    virtualenv -p python3.6 ../.venv
+    . ../.venv/bin/activate
+    pip install -q --upgrade pip &&  pip install -q -r ../tests/requirements.txt && pip install -q -r ../scripts/requirements.txt
+fi
 
 cd ..
 rm -fr $HELM_TEMP_DIR
@@ -95,6 +99,5 @@ cd mgtapi
 show_result $? "Done" "Aborting"
 cd ..
 
-./validate.sh $DOMAIN_NAME $PROXY
-
+. validate.sh $DOMAIN_NAME $PROXY
 

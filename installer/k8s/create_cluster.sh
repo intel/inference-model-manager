@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Copyright (c) 2018-2019 Intel Corporation
 #
@@ -14,8 +15,6 @@
 # limitations under the License.
 #
 
-#
-#!/bin/bash
 . ../utils/progress_bar.sh
 . ../utils/fill_template.sh
 . ../utils/messages.sh

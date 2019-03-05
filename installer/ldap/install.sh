@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Copyright (c) 2018-2019 Intel Corporation
 #
@@ -13,11 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#!/bin/bash
 
 . ../utils/messages.sh
-cd $HELM_TEMP_DIR/ldap
+cd ../../tests/deployment/ldap
 header "Installing LDAP"
-helm install --name imm-ldap -f ../../../tests/deployment/ldap/values.yaml stable/openldap
+helm install --name imm-ldap -f values.yaml stable/openldap
 show_result $? "LDAP installation succeded" "Failed to install LDAP"
 cd -

@@ -1,4 +1,4 @@
-#
+#!/bin/bash
 # Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,19 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#!/bin/bash
 
-SUBJECT=ca-ing
 export DOMAIN_NAME=$1
 export PROXY=$2
 export DEX_DOMAIN_NAME="dex.$DOMAIN_NAME"
 export MGMT_DOMAIN_NAME="mgt.$DOMAIN_NAME"
-echo "Fetching CA for $MGMT_DOMAIN_NAME"
-./get_cert.sh $MGMT_DOMAIN_NAME $SUBJECT $PROXY > ca.pem
-cat ./ca.pem
-export REQUESTS_CA_BUNDLE=`pwd`/ca.pem
-export CURL_CA_BUNDLE=`pwd`/ca.pem
 
+echo "Fetching CA for $MGMT_DOMAIN_NAME"
+./get_cert.sh $MGMT_DOMAIN_NAME ca-ing $PROXY > ca.pem
+cat ./ca.pem
+sudo cp ca.pem /usr/local/share/ca-certificates/imm-ca-ing.crt
+sudo update-ca-certificates -f
+
+export REQUESTS_CA_BUNDLE=/etc/ssl/certs/
 export DEX_NAMESPACE="dex"
 export MGT_NAMESPACE="mgt-api"
 export DEX_URL=https://${DEX_DOMAIN_NAME}:443

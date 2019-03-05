@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Copyright (c) 2018-2019 Intel Corporation
 #
@@ -14,8 +15,6 @@
 # limitations under the License.
 #
 
-#
-#!/bin/bash
 . utils/show_help.sh
 . utils/check_required_tools.sh
 
