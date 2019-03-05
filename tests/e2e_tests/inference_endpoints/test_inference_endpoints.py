@@ -83,7 +83,7 @@ def test_fail_upload_model():
     }
     url = f"{MANAGEMENT_API_URL}/tenants/{TENANT_NAME}"
     with pytest.raises(Exception):
-        upload(url, params, headers, UPLOAD_PART_SIZE)
+        upload_model(url, params, headers, UPLOAD_PART_SIZE)
 
 
 def test_upload_models():
