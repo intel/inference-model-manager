@@ -61,7 +61,7 @@ def upload_dir(url, params, headers, part_size, verify=False):
     for dir_name, subdir_list, file_list in os.walk(params['file_path']):
         print('Found directory: {}'.format(dir_name))
         if len(file_list) == 0 and len(subdir_list) == 1:
-            print('Another dir only in current dir, omitting....')
+            print('Current dir contains only another dir, omitting....')
         else:
             file_path = dir_name
             break
