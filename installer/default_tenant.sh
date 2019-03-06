@@ -1,4 +1,19 @@
-#!/usr/bin/env bash
+#
+# Copyright (c) 2018-2019 Intel Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#!/bin/bash
 
 DEFAULT_TENANT_NAME=$1
 . ./utils/messages.sh
@@ -6,6 +21,8 @@ DEFAULT_TENANT_NAME=$1
 . ../.venv/bin/activate
 
 CLIENT=`openssl x509 -noout -subject -in ../helm-deployment/management-api-subchart/certs/client-tf.crt | sed -n '/^subject/s/^.*CN=//p'`
+CERT=`cat ../helm-deployment/management-api-subchart/certs/ca-cert-tf.crt | base64 -w0`
+export TENANT_RESOURCES={}
 
 cd ../scripts
 . ./imm_utils.sh
@@ -13,4 +30,5 @@ cd ../scripts
 get_token admin
 
 header "Creating default tenant"
-no | ./imm create t $DEFAULT_TENANT_NAME $CLIENT
+response=`yes n | ./imm create t $DEFAULT_TENANT_NAME $CLIENT`
+echo $response
