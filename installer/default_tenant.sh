@@ -20,7 +20,7 @@ DEFAULT_TENANT_NAME=$1
 
 . ../.venv/bin/activate
 
-CLIENT=`openssl x509 -noout -subject -in ../helm-deployment/management-api-subchart/certs/client-tf.crt | sed -n '/^subject/s/^.*CN=//p'`
+CLIENT=`openssl x509 -noout -subject -in $HELM_TEMP_DIR/management-api-subchart/certs/client-tf.crt | sed -n '/^subject/s/^.*CN=//p'`
 CERT=`cat ../helm-deployment/management-api-subchart/certs/ca-cert-tf.crt | base64 -w0`
 export TENANT_RESOURCES={}
 
@@ -32,3 +32,5 @@ get_token admin
 header "Creating default tenant"
 response=`yes n | ./imm create t $DEFAULT_TENANT_NAME $CLIENT`
 echo $response
+
+cd ../installer
