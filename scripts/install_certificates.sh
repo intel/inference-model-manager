@@ -1,3 +1,4 @@
+#
 # Copyright (c) 2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,3 +22,12 @@ echo "Fetching CA for $MGMT_DOMAIN_NAME"
 cat ./ca.pem
 sudo cp ca.pem /usr/local/share/ca-certificates/imm-ca-ing.crt
 sudo update-ca-certificates -f
+
+
+HELM_INSTALL_DIR="../installer/helm-temp-dir"
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    export CERT=`cat ../$HELM_INSTALL_DIR/management-api-subchart/certs/ca-cert-tf.crt | base64`
+else
+    export CERT=`cat ../$HELM_INSTALL_DIR/management-api-subchart/certs/ca-cert-tf.crt | base64 -w0`
+fi

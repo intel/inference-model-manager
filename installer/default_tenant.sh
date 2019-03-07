@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018-2019 Intel Corporation
+# Copyright (c) 2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,17 +15,13 @@
 #
 #!/bin/bash
 
-DOMAIN_NAME=$1
-PROXY=$2
-DEFAULT_TENANT_NAME=$3
+DEFAULT_TENANT_NAME=$1
 
 . ./utils/messages.sh
 
 . ../.venv/bin/activate
 
-HELM_INSTALL_DIR="./helm-temp-dir"
-CLIENT=`openssl x509 -noout -subject -in $HELM_TEMP_DIR/management-api-subchart/certs/client-tf.crt | sed -n '/^subject/s/^.*CN=//p'`
-CERT=`cat $HELM_INSTALL_DIR/management-api-subchart/certs/ca-cert-tf.crt | base64 -w0`
+CLIENT_SUBJECT_NAME=`openssl x509 -noout -subject -in $HELM_INSTALL_DIR/management-api-subchart/certs/client-tf.crt | sed -n '/^subject/s/^.*CN=//p'`
 export TENANT_RESOURCES={}
 
 cd ../scripts
@@ -35,7 +31,7 @@ cd ../scripts
 get_token admin
 
 header "Creating default tenant"
-response=`yes n | ./imm create t $DEFAULT_TENANT_NAME $CLIENT`
-echo $response
+response=`yes n | ./imm create t $DEFAULT_TENANT_NAME $CLIENT_SUBJECT_NAME`
+show_result $? $response "Failed to create default tenant"
 
-cd ../installer
+cd -

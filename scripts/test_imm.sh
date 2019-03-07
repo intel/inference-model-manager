@@ -45,7 +45,6 @@ IMAGES_NUMPY_SRC="https://storage.googleapis.com/inference-eu/models_zoo/resnet_
 . ./imm_utils.sh
 
 default_tenant=`jq -r '.default_tenant' $IMM_CONFIG_PATH`
-echo $default_tenant
 
 get_inference_accuracy(){
     NUMBER_OF_MATCHES=0
