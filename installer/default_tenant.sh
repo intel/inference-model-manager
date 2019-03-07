@@ -21,7 +21,7 @@ DEFAULT_TENANT_NAME=$1
 
 . ../.venv/bin/activate
 
-CLIENT_SUBJECT_NAME=`openssl x509 -noout -subject -in $HELM_INSTALL_DIR/management-api-subchart/certs/client-tf.crt | sed -n '/^subject/s/^.*CN=//p'`
+CLIENT_SUBJECT_NAME=`openssl x509 -noout -subject -in $HELM_TEMP_DIR/management-api-subchart/certs/client-tf.crt | sed -n '/^subject/s/^.*CN=//p'`
 export TENANT_RESOURCES={}
 
 cd ../scripts

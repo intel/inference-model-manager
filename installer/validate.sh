@@ -25,6 +25,6 @@ header "Preparing env variables and installing CA"
 . ./prepare_test_env.sh $DOMAIN_NAME $PROXY
 header "Running tests"
 response=`./imm ls t`
-echo $response
+show_result $? $response "Failed to create default tenant"
 ./test_imm.sh
 cd -
