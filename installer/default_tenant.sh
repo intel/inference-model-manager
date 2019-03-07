@@ -20,14 +20,16 @@ PROXY=$2
 DEFAULT_TENANT_NAME=$3
 
 . ./utils/messages.sh
-. ./prepare_test_env.sh $DOMAIN_NAME $PROXY
 
 . ../.venv/bin/activate
 
+HELM_INSTALL_DIR="./helm-temp-dir"
 CLIENT=`openssl x509 -noout -subject -in $HELM_TEMP_DIR/management-api-subchart/certs/client-tf.crt | sed -n '/^subject/s/^.*CN=//p'`
+CERT=`cat $HELM_INSTALL_DIR/management-api-subchart/certs/ca-cert-tf.crt | base64 -w0`
 export TENANT_RESOURCES={}
 
 cd ../scripts
+. ./install_certificates.sh
 . ./imm_utils.sh
 
 get_token admin
