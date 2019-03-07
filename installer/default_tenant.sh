@@ -15,13 +15,16 @@
 #
 #!/bin/bash
 
-DEFAULT_TENANT_NAME=$1
+DOMAIN_NAME=$1
+PROXY=$2
+DEFAULT_TENANT_NAME=$3
+
 . ./utils/messages.sh
+. ./prepare_test_env.sh $DOMAIN_NAME $PROXY
 
 . ../.venv/bin/activate
 
 CLIENT=`openssl x509 -noout -subject -in $HELM_TEMP_DIR/management-api-subchart/certs/client-tf.crt | sed -n '/^subject/s/^.*CN=//p'`
-CERT=`cat ../helm-deployment/management-api-subchart/certs/ca-cert-tf.crt | base64 -w0`
 export TENANT_RESOURCES={}
 
 cd ../scripts
