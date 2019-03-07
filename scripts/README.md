@@ -212,10 +212,49 @@ To use this mode please add parameter:
 More information: `./imm -h`.
 
 ### Uploading a model
-Recommended way to upload models is to use `model_upload_cli.py` script.  
+#### Single file
+Upload single file.
+ 
 Example:
 ```
-python model_upload_cli.py model-name model-version tenant-name
+python model_upload_cli.py model.pb model-name model-version tenant-name
+```
+#### Directory tree
+Upload complex structure. Any directory structure is supported.
+
+For example Tensorflow Serving's saved models have specific dir tree:
+```
+resnet/
+    1/
+        saved_model.pb
+        variables/
+            variables.data-0000-of-00001
+            variables.index
+``` 
+Upload script will walk through dir tree until it finds first directory which contains more 
+than one element (dir) inside. For example above, the upload will start on level of `saved_model.pb`
+and `variables/`. Content will be uploaded to 
+```
+model-name/
+    model-version/
+```
+where `model-name` and `model-version` are given as parameters.
+
+For directory upload, pass a path to a directory:
+```
+python model_upload_cli.py dir-path model-name model-version tenant-name
+```
+Example:
+```
+python model_upload_cli.py resnet resnet-model 1 tenant
+```
+#### Tarballs
+Passing tarballs to upload scripts is also possible. Script will extract tar file to `/tmp/imm` 
+directory, after that the behaviour is the same as in directory or single file upload.
+
+Example:
+```
+python model_upload_cli.py resnet_v2_fp16_savedmodel_NCHW.tar.gz resnet-model 1 tenant
 ```
 
 More info: `python model_upload_cli.py -h`

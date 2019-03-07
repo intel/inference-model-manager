@@ -51,7 +51,7 @@ def part_size_t(value):
 def main():
     parser = argparse.ArgumentParser(description='Model Uploader')
     parser.add_argument('file_path', type=str,
-                        help='Path to file with model to upload')
+                        help='Path to file or directory with model to upload')
     parser.add_argument('model_name', type=str,
                         help='Name of uploaded model')
     parser.add_argument('model_version', type=model_version_t,
@@ -71,6 +71,7 @@ def main():
         'model_name': args.model_name,
         'model_version': args.model_version,
         'file_path': os.path.abspath(args.file_path),
+        'tenant': args.tenant
     }
     url = "https://{}:{}/tenants/{}".format(config['management_api_address'],
                                             config['management_api_port'], args.tenant)

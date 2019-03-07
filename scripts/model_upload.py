@@ -15,6 +15,8 @@
 #
 
 import os
+import shutil
+import tarfile
 
 import requests
 
@@ -32,13 +34,83 @@ def upload_part(url, params, headers, data, parts, verify):
 
 
 def upload_model(url, params, headers, part_size, verify=False):
+    file_path = params['file_path']
+    if os.path.isfile(file_path):
+        if tarfile.is_tarfile(file_path):
+            untar_and_upload(url, params, headers, part_size, verify)
+        else:
+            upload_file(url, params, headers, part_size, verify)
+    elif os.path.isdir(file_path):
+        upload_dir(url, params, headers, part_size, verify)
+    else:
+        raise Exception("Unrecognized type of upload")
+
+
+def untar_and_upload(url, params, headers, part_size, verify=False):
+    tmp_dir = '/tmp/imm'
+    tar = tarfile.open(params['file_path'])
+    tar.extractall(path=tmp_dir)
+    tar.close()
+    params['file_path'] = tmp_dir
+    upload_dir(url, params, headers, part_size, verify)
+    shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
+def upload_dir(url, params, headers, part_size, verify=False):
+    uploaded_tree = []
+    for dir_name, subdir_list, file_list in os.walk(params['file_path']):
+        print('Found directory: {}'.format(dir_name))
+        if len(file_list) == 0 and len(subdir_list) == 1:
+            print('Current dir contains only another dir, omitting....')
+        else:
+            file_path = dir_name
+            break
+
+    for dir_name, subdir_list, file_list in os.walk(file_path):
+        additional_key = os.path.relpath(dir_name, file_path)
+        path = '{}/{}'.format(params['model_name'], params['model_version'])
+        if additional_key is not '.':
+            params['additional_key'] = additional_key
+            print('Found directory: {}'.format(dir_name))
+            path += '/{}'.format(params['additional_key'])
+        if len(file_list) != 0:
+            for file_name in file_list:
+                print('Found file: {}'.format(file_name))
+                params['file_path'] = os.path.join(dir_name, file_name)
+                print('Uploading {} to {}'.format(file_name, path))
+                upload_file(url, params, headers, part_size, verify)
+                uploaded_tree.append(path + '/' + file_name)
+        elif len(file_list) == 0 and len(subdir_list) == 0:
+            print('Creating empty directory: {}'.format(path))
+            create_empty_dir(url, params, headers, verify)
+            uploaded_tree.append(path)
+    print('Uploaded to:')
+    print('\n'.join(uploaded_tree))
+
+
+def create_empty_dir(url, params, headers, verify=False):
+    data = {'modelName': params['model_name'],
+            'modelVersion': params['model_version']}
+    if params.get('additional_key'):
+        data['key'] = params['additional_key']
+    response = requests.post(url + "/upload/dir", json=data, headers=headers, verify=verify)
+    if response.status_code != 200:
+        print("Could not create directory: {}".format(response.status_code))
+        raise Exception(response)
+    print('Empty directory created')
+
+
+def upload_file(url, params, headers, part_size, verify=False):
     model_name = params['model_name']
     model_version = params['model_version']
     file_path = params['file_path']
     file_name = os.path.basename(file_path)
+    additional_key = params['additional_key'] if 'additional_key' in params \
+                                                 and params['additional_key'] is not None else None
 
     # --- Initiating upload
-    data = {'modelName': model_name, 'modelVersion': model_version, 'fileName': file_name}
+    data = {'modelName': model_name, 'modelVersion': model_version, 'fileName': file_name,
+            'key': additional_key}
     response = requests.post(url + "/upload/start", json=data, headers=headers, verify=verify)
     if response.status_code != 200:
         print("Could not initiate upload: {}".format(response.text))
@@ -56,6 +128,7 @@ def upload_model(url, params, headers, part_size, verify=False):
                   'modelName': model_name,
                   'modelVersion': model_version,
                   'fileName': file_name,
+                  'key': additional_key
                   }
         with open(file_path, 'rb') as file:
             print("Preparing data for part nr {} of current upload...".format(part_number))
@@ -75,7 +148,7 @@ def upload_model(url, params, headers, part_size, verify=False):
         print("Exception: {}".format(e))
         print("Aborting upload with id: {} ...".format(upload_id))
         data = {'modelName': model_name, 'modelVersion': model_version, 'fileName': file_name,
-                'uploadId': upload_id}
+                'uploadId': upload_id, 'key': additional_key}
         response = requests.post(url + "/upload/abort", json=data, headers=headers, verify=verify)
         if response.status_code != 200:
             print("Could not abort upload: {}".format(response.text))
@@ -89,7 +162,7 @@ def upload_model(url, params, headers, part_size, verify=False):
     # --- Completing upload
     print("Completing update with id: {} ...".format(upload_id))
     data = {'modelName': model_name, 'modelVersion': model_version, 'fileName': file_name,
-            'uploadId': upload_id, 'parts': parts}
+            'uploadId': upload_id, 'parts': parts, 'key': additional_key}
     response = requests.post(url + "/upload/done", json=data, headers=headers, verify=verify)
 
     if response.status_code != 200:

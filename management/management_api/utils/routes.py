@@ -15,7 +15,7 @@
 #
 
 from management_api.upload.multipart import StartMultiModel, CompleteMultiModel, WriteMultiModel, \
-    AbortMultiModel
+    AbortMultiModel, UploadDir
 from management_api.tenants import Tenants
 from management_api.endpoints import Endpoints, EndpointScale, Endpoint
 from management_api.authenticate import Authenticate, Token
@@ -31,6 +31,7 @@ routes = [
     dict(resource=WriteMultiModel(), url='/tenants/{tenant_name}/upload'),
     dict(resource=CompleteMultiModel(), url='/tenants/{tenant_name}/upload/done'),
     dict(resource=AbortMultiModel(), url='/tenants/{tenant_name}/upload/abort'),
+    dict(resource=UploadDir(), url='/tenants/{tenant_name}/upload/dir'),
     dict(resource=Authenticate(), url='/authenticate'),
     dict(resource=Token(), url='/authenticate/token'),
     dict(resource=Models(), url='/tenants/{tenant_name}/models'),

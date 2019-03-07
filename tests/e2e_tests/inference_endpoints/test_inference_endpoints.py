@@ -63,6 +63,8 @@ first_label = labels[0]
 model_input = "in"
 model_output = "out"
 KIT_FOX_CLASS = 278
+UPLOAD_PART_SIZE = 30
+RPC_TIMEOUT = 30
 
 
 def test_create_tenant():
@@ -81,7 +83,7 @@ def test_fail_upload_model():
     }
     url = f"{MANAGEMENT_API_URL}/tenants/{TENANT_NAME}"
     with pytest.raises(Exception):
-        upload_model(url, params, headers, 30)
+        upload_model(url, params, headers, UPLOAD_PART_SIZE)
 
 
 def test_upload_models():
@@ -98,15 +100,28 @@ def test_upload_models():
         download_saved_model_from_path('https://storage.googleapis.com/inference-eu/models_zoo/'
                                        'resnet_V1_50/saved_model/saved_model.pb')
 
-        upload_model(url, params, headers, 30)
+        upload_model(url, params, headers, UPLOAD_PART_SIZE)
         os.remove('saved_model.pb')
 
         # resnet_v2_50 upload
         download_saved_model_from_path('https://storage.googleapis.com/inference-eu/models_zoo/'
                                        'resnet_V2_50/saved_model/saved_model.pb')
         params['model_version'] = 2
-        upload_model(url, params, headers, 30)
+        upload_model(url, params, headers, UPLOAD_PART_SIZE)
         os.remove('saved_model.pb')
+
+        # resnet model from tarball
+        file_name = 'resnet_v2_fp16_savedmodel_NCHW.tar.gz'
+        params = {
+            'model_name': MODEL_NAME+'-tar',
+            'model_version': 1,
+            'file_path': os.path.abspath(file_name),
+        }
+        download_saved_model_from_path('http://download.tensorflow.org/models/official'
+                                       '/20181001_resnet/savedmodels'
+                                       '/resnet_v2_fp16_savedmodel_NCHW.tar.gz', file_name)
+        upload_model(url, params, headers, UPLOAD_PART_SIZE)
+        os.remove(file_name)
     except Exception as e:
         pytest.fail(f"Unexpected error during upload test: {e.text}")
 
@@ -143,11 +158,14 @@ def wait_endpoint_setup():
     return running, pod_name
 
 
-def test_create_endpoint():
+@pytest.mark.parametrize("model_name, endpoint_name",
+                         [(MODEL_NAME+'-tar', ENDPOINT_NAME+'-tar'),
+                          (MODEL_NAME, ENDPOINT_NAME)])
+def test_create_endpoint(model_name, endpoint_name):
     params = {
-        'modelName': MODEL_NAME,
+        'modelName': model_name,
         'modelVersionPolicy': CREATE_ENDPOINT_VP,
-        'endpointName': ENDPOINT_NAME,
+        'endpointName': endpoint_name,
         'subjectName': 'client',
         'resources': SENSIBLE_ENDPOINT_RESOURCES,
         'servingName': 'tf-serving',
@@ -159,12 +177,12 @@ def test_create_endpoint():
     assert running is True
     endpoint_info.info = get_url_from_response(endpoint_response)
     endpoint_info.pod_name = pod_name
-    subject_name = get_ingress_subject_name(ENDPOINT_NAME, TENANT_NAME)
+    subject_name = get_ingress_subject_name(endpoint_name, TENANT_NAME)
     assert subject_name == 'CN=client'
     return endpoint_response
 
 
-def perform_inference(rpc_timeout: float, image=image):
+def perform_inference(rpc_timeout=RPC_TIMEOUT, image=image):
     stub, request = prepare_stub_and_request(endpoint_info.url, MODEL_NAME,
                                              creds=endpoint_info.credentials)
 
@@ -192,7 +210,7 @@ def test_prediction_with_certificates():
                                                              private_key=trusted_key,
                                                              certificate_chain=trusted_ca)
     # resnet_v1 test
-    prediction_response = perform_inference(10.0)
+    prediction_response = perform_inference()
     assert not prediction_response == "Failed"
     response = numpy.array(prediction_response.outputs[model_output].float_val)
 
@@ -208,7 +226,7 @@ def test_jpeg_prediction_with_certificates():
     time.sleep(10)
 
     # resnet_v1 test
-    prediction_response = perform_inference(10.0, jpeg_image)
+    prediction_response = perform_inference(image=jpeg_image)
     assert not prediction_response == "Failed"
     response = numpy.array(prediction_response.outputs[model_output].float_val)
     assert response.size == 1000
@@ -218,7 +236,7 @@ def test_jpeg_prediction_with_certificates():
 
 def test_prediction_batch_with_certificates():
     time.sleep(10)
-    prediction_response = perform_inference(30.0)
+    prediction_response = perform_inference()
     assert not prediction_response == "Failed"
     response = numpy.array(prediction_response.outputs[model_output].float_val)
 
@@ -250,9 +268,13 @@ def test_update_version_policy():
 
 
 def test_prediction_with_certificates_v2():
-    time.sleep(10)
+    time.sleep(30)
+    running, pod_name = wait_endpoint_setup()
+    endpoint_info.pod_name = pod_name
+    assert running is True
+
     # resnet_v2_test
-    prediction_response = perform_inference(10.0)
+    prediction_response = perform_inference()
 
     assert not prediction_response == "Failed"
     response = numpy.array(prediction_response.outputs[model_output].float_val)
@@ -267,7 +289,7 @@ def test_version_not_served():
     request.inputs[model_input].CopyFrom(
         tf.contrib.util.make_tensor_proto(image, shape=image.shape))
     with pytest.raises(grpc.RpcError) as context:
-        stub.Predict(request, 10.0)
+        stub.Predict(request, RPC_TIMEOUT)
 
     logs = get_logs_of_pod(TENANT_NAME, endpoint_info.pod_name)
     logging.info(filter_serving_logs(logs))
@@ -292,7 +314,7 @@ def test_wrong_certificates():
         tf.contrib.util.make_tensor_proto(numpy_input, shape=[1, 224, 224, 3]))
 
     with pytest.raises(grpc.RpcError) as context:
-        stub.Predict(request, 10.0)
+        stub.Predict(request, RPC_TIMEOUT)
 
     assert context.value.details() == 'Received http2 header with status: 403'
 
@@ -309,7 +331,7 @@ def test_no_certificates():
         tf.contrib.util.make_tensor_proto(numpy_input, shape=[1, 224, 224, 3]))
 
     with pytest.raises(grpc.RpcError) as context:
-        stub.Predict(request, 10.0)
+        stub.Predict(request, RPC_TIMEOUT)
 
     assert context.value.details() == 'Received http2 header with status: 400'
 
