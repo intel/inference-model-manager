@@ -15,6 +15,8 @@
 #
 #!/bin/bash
 
+DOMAIN_NAME=$1
+PROXY=$2
 export MGMT_DOMAIN_NAME="mgt.$DOMAIN_NAME"
 
 echo "Fetching CA for $MGMT_DOMAIN_NAME"

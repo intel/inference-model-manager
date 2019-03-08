@@ -25,7 +25,6 @@ CLIENT_SUBJECT_NAME=`openssl x509 -noout -subject -in $HELM_TEMP_DIR/management-
 export TENANT_RESOURCES={}
 
 cd ../scripts
-. ./install_certificates.sh
 . ./imm_utils.sh
 
 get_token admin
