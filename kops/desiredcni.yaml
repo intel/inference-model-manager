@@ -24,19 +24,6 @@ spec:
   iam:
     allowContainerRegistry: true
     legacy: false
-  fileAssets:
-  - content: |
-replace_by_certificate
-    name: paste-cert
-    path: /etc/srv/kubernetes/ca.pem
-    roles:
-    - Master
-  kubeAPIServer:
-    oidcCAFile: /etc/srv/kubernetes/ca.pem
-    oidcClientID: example-app
-    oidcGroupsClaim: groups
-    oidcIssuerURL: toreplacebyissuer
-    oidcUsernameClaim: email
   kubernetesApiAccess:
   - 0.0.0.0/0
   kubernetesVersion: 1.10.6

@@ -99,5 +99,5 @@ cd mgtapi
 show_result $? "Done" "Aborting"
 cd ..
 
-. validate.sh $DOMAIN_NAME $PROXY
+. ./validate.sh $DOMAIN_NAME $PROXY
 

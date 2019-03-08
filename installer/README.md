@@ -80,4 +80,15 @@ cd utils/route53
   ```
   . validate.sh <domain_name> <proxy_with_port>
   ```
-
+* Troubleshooting
+  * "unable to load certificate"
+      Usually this problem occurs when you do not have root access (before running tests validate.sh
+    script gets certificate and installs it with sudo)
+  * ```
+	Get admin token
+	  File "../tests/management_api_tests/authenticate.py", line 110
+	user_password = f'{userpass}_pass'
+	SyntaxError: invalid syntax 
+    ```
+      This problem occurs when you run tests outside virtualenv.
+      Please check *Install required dependencies* in **Prerequisites** section.
