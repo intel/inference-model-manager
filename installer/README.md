@@ -1,6 +1,8 @@
 # Installation
 
 ## Prerequisites
+* python3.6
+* virtualenv ```pip install virtualenv```
 * [yq](https://github.com/mikefarah/yq) *(Use this specific version of yq)*
 * [jq](https://stedolan.github.io/jq/)
 * [helm](https://github.com/helm/helm)
