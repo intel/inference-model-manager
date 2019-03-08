@@ -327,9 +327,9 @@ def fake_endpoint_with_fake_model(fake_endpoint, minio_client):
     return create_fake_model(fake_endpoint, minio_client)
 
 
-def download_saved_model_from_path(path):
+def download_saved_model_from_path(path, file_name='saved_model.pb'):
     response = requests.get(path)
-    with open('saved_model.pb', 'wb') as f:
+    with open(file_name, 'wb') as f:
         f.write(response.content)
 
 

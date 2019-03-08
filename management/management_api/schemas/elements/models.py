@@ -48,3 +48,8 @@ parts = {
     "type": "array",
     "title": "Parts of uploads"
 }
+
+dir = {
+    "type": "string",
+    "title": "Directory to create",
+}

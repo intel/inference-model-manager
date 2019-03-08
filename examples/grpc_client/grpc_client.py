@@ -26,7 +26,7 @@ from grpc_client_utils import prepare_certs, prepare_stub_and_request, MODEL_STA
                               INFERENCE_REQUEST
 from images_2_numpy import load_images_from_list
 
-RPC_TIMEOUT = 5.0
+RPC_TIMEOUT = 30
 
 
 def get_stub_and_request(endpoint_address, model_name, certs, ssl, target_name, request_type):
@@ -48,7 +48,7 @@ def get_stub_and_request(endpoint_address, model_name, certs, ssl, target_name, 
 
 
 def get_model_status(stub, request, kwargs):
-    result = stub.GetModelStatus(request, RPC_TIMEOUT)  # 5 secs timeout
+    result = stub.GetModelStatus(request, RPC_TIMEOUT)
     print(result)
     return result
 
@@ -56,50 +56,65 @@ def get_model_status(stub, request, kwargs):
 def prepare_images(kwargs):
     if kwargs['images_numpy_path']:
         imgs = np.load(kwargs['images_numpy_path'])
-        if kwargs['images_number']:
-            imgs = imgs[:int(kwargs['images_number'])]
     if kwargs['images_list']:
         images = kwargs['images_list'].split(',')
         imgs = load_images_from_list(images, kwargs['image_size'], len(images))
+    while int(kwargs['batch_size']) >= imgs.shape[0]:
+        imgs = np.append(imgs, imgs, axis=0)
     return imgs
 
 
 def inference(stub, request, imgs, kwargs):
     print("Start processing:")
-    print(f"\tModel name: {kwargs['model_name']}")
-    print(f"\tImages in shape: {imgs.shape}\n")
+    print('\tModel name: {}'.format(kwargs['model_name']))
+    print('\tImages in shape: {}\n'.format(imgs.shape))
     processing_times = np.zeros((0), int)
     batch_size = int(kwargs['batch_size'])
+    if not (kwargs.get('images_number') or kwargs.get('images_number') != 0):
+        iterations = int((imgs.shape[0]//batch_size))
+    else:
+        iterations = int(kwargs.get('images_number'))
     iteration = 0
-    for x in range(0, imgs.shape[0], batch_size):
-        iteration += 1
-        if iteration > imgs.shape[0]:
-            break
-        end_batch = x + batch_size
-        if end_batch > imgs.shape[0]:
-            end_batch = imgs.shape[0]
-        batch = imgs[x:end_batch]
-        request.inputs[kwargs['input_name']].CopyFrom(
-            tf_contrib_util.make_tensor_proto(batch, shape=(batch.shape)))
-        start_time = datetime.datetime.now()
-        result = stub.Predict(request, 30.0)  # result includes a dictionary with all model outputs
-        end_time = datetime.datetime.now()
-        duration = (end_time - start_time).total_seconds() * 1000
-        processing_times = np.append(processing_times, np.array([int(duration)]))
-        output = tf_contrib_util.make_ndarray(result.outputs[kwargs['output_name']])
+    while iteration <= iterations:
+        for x in range(0, imgs.shape[0] - batch_size + 1, batch_size):
+            iteration += 1
+            if iteration > iterations:
+                break
+            end_batch = x + batch_size
+            if end_batch > imgs.shape[0]:
+                end_batch = imgs.shape[0]
+            batch = imgs[x:end_batch]
+            request.inputs[kwargs['input_name']].CopyFrom(
+                tf_contrib_util.make_tensor_proto(batch, shape=(batch.shape)))
+            start_time = datetime.datetime.now()
+            result = stub.Predict(request, RPC_TIMEOUT)
+            # result includes a dictionary with all model outputs
+            end_time = datetime.datetime.now()
+            if kwargs['output_name'] not in result.outputs:
+                print("Invalid output name", kwargs['output_name'])
+                print("Available outputs:")
+                for Y in result.outputs:
+                    print(Y)
+                exit(1)
+            duration = (end_time - start_time).total_seconds() * 1000
+            processing_times = \
+                np.append(processing_times, np.array([int(duration)]))
+            output = \
+                tf_contrib_util.make_ndarray(result.outputs[kwargs['output_name']])
 
-        print(f'Iteration {iteration}; '
-              f'Processing time: {round(np.average(duration), 2):.2f} ms; '
-              f'speed {round(1000 * batch_size / np.average(duration), 2):.2f} fps')
+            print('Iteration {}; Processing time: {:.2f} ms; speed {:.2f} fps'.format(
+                iteration, round(np.average(duration), 2),
+                round(1000 * batch_size / np.average(duration), 2)))
 
-        if kwargs['no_imagenet_classes']:
-            continue
+            if kwargs['no_imagenet_classes']:
+                continue
 
-        print(f'\tImagenet top results in a single batch:')
-        for i in range(output.shape[0]):
-            single_result = output[[i], ...]
-            max_class = np.argmax(single_result)
-            print(f'\t\t {i+1} image in batch: {classes.imagenet_classes[max_class]}')
+            print('\tImagenet top results in a single batch:')
+            for i in range(output.shape[0]):
+                single_result = output[[i], ...]
+                max_class = np.argmax(single_result)
+                print('\t\t {} image in batch: {}'.format(
+                    i + 1, classes.imagenet_classes[max_class]))
 
     if kwargs['performance']:
         get_processing_performance(processing_times, batch_size)
@@ -108,23 +123,27 @@ def inference(stub, request, imgs, kwargs):
 
 
 def get_processing_performance(processing_times, batch_size):
-    print(f'\nProcessing time for all iterations')
-    print(f'Average time: {round(np.average(processing_times), 2):.2f} ms; '
-          f'Average speed: {round(1000 * batch_size / np.average(processing_times), 2):.2f} fps')
-    print(f'Median time: {round(np.median(processing_times), 2):.2f} ms; '
-          f'Median speed: {round(1000 * batch_size / np.median(processing_times), 2):.2f} fps')
-    print(f'Max time: {round(np.max(processing_times), 2):.2f} ms; '
-          f'Max speed: {round(1000 * batch_size / np.max(processing_times), 2):.2f} fps')
-    print(f'Min time: {round(np.min(processing_times), 2):.2f} ms; '
-          f'Min speed: {round(1000 * batch_size / np.min(processing_times), 2):.2f} fps')
-    print(f'Time percentile 90: {round(np.percentile(processing_times, 90), 2):.2f} ms; '
-          f'Speed percentile 90: '
-          f'{round(1000 * batch_size / np.percentile(processing_times, 90), 2):.2f} fps')
-    print(f'Time percentile 50: {round(np.percentile(processing_times, 50), 2):.2f} ms; '
-          f'Speed percentile 50: '
-          f'{round(1000 * batch_size / np.percentile(processing_times, 50), 2):.2f} fps')
-    print(f'Time standard deviation: {round(np.std(processing_times), 2):.2f}')
-    print(f'Time variance: {round(np.var(processing_times), 2):.2f}')
+    print('\nProcessing time for all iterations')
+    print('Average time: {:.2f} ms; Average speed: {:.2f} fps'.format(
+        round(np.average(processing_times), 2),
+        round(1000 * batch_size / np.average(processing_times), 2)))
+    print('Median time: {:.2f} ms; Median speed: {:.2f} fps'.format(
+        round(np.median(processing_times), 2),
+        round(1000 * batch_size / np.median(processing_times), 2)))
+    print('Max time: {:.2f} ms; Max speed: {:.2f} fps'.format(
+        round(np.max(processing_times), 2),
+        round(1000 * batch_size / np.max(processing_times), 2)))
+    print('Min time: {:.2f} ms; Min speed: {:.2f}'.format(
+        round(np.min(processing_times), 2),
+        round(1000 * batch_size / np.min(processing_times), 2)))
+    print('Time percentile 90: {:.2f} ms; Speed percentile 90: {:.2f} fps'.format(
+        round(np.percentile(processing_times, 90), 2),
+        round(1000 * batch_size / np.percentile(processing_times, 90), 2)))
+    print('Time percentile 50: {:.2f} ms; Speed percentile {:.2f} fps'.format(
+        round(np.percentile(processing_times, 50), 2),
+        round(1000 * batch_size / np.percentile(processing_times, 50), 2)))
+    print('Time standard deviation: {:.2f}'.format(round(np.std(processing_times), 2)))
+    print('Time variance: {:.2f}'.format(round(np.var(processing_times), 2)))
 
 
 def main(**kwargs):
@@ -145,7 +164,7 @@ def main(**kwargs):
         imgs = prepare_images(kwargs)
 
         if kwargs['transpose_input']:
-            imgs = imgs.transpose((0, 2, 3, 1))
+            imgs = imgs.transpose((0, 3, 1, 2))
 
         output = inference(stub, request, imgs, kwargs)
 
@@ -179,7 +198,7 @@ def run_grpc_client():
 
     parser.add_argument('--image_size', required=False, default=224,
                         help='Size of images. Default: 224')
-    parser.add_argument('--images_number', required=False,
+    parser.add_argument('--images_number', required=False, default=0,
                         help='Define number of images to inference. '
                              'Specify if you want to use only part of numpy array')
     parser.add_argument('--batch_size', required=False, default=1,
