@@ -100,7 +100,9 @@ cd mgtapi
 show_result $? "Done" "Aborting"
 cd ..
 
+cd ../scripts
 . install_certificates.sh $DOMAIN_NAME $PROXY
+cd -
 
 . default_tenant.sh $DEFAULT_TENANT_NAME
 

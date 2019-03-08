@@ -15,6 +15,16 @@
 #
 #!/bin/bash
 
+cd $HELM_TEMP_DIR/management-api-subchart/certs
+. ./scriptcert.sh
+cd -
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    export CERT=`cat $HELM_TEMP_DIR/management-api-subchart/certs/ca-cert-tf.crt | base64`
+else
+    export CERT=`cat $HELM_TEMP_DIR/management-api-subchart/certs/ca-cert-tf.crt | base64 -w0`
+fi
+
 DEFAULT_TENANT_NAME=$1
 
 . ./utils/messages.sh
