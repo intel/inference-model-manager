@@ -1,6 +1,5 @@
-#!/bin/bash
 #
-# Copyright (c) 2018-2019 Intel Corporation
+# Copyright (c) 2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,14 +13,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-. ./utils/messages.sh
+#!/bin/bash
 
 DOMAIN_NAME=$1
 DEFAULT_TENANT_NAME=$2
 PROXY=$3
 
+cd $HELM_TEMP_DIR/management-api-subchart/certs
+. ./scriptcert.sh
+cd -
+
+. ./utils/messages.sh
+
+. ../.venv/bin/activate
+
+export USER_SCOPE='user'
+export TENANT_RESOURCES={}
+
 cd ../scripts
-header "Running tests"
-./test_imm.sh
+. ./imm_utils.sh
+
+get_token admin
+
+response=`yes n | ./imm create t $DEFAULT_TENANT_NAME $USER_SCOPE`
+show_result $? "Default tenant created" failure "Failed to create default tenant"
+
 cd -
