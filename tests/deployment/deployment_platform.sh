@@ -20,6 +20,7 @@ echo "deploy imm ldap"
 source ./deployment_imm_ldap.sh
 OPENLDAP_SVC=`kubectl get svc|grep "openldap   "| awk '{ print $1 }'`
 OPENLDAP_SVC_ADDRESS="$OPENLDAP_SVC.default:389"
+cd $RETURN_DIR
 echo $OPENLDAP_SVC_ADDRESS
 sed -i "s@toreplacebyldapaddress@${OPENLDAP_SVC_ADDRESS}@g" dex_config.yaml
 echo "deploy ingress"
@@ -34,7 +35,7 @@ echo "deploy management api"
 echo "generate certs needed for tf serving endpoint test"
 if [ "$TF_TEST_CERTS" = "true" ]
 then
-echo "Generate all certs required to run platform"
+echo "Generate remaining certs required to run platform"
 cd ../../helm-deployment/management-api-subchart/certs/ && ./scriptcert.sh && ./script-wrong-certs.sh
 cd $RETURN_DIR
 fi
