@@ -17,9 +17,6 @@
 
 . ../utils/fill_template.sh
 . ../utils/messages.sh
-export PROJECT=`gcloud config get-value project`
-export KOPS_FEATURE_FLAGS=AlphaAllowGCE
-export KOPS_STATE_STORE=gs://kubernetes-clusters-imm
 ```
 
 #### Update cluster
