@@ -19,7 +19,7 @@ RETURN_DIR=$PWD
 echo "deploy imm ldap"
 source ./deployment_imm_ldap.sh
 OPENLDAP_SVC=`kubectl get svc|grep "openldap   "| awk '{ print $1 }'`
-OPENLDAP_SVC_ADDRESS="$OPENLDAP_SVC.default:389"
+OPENLDAP_SVC_ADDRESS="$OPENLDAP_SVC.default:636"
 cd $RETURN_DIR
 echo $OPENLDAP_SVC_ADDRESS
 sed -i "s@toreplacebyldapaddress@${OPENLDAP_SVC_ADDRESS}@g" dex_config.yaml

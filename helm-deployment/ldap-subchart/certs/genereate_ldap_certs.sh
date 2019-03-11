@@ -23,5 +23,5 @@ openssl req -new -x509 -days 365 -key ca-ldap.key -out ca.crt -subj "/CN=ca-ldap
 
 # Generate server key/cert
 openssl genrsa -out ldap.key 4096
-openssl req -new -key ldap.key -out ldap.csr -subj "/CN=ldap.${LDAP_NAMESPACE}"
+openssl req -new -key ldap.key -out ldap.csr -subj "/CN=imm-openldap.default"
 openssl x509 -req -days 365 -in ldap.csr -CA ca.crt -CAkey ca-ldap.key -set_serial 01 -out ldap.crt
