@@ -20,10 +20,11 @@ config:
     config:
       issuer: toreplacedbyissuer
       # No TLS for this setup.
-      insecureNoSSL: true
+      insecureNoSSL: false
+      rootCA: /etc/dex/ca/ldap.ca
       # This would normally be a read-only user.
-      bindDN: "cn=admin,dc=example,dc=org"
-      bindPW: admin
+      bindDN: "cn=readonly,dc=example,dc=org"
+      bindPW: readonly
       groupSearch:
         baseDN: "ou=Groups,dc=example,dc=org"
         filter: (objectClass=groupOfNames)
@@ -48,3 +49,4 @@ config:
     - 'urn:ietf:wg:oauth:2.0:oob'
     name: 'Example App'
     secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+rootCAsecret: root-ca
