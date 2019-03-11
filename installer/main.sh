@@ -49,12 +49,13 @@ cd -
 . utils/wait_for_pod.sh
 . utils/messages.sh
 
-
 if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ] && [ -z "$SKIP_K8S_INSTALLATION" ]; then
 cd k8s
 . create_kops_cluster_gke.sh $DESIRED_KOPS_CLUSTER_NAME $GCE_ZONE
 . install_tiller.sh 
 cd ..
+else
+header "Skipping kubernetes cluster installation"
 fi
 
 cd ingress
@@ -81,12 +82,7 @@ cd dex
 . install.sh $ISSUER $DEX_NAMESPACE $DEX_DOMAIN_NAME
 cd .. 
 
-
-cd validate
-.  ./test_dex_ldap.sh https://$DEX_DOMAIN_NAME
-cd ..
-
-if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ]; then
+if [ -z "$SKIP_K8S_INSTALLATION" ]; then
 cd k8s
 . ./restart_k8sapi.sh $DESIRED_KOPS_CLUSTER_NAME $ISSUER $DEX_NAMESPACE 
 cd ..
@@ -103,5 +99,15 @@ cd management-api
 show_result $? "Done" "Aborting"
 cd ..
 
-. ./validate.sh $DOMAIN_NAME $PROXY
+cd ../scripts
+header "Preparing env variables and installing CA"
+. ./prepare_test_env.sh $DOMAIN_NAME $PROXY
+cd -
 
+if [[ $STANDALONE == "yes" ]]; then
+    export DEFAULT_TENANT_NAME="default-tenant"
+    echo "Creating default tenant"
+    . default_tenant.sh $DOMAIN_NAME $DEFAULT_TENANT_NAME $PROXY
+fi
+
+. validate.sh $DOMAIN_NAME $DEFAULT_TENANT_NAME $PROXY
