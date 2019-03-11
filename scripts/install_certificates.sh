@@ -1,6 +1,5 @@
-#!/bin/bash
 #
-# Copyright (c) 2018-2019 Intel Corporation
+# Copyright (c) 2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,17 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-. ./utils/messages.sh
+#!/bin/bash
 
 DOMAIN_NAME=$1
 PROXY=$2
-DEFAULT_TENANT_NAME=$3
-cd ../scripts
-header "Preparing env variables and installing CA"
-. ./prepare_test_env.sh $DOMAIN_NAME $PROXY
-header "Running tests"
-response=`./imm ls t`
-# TODO checking for DEFAULT_TENANT_NAME in response
-./test_imm.sh
-cd -
+export MGMT_DOMAIN_NAME="mgt.$DOMAIN_NAME"
+
+echo "Fetching CA for $MGMT_DOMAIN_NAME"
+./get_cert.sh $MGMT_DOMAIN_NAME ca-ing $PROXY > ca.pem
+cat ./ca.pem
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ca.pem
+else
+    sudo cp ca.pem /usr/local/share/ca-certificates/imm-ca-ing.crt
+    sudo update-ca-certificates -f
+fi

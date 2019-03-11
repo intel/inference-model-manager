@@ -23,6 +23,7 @@ GCE_ZONE=$3
 MINIO_ACCESS_KEY="my_minio_key"
 MINIO_SECRET_KEY="my_minio_secret"
 MINIO_URL=minio.$DNS_DOMAIN_NAME
+DEFAULT_TENANT_NAME="default-tenant"
 
 export ISSUER=https://dex.$DNS_DOMAIN_NAME:443/dex # change 443 port if using kubernetes node port instead of load balancer
 export DEX_NAMESPACE=dex
@@ -99,5 +100,10 @@ cd mgtapi
 show_result $? "Done" "Aborting"
 cd ..
 
-. validate.sh $DOMAIN_NAME $PROXY
+cd ../scripts
+. install_certificates.sh $DOMAIN_NAME $PROXY
+cd -
 
+. default_tenant.sh $DOMAIN_NAME $PROXY $DEFAULT_TENANT_NAME
+
+. validate.sh $DOMAIN_NAME $PROXY $DEFAULT_TENANT_NAME
