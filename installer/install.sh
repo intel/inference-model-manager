@@ -24,7 +24,7 @@ domain=""
 gce_zone="us-west1"
 quiet="no"
 
-while getopts "h?qsk:d:z:g:p" opt; do
+while getopts "h?qsk:d:z:g:p:A:S:" opt; do
     case "$opt" in
     h|\?)
         show_help
@@ -44,24 +44,30 @@ while getopts "h?qsk:d:z:g:p" opt; do
 	    ;;
     p)  export PROXY=$OPTARG
 	    ;;
+    A)  export MINIO_ACCESS_KEY=$OPTARG
+        ;;
+    S)  export MINIO_SECRET_KEY=$OPTARG
+        ;;
     esac
 done
 
 shift $((OPTIND-1))
 
-export B64DECODE="base64 -D"
+export B64DECODE="base64 --decode"
+export B64ENCODE="base64 -w0"
 export SED_CMD="sed"
 
 if [[ "$OSTYPE" == "darwin"* ]]; then     
    brew install gnu-sed      
    brew install expect
    export SED_CMD="gsed"
+   export BASE64ENCODE="base64"
 fi
 
 FILTER_CMD="cat"
 if [[ "$quiet" == "yes" ]]; then
-echo "Enabling quiet mode"
-FILTER_CMD="grep --color=none '[[:cntrl:]]'"
+    echo "Enabling quiet mode"
+    FILTER_CMD="grep --color=none '[[:cntrl:]]'"
 fi
 
 unbuffer ./main.sh "$kops_env" "$domain" "$gce_zone" 2>&1 | tee install.log | ${FILTER_CMD}

@@ -21,6 +21,7 @@ export ISSUER=$1
 export DEX_NAMESPACE=$2
 export DEX_DOMAIN_NAME=$3
 header "Generating certificates for DEX"
+cp ../certs/dex-ing-ca.yaml $HELM_TEMP_DIR/dex-subchart/templates/
 cd $HELM_TEMP_DIR/dex-subchart/certs
 ./generate-ing-ca.sh
 ./generate-dex-certs.sh 

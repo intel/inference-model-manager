@@ -22,16 +22,13 @@ export MGMT_DOMAIN_NAME="mgt.$DOMAIN_NAME"
 echo "Fetching CA for $MGMT_DOMAIN_NAME"
 ./get_cert.sh $MGMT_DOMAIN_NAME ca-ing $PROXY > ca.pem
 cat ./ca.pem
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ca.pem
-else
-    sudo cp ca.pem /usr/local/share/ca-certificates/imm-ca-ing.crt
-    sudo update-ca-certificates -f
-fi    
 
-export REQUESTS_CA_BUNDLE=/etc/ssl/certs/
+export REQUEST_CA_BUNDLE=`pwd`/ca.pem
+export MANAGEMENT_API_CERT_PATH=`pwd`/ca.pem
+export CURL_CA_BUNDLE=`pwd`/ca.pem
+
 export DEX_NAMESPACE="dex"
 export MGT_NAMESPACE="mgt-api"
 export DEX_URL=https://${DEX_DOMAIN_NAME}:443
 export HELM_INSTALL_DIR="../installer/helm-temp-dir"
-export CERT=`cat $HELM_INSTALL_DIR/management-api-subchart/certs/ca-cert-tf.crt | base64 -w0`
+export CERT=`cat $HELM_INSTALL_DIR/management-api-subchart/certs/ca-cert-tf.crt | $B64ENCODE`

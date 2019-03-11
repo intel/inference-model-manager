@@ -122,7 +122,7 @@ jobs:
             chmod +x ./kops
             sudo mv ./kops /usr/local/bin/
             export PROJECT=`gcloud config get-value project`
-            cd ~/inference-model-manager/kops
+            cd ~/inference-model-manager/installer/kops
             
             sed -i "s/toreplacebyclustername/${CLUSTER_NAME_SHORT}/g" desiredcni.yaml
             sed -i "s@toreplacebyissuer@${ISSUER}@g" desiredcni.yaml

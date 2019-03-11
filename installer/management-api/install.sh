@@ -38,7 +38,7 @@ cp $HELM_TEMP_DIR/dex-subchart/certs/ca-ing.* ./
 ./generate-management-api-certs.sh
 ./scriptcert.sh
 
-kubectl get secret -n dex ca-secret-dex -o yaml | yq r - 'data."ca.crt"' | base64 --decode > ca-dex.crt
+kubectl get secret -n dex ca-secret-dex -o yaml | yq r - 'data."ca.crt"' | $B64DECODE > ca-dex.crt
 
 cd -
 
@@ -60,5 +60,3 @@ helm install .
 show_result $? "Installation of Management API succeded" "Failed to install Management API"
 
 cd -
-
-kubectl create -f ../certs/dex-ing-ca.yaml

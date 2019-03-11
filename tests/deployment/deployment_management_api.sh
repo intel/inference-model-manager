@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
+B64DECODE="${B64DECODE:=base64 --decode}"
 RETURN_DIR=$PWD
 if [ "$MGMT_CERTS" = "true" ]; then
     echo "External mgmt-api self-signed certs will be generated for DNS ${MGMT_DOMAIN_NAME}"

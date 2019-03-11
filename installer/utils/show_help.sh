@@ -26,10 +26,14 @@ Additional options
     -z - GCE cluster zone (if using kops and GCE)
     -q - silent mode (shows only important logs)
     -s - skip cluster creation via kops
+    -p - set proxy (address:port)
+    -A - set minio access key
+    -S - set minio secret key
     -h/? - show help
 Usage examples  
     ${0##*/} -k <name> -d <domain>
     ${0##*/} -k <name> -d <domain> -z <gce_zone>
     ${0##*/} -k <name> -d <domain> -s -q
+    ${0##*/} -k <name> -d <domain> -s -q -p myproxy.com:911 -A minio_access_key -S minio_secret_key
 EOF
 }

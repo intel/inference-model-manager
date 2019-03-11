@@ -20,8 +20,8 @@ echo "All args:[ $@ ]"
 DESIRED_KOPS_CLUSTER_NAME=$1
 DNS_DOMAIN_NAME=$2
 GCE_ZONE=$3
-MINIO_ACCESS_KEY="my_minio_key"
-MINIO_SECRET_KEY="my_minio_secret"
+MINIO_ACCESS_KEY="${MINIO_ACCESS_KEY:=my_minio_key}"
+MINIO_SECRET_KEY="${MINIO_SECRET_KEY:=my_minio_secret}"
 MINIO_URL=minio.$DNS_DOMAIN_NAME
 
 export ISSUER=https://dex.$DNS_DOMAIN_NAME:443/dex # change 443 port if using kubernetes node port instead of load balancer

@@ -15,6 +15,11 @@
 # limitations under the License.
 #
 
+
+# import from the same directory
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+. $DIR/messages.sh
+
 function wait_for_kubectl() {
   seconds=$1 
   steps=$(($seconds/5))      
@@ -28,7 +33,7 @@ function wait_for_kubectl() {
        sleep 1
        echo -ne "\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r $i seconds left" 
   done
-  echo "Could not get working kubectl during time:  $seconds s, aborting "
+  failure "Could not get working kubectl during time:  $seconds s, aborting "
   exit 1
 }
 

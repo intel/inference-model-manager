@@ -15,6 +15,11 @@
 # limitations under the License.
 #
 
+
+# import from the same directory
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+. $DIR/messages.sh
+
 tools=("ping" "unbuffer" "kops" "kubectl" "helm" "jq" "yq" "virtualenv" "python3.6")
 
 missing=""
@@ -29,7 +34,7 @@ done
 
 if [ ! -z "$missing" ]
 then
-   echo "Please install tools: [$missing]"
+   failure "Please install tools: [$missing]"
    exit 1
 fi
 

@@ -15,4 +15,4 @@
 # limitations under the License.
 #
 
-kubectl get secret ca-ing -n mgt-api -o yaml|grep ca.crt|awk '{ print $2 }'|base64 --decode
+kubectl get secret ca-ing -n dex -o yaml|grep ca.crt|awk '{ print $2 }'| $B64DECODE

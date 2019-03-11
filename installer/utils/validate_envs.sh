@@ -15,6 +15,10 @@
 # limitations under the License.
 #
 
+# import from the same directory
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+. $DIR/messages.sh
+
 params=("DNS_DOMAIN_NAME")
 
 empty=""
@@ -28,7 +32,7 @@ done
 
 if [ ! -z "$empty" ]
 then
-   echo "Variables $empty must be set before starting installation"
+   failure "Variables $empty must be set before starting installation"
    exit 1
 fi
 

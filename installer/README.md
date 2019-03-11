@@ -36,6 +36,18 @@ On Ubuntu, you can use script to install dependencies
 * If you don't provide DNS hook script, you will be asked to create DNS entry during installation.
 
 ## Run
+Additional options
+    -z - GCE cluster zone (if using kops and GCE)
+    -q - silent mode (shows only important logs)
+    -s - skip cluster creation via kops
+    -p - set proxy (address:port)
+    -A - set minio access key
+    -S - set minio secret key
+    -h/? - show help
+Usage examples
+    install.sh -k <name> -d <domain>
+    install.sh -k <name> -d <domain> -z <gce_zone>
+    install.sh -k <name> -d <domain> -s -q
 * Required optons:
   * `-k` - cluster name
   * `-d` - domain name
@@ -44,6 +56,9 @@ On Ubuntu, you can use script to install dependencies
   * `-q` - silent mode (shows only important logs)
   * `-s` - skip cluster creation via kops 
   * `-g` - GCE user name (usually email), used to create cluster in GCE
+  * `-p` - set proxy (address:port)
+  * `-A` - set minio access key
+  * `-S` - set minio secret key
   * `-h/?` - show help
 * Usage examples
   * Installation with `kops` 
@@ -52,7 +67,8 @@ On Ubuntu, you can use script to install dependencies
   * `./install.sh -k <name> -d <domain> -z <gce_zone> -g john.doe@example.com`
   * Installation on existing kubernetes cluster ( requires access to existing kubernetes via `kubectl` )
   * `./install.sh -d <domain> -s`
-
+  * Installation on GCE with `kops` using custom Minio access key and secret key and with proxy
+  * `./install.sh -k <name> -d <domain> -s -q -p <proxy_address:port> -A <minio_access_key> -S <minio_secret_key>`
 ### Update DNS records for new domain
 #### Using AWS Route53
 * set up [awscli](https://aws.amazon.com/cli/)
