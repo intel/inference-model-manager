@@ -94,7 +94,7 @@ read -p "Press [ENTER] when ready"
 cd -
 fi
 
-cd mgtapi
+cd management-api
 . ./install.sh $DOMAIN_NAME $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL 
 show_result $? "Done" "Aborting"
 cd ..

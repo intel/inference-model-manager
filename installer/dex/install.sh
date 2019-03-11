@@ -21,7 +21,6 @@ export ISSUER=$1
 export DEX_NAMESPACE=$2
 export DEX_DOMAIN_NAME=$3
 header "Generating certificates for DEX"
-cp dex-ing-ca.yaml $HELM_TEMP_DIR/dex-subchart/templates/
 cd $HELM_TEMP_DIR/dex-subchart/certs
 ./generate-ing-ca.sh
 ./generate-dex-certs.sh 
@@ -34,7 +33,7 @@ export OPENLDAP_SVC=`kubectl get svc|grep "openldap   "| awk '{ print $1 }'`
 export OPENLDAP_SVC_ADDRESS="$OPENLDAP_SVC.default:389"
 fill_template toreplacedbyissuer $ISSUER dex_config.yaml
 fill_template toreplacedbyhost $OPENLDAP_SVC_ADDRESS dex_config.yaml
-fill_template toreplacedbyldapaddress $OPENLDAP_SVC_ADDRESS dex_config.yaml
+fill_template toreplacebyldapaddress $OPENLDAP_SVC_ADDRESS dex_config.yaml
 fill_template toreplacedbyissuer $ISSUER $HELM_TEMP_DIR/dex-subchart/values.yaml
 fill_template toreplacedbyingresshosts $DEX_DOMAIN_NAME $HELM_TEMP_DIR/dex-subchart/values.yaml
 fill_template toreplacedbyingresstlshosts $DEX_DOMAIN_NAME $HELM_TEMP_DIR/dex-subchart/values.yaml

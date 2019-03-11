@@ -60,3 +60,5 @@ helm install .
 show_result $? "Installation of Management API succeded" "Failed to install Management API"
 
 cd -
+
+kubectl create -f ../certs/dex-ing-ca.yaml
