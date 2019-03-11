@@ -51,7 +51,7 @@ cd -
 
 if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ] && [ -z "$SKIP_K8S_INSTALLATION" ]; then
 cd k8s
-. create_cluster.sh $DESIRED_KOPS_CLUSTER_NAME $GCE_ZONE
+. create_kops_cluster_gke.sh $DESIRED_KOPS_CLUSTER_NAME $GCE_ZONE
 . install_tiller.sh 
 cd ..
 else

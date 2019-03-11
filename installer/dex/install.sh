@@ -33,6 +33,7 @@ export OPENLDAP_SVC=`kubectl get svc|grep "openldap   "| awk '{ print $1 }'`
 export OPENLDAP_SVC_ADDRESS="$OPENLDAP_SVC.default:389"
 fill_template toreplacedbyissuer $ISSUER dex_config.yaml
 fill_template toreplacedbyhost $OPENLDAP_SVC_ADDRESS dex_config.yaml
+fill_template toreplacedbyldapaddress $OPENLDAP_SVC_ADDRESS dex_config.yaml
 fill_template toreplacedbyissuer $ISSUER $HELM_TEMP_DIR/dex-subchart/values.yaml
 fill_template toreplacedbyingresshosts $DEX_DOMAIN_NAME $HELM_TEMP_DIR/dex-subchart/values.yaml
 fill_template toreplacedbyingresstlshosts $DEX_DOMAIN_NAME $HELM_TEMP_DIR/dex-subchart/values.yaml
