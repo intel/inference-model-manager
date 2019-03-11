@@ -104,6 +104,6 @@ cd ../scripts
 . install_certificates.sh $DOMAIN_NAME $PROXY
 cd -
 
-. default_tenant.sh $DEFAULT_TENANT_NAME
+. default_tenant.sh $DOMAIN_NAME $PROXY $DEFAULT_TENANT_NAME
 
 . validate.sh $DOMAIN_NAME $PROXY $DEFAULT_TENANT_NAME
