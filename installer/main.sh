@@ -28,8 +28,11 @@ export ISSUER=https://dex.$DNS_DOMAIN_NAME:443/dex # change 443 port if using ku
 export DEX_NAMESPACE=dex
 export DEX_DOMAIN_NAME=dex.$DNS_DOMAIN_NAME
 export DOMAIN_NAME=$DNS_DOMAIN_NAME
-
 export HELM_TEMP_DIR=`pwd`/helm-temp-dir
+
+if [ -z $USE_SERVICE_ACCOUNT ]; then
+    export USE_SERVICE_ACCOUNT=false
+fi
 
 if [[ ! -d ../.venv ]]; then
     virtualenv -p python3.6 ../.venv
@@ -94,7 +97,7 @@ cd -
 fi
 
 cd management-api
-. ./install.sh $DOMAIN_NAME $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL 
+. ./install.sh $DOMAIN_NAME $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL $USE_SERVICE_ACCOUNT 
 show_result $? "Done" "Aborting"
 cd ..
 

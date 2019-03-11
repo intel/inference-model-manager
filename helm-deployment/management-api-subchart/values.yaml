@@ -27,6 +27,7 @@ dexAuthPath: "/dex/auth"
 dexKeysPath: "/dex/keys"
 platformAdminLabel: "platform_admin"
 adminScope: "admin"
+useServiceAccount: <use_service_account>
 ingNamespace: 'ingress-nginx'
 minio:
   secretCreate: true

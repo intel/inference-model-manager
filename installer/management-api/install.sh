@@ -19,6 +19,7 @@ DOMAIN_NAME=$1
 MINIO_ACCESS_KEY=$2
 MINIO_SECRET_KEY=$3
 MINIO_ENDPOINT=$4
+USE_SERVICE_ACCOUNT=$5
 
 export MGMT_DOMAIN_NAME=mgt.$DOMAIN_NAME
 export MGT_NAMESPACE=mgt-api
@@ -55,6 +56,7 @@ fill_template "<minio_endpoint_url>" http://$MINIO_ENDPOINT values.yaml
 fill_template "<groupName>" admin values.yaml
 fill_template "<adminScope>" admin values.yaml
 fill_template "<platformAdmin>" admin values.yaml
+fill_template "<use_service_account>" $USE_SERVICE_ACCOUNT values.yaml
 
 helm install .
 show_result $? "Installation of Management API succeded" "Failed to install Management API"

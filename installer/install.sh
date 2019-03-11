@@ -24,7 +24,7 @@ domain=""
 gce_zone="us-west1"
 quiet="no"
 
-while getopts "h?qsk:d:z:g:p:A:S:" opt; do
+while getopts "h?qsk:d:z:g:p:A:S:t" opt; do
     case "$opt" in
     h|\?)
         show_help
@@ -38,7 +38,7 @@ while getopts "h?qsk:d:z:g:p:A:S:" opt; do
         ;;
     z)  gce_zone=$OPTARG
         ;;      
-    s)  export SKIP_K8S_INSTALLATION="True"
+    s)  export SKIP_K8S_INSTALLATION="true"
         ;;
     g)  export GCE_USER=$OPTARG
 	    ;;
@@ -48,6 +48,9 @@ while getopts "h?qsk:d:z:g:p:A:S:" opt; do
         ;;
     S)  export MINIO_SECRET_KEY=$OPTARG
         ;;
+    t)  export SKIP_K8S_INSTALLATION="true"
+        export USE_SERVICE_ACCOUNT="true"
+      ;;    
     esac
 done
 

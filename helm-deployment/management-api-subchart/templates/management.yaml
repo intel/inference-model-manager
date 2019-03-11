@@ -15,12 +15,15 @@ spec:
         - name: regcred
 {{ end }}
       serviceAccount: mgt-api
+      automountServiceAccountToken: {{ .Values.use_service_account }}
       containers:
       - name: management-api
         image: {{ .Values.image }}:{{ .Values.tag }}
         ports:
         - containerPort: 443
         env:
+        - name: USE_SERVICE_ACCOUNT
+          value: {{ .Values.use_service_account }}
         - name: MINIO_ENDPOINT_ADDR
           valueFrom:
             secretKeyRef:

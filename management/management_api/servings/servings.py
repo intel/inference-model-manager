@@ -21,13 +21,13 @@ from management_api.servings.servings_utils import list_servings, get_serving
 
 class Servings(object):
     def on_get(self, req, resp):
-        response = list_servings(req.get_header('Authorization'))
+        response = list_servings(req.params['Authorization'])
         resp.status = falcon.HTTP_OK
         resp.body = response
 
 
 class Serving(object):
     def on_get(self, req, resp, serving_name):
-        response = get_serving(req.get_header('Authorization'), serving_name)
+        response = get_serving(req.params['Authorization'], serving_name)
         resp.status = falcon.HTTP_OK
         resp.body = response
