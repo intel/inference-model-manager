@@ -15,17 +15,11 @@
 #
 #!/bin/bash
 
+DEFAULT_TENANT_NAME=$1
+
 cd $HELM_TEMP_DIR/management-api-subchart/certs
 . ./scriptcert.sh
 cd -
-
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    export CERT=`cat $HELM_TEMP_DIR/management-api-subchart/certs/ca-cert-tf.crt | base64`
-else
-    export CERT=`cat $HELM_TEMP_DIR/management-api-subchart/certs/ca-cert-tf.crt | base64 -w0`
-fi
-
-DEFAULT_TENANT_NAME=$1
 
 . ./utils/messages.sh
 
@@ -35,12 +29,13 @@ CLIENT_SUBJECT_NAME=`openssl x509 -noout -subject -in $HELM_TEMP_DIR/management-
 export TENANT_RESOURCES={}
 
 cd ../scripts
+. ./prepare_test_env.sh
 . ./imm_utils.sh
 
 get_token admin
 
 header "Creating default tenant"
 response=`yes n | ./imm create t $DEFAULT_TENANT_NAME $CLIENT_SUBJECT_NAME`
-show_result $? $response "Failed to create default tenant"
+show_result $? "Default tenant created" "Failed to create default tenant"
 
 cd -

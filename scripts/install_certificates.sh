@@ -22,5 +22,9 @@ export MGMT_DOMAIN_NAME="mgt.$DOMAIN_NAME"
 echo "Fetching CA for $MGMT_DOMAIN_NAME"
 ./get_cert.sh $MGMT_DOMAIN_NAME ca-ing $PROXY > ca.pem
 cat ./ca.pem
-sudo cp ca.pem /usr/local/share/ca-certificates/imm-ca-ing.crt
-sudo update-ca-certificates -f
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ca.pem
+else
+    sudo cp ca.pem /usr/local/share/ca-certificates/imm-ca-ing.crt
+    sudo update-ca-certificates -f
+fi
