@@ -326,7 +326,7 @@ jobs:
             echo 'export MGMT_TAG=$(find management/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)' >> $BASH_ENV
             echo 'export CTRL_TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)' >> $BASH_ENV
             echo 'export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`' >> $BASH_ENV
-            echo 'export CLUSTER_NAME="gke-imm-${SHORT_SHA1}-${CIRCLE_BRANCH}.k8s.local"' >> $BASH_ENV
+            echo 'export CLUSTER_NAME="gke-imm-${SHORT_SHA1}-${CIRCLE_BRANCH}"' >> $BASH_ENV
             echo 'export CLUSTER_NAME_SHORT="gke-imm-${SHORT_SHA1}-${CIRCLE_BRANCH}"' >> $BASH_ENV
             echo 'export CLUSTER_NAME_SHORT_TP=`echo ${CLUSTER_NAME_SHORT} | cut -c 1-20`' >> $BASH_ENV
             echo 'export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"' >> $BASH_ENV
@@ -374,7 +374,7 @@ jobs:
             if [-n "$IF_DEBUG" ]; then
                sleep 30m
             fi
-            echo y | gcloud container clusters delete gke-imm-${SHORT_SHA1}-${CIRCLE_BRANCH}.k8s.local --zone us-west1-a
+            echo y | gcloud container clusters delete gke-imm-${SHORT_SHA1}-${CIRCLE_BRANCH} --zone us-west1-a
 workflows:
   version: 2
   deploy-test:
