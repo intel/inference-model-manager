@@ -9,6 +9,10 @@ You can access the LDAP adminPassword and configPassword using:
   kubectl get secret --namespace {{ .Release.Namespace }} {{ template "openldap.secretName" . }} -o jsonpath="{.data.LDAP_CONFIG_PASSWORD}" | base64 --decode; echo
 
 
+You can access the content of ldif bootstrap configuration using:
+
+  kubectl get secret imm-openldap-customldif -o json | jq -r '.data."immconfig.ldif"' | base64 -decode
+
 You can access the LDAP service, from within the cluster (or with kubectl port-forward) with a command like (replace password and domain):
   ldapsearch -x -H ldap://{{ template "openldap.fullname" . }}-service.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.ldapPort }} -b dc=example,dc=org -D "cn=admin,dc=example,dc=org" -w $LDAP_ADMIN_PASSWORD
 

@@ -67,7 +67,7 @@ spec:
               mountPath: /etc/ldap/slapd.d
               subPath: config-data
             {{- if .Values.customLdifFiles }}
-            - name: ldifworkingdir
+            - name: customldif
               mountPath: /container/service/slapd/assets/config/bootstrap/ldif/custom
             {{- end }}
             {{- if .Values.certs_secrets }}

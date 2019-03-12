@@ -51,6 +51,7 @@ env:
   LDAP_REMOVE_CONFIG_AFTER_SETUP: "true"
   LDAP_READONLY_USER: "true"
   LDAP_READONLY_USER_PASSWORD: "readonly"
+  LDAP_TLS_VERIFY_CLIENT: "try"
 
 # Default Passwords to use, stored as a secret. If unset, passwords are auto-generated.
 # You can override these at install time with
