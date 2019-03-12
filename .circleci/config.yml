@@ -363,17 +363,26 @@ jobs:
       - run:
           name: Download dependencies and deploy platfrom
           command: |
-            cd ~/inference-model-manager/installer/
+            cd ~/inference-model-manager/
+            cd ~/inference-model-manager/installer
+            ./prerequisites_ubuntu.sh
             mv ./hooks/example_dns_entry_hook.sh ./hooks/dns_entry_hook.sh
             ./install.sh -d ${DOMAIN_NAME} -s
       - run:
-          name: Delete cluster or wait 30 minutes
+          name: Delete cluster
+          when: on_success
           command: |
             cd ~/inference-model-manager
-            export IF_DEBUG=`git log -1 --pretty=%B | grep "[[please debug me]]"`
-            if [-n "$IF_DEBUG" ]; then
-               sleep 30m
-            fi
+            helm ls --short | xargs -L1 helm --debug delete
+            sleep 3m
+            echo y | gcloud container clusters delete gke-imm-${SHORT_SHA1}-${CIRCLE_BRANCH} --zone us-west1-a
+      - run:
+          name: Delete cluster on failed build
+          when: on_fail
+          command: |
+            cd ~/inference-model-manager
+            helm ls --short | xargs -L1 helm --debug delete
+            sleep 3m
             echo y | gcloud container clusters delete gke-imm-${SHORT_SHA1}-${CIRCLE_BRANCH} --zone us-west1-a
 workflows:
   version: 2
