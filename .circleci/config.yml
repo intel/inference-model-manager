@@ -43,6 +43,63 @@ jobs:
             make install-linter
             make test
 
+  rebuild_images:
+    docker:
+      - image: circleci/python:3.6.6-jessie-browsers
+    working_directory: ~/inference-model-manager
+    steps:
+      - setup_remote_docker
+      - checkout
+      - run:
+          name: Auth to gcp
+          command: |
+            echo "${GOOGLE_AUTH_IN}" | base64 -d > /tmp/gcp-key.json
+            export PR_NR=`basename ${CIRCLE_PULL_REQUEST}`
+            export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
+            export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
+            echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+            curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+            sudo apt-get update && sudo apt-get install -y google-cloud-sdk
+            sudo apt-get install kubectl
+            sudo apt-get update && sudo apt-get --only-upgrade install kubectl google-cloud-sdk google-cloud-sdk-app-engine-grpc google-cloud-sdk-pubsub-emulator \
+            google-cloud-sdk-app-engine-go google-cloud-sdk-cloud-build-local google-cloud-sdk-datastore-emulator google-cloud-sdk-app-engine-python google-cloud-sdk-cbt \
+            google-cloud-sdk-bigtable-emulator google-cloud-sdk-app-engine-python-extras google-cloud-sdk-datalab google-cloud-sdk-app-engine-java
+            gcloud auth activate-service-account --key-file /tmp/gcp-key.json
+            gcloud config set project "${GOOGLE_PROJECT_ID}"
+      - run:
+          name: Create venv
+          command: |
+            cd ~/inference-model-manager/
+            python3 -m venv .venv
+      - run:
+          name: Check management api images version
+          command: |
+            cd ~/inference-model-manager/
+            export TAG=$(find management/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
+            export TAG_EXISTS=$(gcloud container images list-tags gcr.io/constant-cubist-173123/management-api | grep $TAG)
+            echo $TAG
+            echo $TAG_EXISTS
+            cd ~/inference-model-manager/management
+            if [ -z "$TAG_EXISTS" ]; then
+               make circleci
+            else
+               echo "image already in registry - not rebuilding"
+            fi
+      - run:
+          name: Check CRD controller image version
+          command: |
+            cd ~/inference-model-manager
+            export TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
+            export TAG_EXISTS=$(gcloud container images list-tags gcr.io/constant-cubist-173123/server-controller-prod | grep $TAG)
+            echo $TAG
+            echo $TAG_EXISTS
+            cd ~/inference-model-manager/server-controller/
+            if [ -z "$TAG_EXISTS" ]; then
+               make circleci
+            else
+               echo "image already in registry - not rebuilding"
+            fi
+
   functional_tests:
     docker:
       - image: circleci/python:3.6.6-jessie-browsers
@@ -147,34 +204,6 @@ jobs:
             wget https://github.com/mikefarah/yq/releases/download/2.2.1/yq_linux_amd64
             chmod a+x yq_linux_amd64
             sudo mv yq_linux_amd64 /usr/local/bin/yq
-      - run:
-          name: Check management api images version
-          command: |
-            cd ~/inference-model-manager/
-            export TAG=$(find management/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
-            export TAG_EXISTS=$(gcloud container images list-tags gcr.io/constant-cubist-173123/management-api | grep $TAG)
-            echo $TAG
-            echo $TAG_EXISTS
-            cd ~/inference-model-manager/management
-            if [ -z "$TAG_EXISTS" ]; then
-               make circleci
-            else
-               echo "image already in registry - not rebuilding"
-            fi
-      - run:
-          name: Check CRD controller image version
-          command: |
-            cd ~/inference-model-manager
-            export TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
-            export TAG_EXISTS=$(gcloud container images list-tags gcr.io/constant-cubist-173123/server-controller-prod | grep $TAG)
-            echo $TAG
-            echo $TAG_EXISTS
-            cd ~/inference-model-manager/server-controller/
-            if [ -z "$TAG_EXISTS" ]; then
-               make circleci
-            else
-               echo "image already in registry - not rebuilding"
-            fi
       - run:
           name: Download dependencies and deploy platfrom
           command: |
@@ -285,10 +314,77 @@ jobs:
             deactivate
             sleep 150
           no_output_timeout: 32m
+  gke_deployment:
+    docker:
+      - image: circleci/python:3.6.6-jessie-browsers
+    working_directory: ~/inference-model-manager
+    steps:
+      - checkout
+      - run:
+          name: export environment variables
+          command: |
+            echo 'export MGMT_TAG=$(find management/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)' >> $BASH_ENV
+            echo 'export CTRL_TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)' >> $BASH_ENV
+            echo 'export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`' >> $BASH_ENV
+            echo 'export CLUSTER_NAME="gke-imm-${SHORT_SHA1}-${CIRCLE_BRANCH}.k8s.local"' >> $BASH_ENV
+            echo 'export CLUSTER_NAME_SHORT="gke-imm-${SHORT_SHA1}-${CIRCLE_BRANCH}"' >> $BASH_ENV
+            echo 'export CLUSTER_NAME_SHORT_TP=`echo ${CLUSTER_NAME_SHORT} | cut -c 1-20`' >> $BASH_ENV
+            echo 'export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"' >> $BASH_ENV
+            echo 'export DEX_DOMAIN_NAME="dex.${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com"' >> $BASH_ENV
+            echo 'export MGMT_DOMAIN_NAME="mgmt.${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com"' >> $BASH_ENV
+            echo 'export DOMAIN_NAME="${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com"' >> $BASH_ENV
+            echo 'export MGMT_IMAGE="gcr.io/constant-cubist-173123/management-api"' >> $BASH_ENV
+            echo 'export CRD_IMAGE="gcr.io/constant-cubist-173123/server-controller-prod"' >> $BASH_ENV
+      - run:
+          name: Create k8s cluster
+          command: |
+            echo "${GOOGLE_AUTH_IN}" | base64 -d > /tmp/gcp-key.json
+            export PR_NR=`basename ${CIRCLE_PULL_REQUEST}`
+            export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
+            export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
+            echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+            curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+            sudo apt-get update && sudo apt-get install -y google-cloud-sdk
+            sudo apt-get install kubectl
+            sudo apt-get update && sudo apt-get --only-upgrade install kubectl google-cloud-sdk google-cloud-sdk-app-engine-grpc google-cloud-sdk-pubsub-emulator \
+            google-cloud-sdk-app-engine-go google-cloud-sdk-cloud-build-local google-cloud-sdk-datastore-emulator google-cloud-sdk-app-engine-python google-cloud-sdk-cbt \
+            google-cloud-sdk-bigtable-emulator google-cloud-sdk-app-engine-python-extras google-cloud-sdk-datalab google-cloud-sdk-app-engine-java
+            gcloud auth activate-service-account --key-file /tmp/gcp-key.json
+            gcloud config set project "${GOOGLE_PROJECT_ID}"
+            gcloud container clusters create inferno-${CIRCLE_BRANCH}-${SHORT_SHA1} --zone us-west1-a --num-nodes 3 --machine-type "n1-standard-2" --min-cpu-platform "Intel Skylake"
+            gcloud container clusters get-credentials inferno-${CIRCLE_BRANCH}-${SHORT_SHA1} --zone us-west1-a --project "${GOOGLE_PROJECT_ID}"
+            kubectl create serviceaccount --namespace kube-system tiller
+            kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+            curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > get_helm.sh
+            chmod 700 get_helm.sh
+            ./get_helm.sh
+            helm init --service-account tiller --upgrade
+            sleep 20
+      - run:
+          name: Download dependencies and deploy platfrom
+          command: |
+            cd ~/inference-model-manager/installer/
+            mv ./hooks/example_dns_entry_hook.sh ./hooks/dns_entry_hook.sh
+            ./install.sh -d ${DOMAIN_NAME} -s
+      - run:
+          name: Delete cluster or wait 30 minutes
+          command: |
+            cd ~/inference-model-manager
+            export IF_DEBUG=`git log -1 --pretty=%B | grep "[[please debug me]]"`
+            if [-n "$IF_DEBUG" ]; then
+               sleep 30m
+            fi
+            echo y | gcloud container clusters delete gke-imm-${SHORT_SHA1}-${CIRCLE_BRANCH}.k8s.local --zone us-west1-a
 workflows:
   version: 2
   deploy-test:
     jobs:
       - style_and_unit_tests_mgt_api
+      - rebuild_images
       - functional_tests
+          requires:
+            - rebuild_images
       - style_and_unit_tests_crd
+      - gke_deployment
+          requires:
+            - rebuild_images
