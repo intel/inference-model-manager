@@ -46,5 +46,5 @@ wget https://github.com/mikefarah/yq/releases/download/2.2.1/yq_linux_amd64
 chmod a+x yq_linux_amd64
 sudo mv yq_linux_amd64 /usr/local/bin/yq
 fi
-sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt-get update && sudo apt-get install -y python3.6 proxytunnel python-pip python3-pip
+sudo add-apt-repository ppa:deadsnakes/ppa -y && sudo apt-get update && sudo apt-get install -y python3.6 proxytunnel python-pip python3-pip
 sudo pip3 install --upgrade virtualenv && sudo pip3 install --upgrade pip 
