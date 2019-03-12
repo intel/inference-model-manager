@@ -269,7 +269,7 @@ def test_update_version_policy():
 
 
 def test_prediction_with_certificates_v2():
-    time.sleep(60)
+    time.sleep(10)
     running, pod_name = wait_endpoint_setup()
     endpoint_info.pod_name = pod_name
     assert running is True
