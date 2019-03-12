@@ -19,7 +19,14 @@ export PROXY=$2
 export DEX_DOMAIN_NAME="dex.$DOMAIN_NAME"
 export MGMT_DOMAIN_NAME="mgt.$DOMAIN_NAME"
 
+echo "Fetching CA for $MGMT_DOMAIN_NAME"
+./get_cert.sh $MGMT_DOMAIN_NAME ca-ing $PROXY > ca.pem
+cat ./ca.pem
+
+export REQUEST_CA_BUNDLE=`pwd`/ca.pem
+export MANAGEMENT_API_CERT_PATH=`pwd`/ca.pem
 export CURL_CA_BUNDLE=`pwd`/ca.pem
+
 export DEX_NAMESPACE="dex"
 export MGT_NAMESPACE="mgt-api"
 export DEX_URL=https://${DEX_DOMAIN_NAME}:443
