@@ -195,10 +195,8 @@ jobs:
             . .venvaws/bin/activate
             pip install awscli --upgrade 
 
-            ./apply.sh CREATE ${ING_IP} ${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com
+            export AWS_DNS=`./apply.sh CREATE ${ING_IP} ${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com`
             cat route_record.json
-            export AWS_DNS=`aws route53 change-resource-record-sets --hosted-zone-id Z11DOV0M5AJEBB --change-batch file://./route_record.json`
-            echo $AWS_DNS
             export AWS_DNS_ID=$(echo $AWS_DNS | jq '.ChangeInfo.Id')
             echo ${AWS_DNS_ID} 
             sleep 30

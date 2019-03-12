@@ -14,15 +14,15 @@
 # limitations under the License.
 #
 
-MGT_API=$1
+ADDRESS=$1
 SUBJECT=$2
 PROXY=$3
 
 if [ ! -z "$PROXY" ]; then
-    proxytunnel -p $PROXY -d $MGT_API:443 -a 7000 &
-    openssl s_client -connect localhost:7000 -servername $MGT_API -showcerts  < /dev/null 2>/dev/null |grep "s:.*CN.*${SUBJECT}" -A 100 | openssl x509 -outform pem
+    proxytunnel -p $PROXY -d $ADDRESS:443 -a 7000 &
+    openssl s_client -connect localhost:7000 -servername $ADDRESS -showcerts  < /dev/null 2>/dev/null |grep "s:.*CN.*${SUBJECT}" -A 100 | openssl x509 -outform pem
     kill `ps -ef | grep proxytunnel | awk '{print $2}'`
 else
-    openssl s_client -connect $MGT_API:443 -servername $MGT_API -showcerts  < /dev/null 2>/dev/null | grep "s:.*CN.*${SUBJECT}" -A 100|  openssl x509 -outform pem
+    openssl s_client -connect $ADDRESS:443 -servername $ADDRESS -showcerts  < /dev/null 2>/dev/null | grep "s:.*CN.*${SUBJECT}" -A 100|  openssl x509 -outform pem
 fi
 
