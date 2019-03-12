@@ -23,8 +23,9 @@ kops_env=""
 domain=""
 gce_zone="us-west1"
 quiet="no"
+multitenant="no"
 
-while getopts "h?qsk:d:z:g:p:A:S:" opt; do
+while getopts "h?qsk:d:z:g:p:A:S:m" opt; do
     case "$opt" in
     h|\?)
         show_help
@@ -48,6 +49,7 @@ while getopts "h?qsk:d:z:g:p:A:S:" opt; do
         ;;
     S)  export MINIO_SECRET_KEY=$OPTARG
         ;;
+    m)  multitenant="yes"
     esac
 done
 

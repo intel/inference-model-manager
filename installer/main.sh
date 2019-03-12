@@ -23,7 +23,6 @@ GCE_ZONE=$3
 MINIO_ACCESS_KEY="${MINIO_ACCESS_KEY:=my_minio_key}"
 MINIO_SECRET_KEY="${MINIO_SECRET_KEY:=my_minio_secret}"
 MINIO_URL=minio.$DNS_DOMAIN_NAME
-DEFAULT_TENANT_NAME="default-tenant"
 
 export ISSUER=https://dex.$DNS_DOMAIN_NAME:443/dex # change 443 port if using kubernetes node port instead of load balancer
 export DEX_NAMESPACE=dex
@@ -101,9 +100,13 @@ show_result $? "Done" "Aborting"
 cd ..
 
 cd ../scripts
-. prepare_test_env.sh $DOMAIN_NAME $PROXY
+. ./prepare_test_env.sh $DOMAIN_NAME $PROXY
 cd -
 
-. default_tenant.sh $DOMAIN_NAME $PROXY $DEFAULT_TENANT_NAME
+if [[ "$multitenant" == "no" ]]; then
+    export DEFAULT_TENANT_NAME="default-tenant"
+    echo "Creating default tenant"
+    . default_tenant.sh $DOMAIN_NAME $DEFAULT_TENANT_NAME $PROXY
+fi
 
-. validate.sh $DOMAIN_NAME $PROXY $DEFAULT_TENANT_NAME
+. validate.sh $DOMAIN_NAME $DEFAULT_TENANT_NAME $PROXY

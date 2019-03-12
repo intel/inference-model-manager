@@ -18,13 +18,15 @@
 . ./utils/messages.sh
 
 DOMAIN_NAME=$1
-PROXY=$2
-DEFAULT_TENANT_NAME=$3
+DEFAULT_TENANT_NAME=$2
+PROXY=$3
 cd ../scripts
 header "Preparing env variables and installing CA"
 . ./prepare_test_env.sh $DOMAIN_NAME $PROXY
 header "Running tests"
-response=`./imm ls t`
-# TODO checking for DEFAULT_TENANT_NAME in response
+if [[ -z "$DEFAULT_TENANT_NAME" ]]; then
+    response=`./imm ls t`
+    [[ $response =~ "Tenants present on platform: ['$DEFAULT_TENANT_NAME']" ]]
+fi
 ./test_imm.sh
 cd -
