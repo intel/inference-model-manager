@@ -21,6 +21,7 @@ export ISSUER=$1
 export DEX_NAMESPACE=$2
 export DEX_DOMAIN_NAME=$3
 header "Generating certificates for DEX"
+cp ../certs/dex-ing-ca.yaml $HELM_TEMP_DIR/dex-subchart/templates/
 cd $HELM_TEMP_DIR/dex-subchart/certs
 ./generate-ing-ca.sh
 ./generate-dex-certs.sh 
@@ -28,7 +29,14 @@ cd $HELM_TEMP_DIR/dex-subchart/certs
 cd -
 
 header "Installing DEX"
+cp ../../tests/deployment/dex_config.yaml ./
 export OPENLDAP_SVC=`kubectl get svc|grep "openldap   "| awk '{ print $1 }'`
 export OPENLDAP_SVC_ADDRESS="$OPENLDAP_SVC.default:389"
-helm install -f dex_config_tmpl.yaml --set config.isser=${ISSUER} --set config.connectors[0].config.issuer=${ISSUER} --set config.connectors[0].config.host=${OPENLDAP_SVC_ADDRESS}  --set issuer=${ISSUER} --set ingress.hosts=${DEX_DOMAIN_NAME} --set ingress.tls.hosts=${DEX_DOMAIN_NAME} $HELM_TEMP_DIR/dex-subchart/
+fill_template toreplacedbyissuer $ISSUER dex_config.yaml
+fill_template toreplacedbyhost $OPENLDAP_SVC_ADDRESS dex_config.yaml
+fill_template toreplacebyldapaddress $OPENLDAP_SVC_ADDRESS dex_config.yaml
+fill_template toreplacedbyissuer $ISSUER $HELM_TEMP_DIR/dex-subchart/values.yaml
+fill_template toreplacedbyingresshosts $DEX_DOMAIN_NAME $HELM_TEMP_DIR/dex-subchart/values.yaml
+fill_template toreplacedbyingresstlshosts $DEX_DOMAIN_NAME $HELM_TEMP_DIR/dex-subchart/values.yaml
+helm install -f dex_config.yaml $HELM_TEMP_DIR/dex-subchart/
 show_result $? "DEX installation succesful" "Failed to install DEX"

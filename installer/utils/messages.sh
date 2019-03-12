@@ -19,7 +19,7 @@ function header() {
 TEXT="$1"
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
-printf "${YELLOW}$TEXT${NC}\n"
+printf "\n${YELLOW}$TEXT${NC}\n"
 }
 
 function action_required() {

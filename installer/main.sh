@@ -20,8 +20,8 @@ echo "All args:[ $@ ]"
 DESIRED_KOPS_CLUSTER_NAME=$1
 DNS_DOMAIN_NAME=$2
 GCE_ZONE=$3
-MINIO_ACCESS_KEY="my_minio_key"
-MINIO_SECRET_KEY="my_minio_secret"
+MINIO_ACCESS_KEY="${MINIO_ACCESS_KEY:=my_minio_key}"
+MINIO_SECRET_KEY="${MINIO_SECRET_KEY:=my_minio_secret}"
 MINIO_URL=minio.$DNS_DOMAIN_NAME
 DEFAULT_TENANT_NAME="default-tenant"
 
@@ -52,7 +52,7 @@ cd -
 
 if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ] && [ -z "$SKIP_K8S_INSTALLATION" ]; then
 cd k8s
-. create_cluster.sh $DESIRED_KOPS_CLUSTER_NAME $GCE_ZONE
+. create_kops_cluster_gke.sh $DESIRED_KOPS_CLUSTER_NAME $GCE_ZONE
 . install_tiller.sh 
 cd ..
 else
@@ -95,7 +95,7 @@ read -p "Press [ENTER] when ready"
 cd -
 fi
 
-cd mgtapi
+cd management-api
 . ./install.sh $DOMAIN_NAME $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL 
 show_result $? "Done" "Aborting"
 cd ..

@@ -58,7 +58,7 @@ jobs:
       - run:
           name: Choose region
           command: |
-            cd ~/inference-model-manager/kops
+            cd ~/inference-model-manager/installer/kops
             export BRANCH=$(git symbolic-ref --short HEAD)
             echo $REGION_JSON
             if [ "$BRANCH" != "master" ]
@@ -122,7 +122,7 @@ jobs:
             chmod +x ./kops
             sudo mv ./kops /usr/local/bin/
             export PROJECT=`gcloud config get-value project`
-            cd ~/inference-model-manager/kops
+            cd ~/inference-model-manager/installer/kops
             
             sed -i "s/toreplacebyclustername/${CLUSTER_NAME_SHORT}/g" desiredcni.yaml
             sed -i "s@toreplacebyissuer@${ISSUER}@g" desiredcni.yaml
@@ -188,17 +188,15 @@ jobs:
       - run:
           name: Create record in AWS Route53
           command: |    
-            cd ~/inference-model-manager/kops/
+            cd ~/inference-model-manager/installer/utils/route53/
             while [ -z $ING_IP ]; do sleep 10; ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}' -n mgt-api); done
-                  
-            sed -i "s/0.0.0.0/${ING_IP}/g" route_record.json
-            sed -i "s/toreplacebydomainname/${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com/g" route_record.json
-            cat route_record.json
+            
             virtualenv .venvaws -p python3
             . .venvaws/bin/activate
             pip install awscli --upgrade 
-            export AWS_DNS=`aws route53 change-resource-record-sets --hosted-zone-id Z11DOV0M5AJEBB --change-batch file://./route_record.json`
-            echo $AWS_DNS
+
+            export AWS_DNS=`./apply.sh CREATE ${ING_IP} ${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com`
+            cat route_record.json
             export AWS_DNS_ID=$(echo $AWS_DNS | jq '.ChangeInfo.Id')
             echo ${AWS_DNS_ID} 
             sleep 30
@@ -264,12 +262,10 @@ jobs:
             helm ls --short | xargs -L1 helm --debug delete
             sleep 3m
             kops delete cluster ${CLUSTER_NAME} --yes
-            cd ~/inference-model-manager/kops
-            sed -i "s/0.0.0.0/${ING_IP}/g" route_delete.json
-            sed -i "s/toreplacebydomainname/${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com/g" route_delete.json
-            cat route_delete.json
+            cd ~/inference-model-manager/installer/utils/route53
             . .venvaws/bin/activate
-            aws route53 change-resource-record-sets --hosted-zone-id Z11DOV0M5AJEBB --change-batch file://./route_delete.json
+            ./apply.sh DELETE ${ING_IP} ${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com
+            cat route_delete.json
             deactivate
             sleep 150
       - run:
@@ -282,12 +278,10 @@ jobs:
             helm ls --short | xargs -L1 helm --debug delete
             sleep 3m
             kops delete cluster ${CLUSTER_NAME} --yes
-            cd ~/inference-model-manager/kops
-            sed -i "s/0.0.0.0/${ING_IP}/g" route_delete.json
-            sed -i "s/toreplacebydomainname/${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com/g" route_delete.json
-            cat route_delete.json
+            cd ~/inference-model-manager/installer/utils/route53
             . .venvaws/bin/activate
-            aws route53 change-resource-record-sets --hosted-zone-id Z11DOV0M5AJEBB --change-batch file://./route_delete.json
+            ./apply.sh DELETE ${ING_IP} ${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com
+            cat route_delete.json
             deactivate
             sleep 150
           no_output_timeout: 32m

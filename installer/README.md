@@ -1,6 +1,8 @@
 # Installation
 
 ## Prerequisites
+* python3.6
+* virtualenv ```pip install virtualenv```
 * [yq](https://github.com/mikefarah/yq) *(Use this specific version of yq)*
 * [jq](https://stedolan.github.io/jq/)
 * [helm](https://github.com/helm/helm)
@@ -34,6 +36,18 @@ On Ubuntu, you can use script to install dependencies
 * If you don't provide DNS hook script, you will be asked to create DNS entry during installation.
 
 ## Run
+Additional options
+    -z - GCE cluster zone (if using kops and GCE)
+    -q - silent mode (shows only important logs)
+    -s - skip cluster creation via kops
+    -p - set proxy (address:port)
+    -A - set minio access key
+    -S - set minio secret key
+    -h/? - show help
+Usage examples
+    install.sh -k <name> -d <domain>
+    install.sh -k <name> -d <domain> -z <gce_zone>
+    install.sh -k <name> -d <domain> -s -q
 * Required optons:
   * `-k` - cluster name
   * `-d` - domain name
@@ -42,6 +56,9 @@ On Ubuntu, you can use script to install dependencies
   * `-q` - silent mode (shows only important logs)
   * `-s` - skip cluster creation via kops 
   * `-g` - GCE user name (usually email), used to create cluster in GCE
+  * `-p` - set proxy (address:port)
+  * `-A` - set minio access key
+  * `-S` - set minio secret key
   * `-h/?` - show help
 * Usage examples
   * Installation with `kops` 
@@ -50,7 +67,8 @@ On Ubuntu, you can use script to install dependencies
   * `./install.sh -k <name> -d <domain> -z <gce_zone> -g john.doe@example.com`
   * Installation on existing kubernetes cluster ( requires access to existing kubernetes via `kubectl` )
   * `./install.sh -d <domain> -s`
-
+  * Installation on GCE with `kops` using custom Minio access key and secret key and with proxy
+  * `./install.sh -k <name> -d <domain> -s -q -p <proxy_address:port> -A <minio_access_key> -S <minio_secret_key>`
 ### Update DNS records for new domain
 #### Using AWS Route53
 * set up [awscli](https://aws.amazon.com/cli/)
@@ -78,4 +96,12 @@ cd utils/route53
   ```
   . validate.sh <domain_name> <proxy_with_port>
   ```
-
+* Troubleshooting
+  * ```
+	Get admin token
+	  File "../tests/management_api_tests/authenticate.py", line 110
+	user_password = f'{userpass}_pass'
+	SyntaxError: invalid syntax 
+    ```
+      This problem occurs when you run tests outside virtualenv.
+      Please check *Install required dependencies* in **Prerequisites** section.

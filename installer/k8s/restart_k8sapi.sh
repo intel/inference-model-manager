@@ -17,9 +17,6 @@
 
 . ../utils/fill_template.sh
 . ../utils/messages.sh
-export PROJECT=`gcloud config get-value project`
-export KOPS_FEATURE_FLAGS=AlphaAllowGCE
-export KOPS_STATE_STORE=gs://kubernetes-clusters-imm
 ```
 
 #### Update cluster
@@ -31,7 +28,7 @@ DEX_NAMESPACE=$3
 
 header "Restarting k8s api with params: cluster name: $CLUSTER_NAME issuer: $ISSUER dex namespace: $DEX_NAMESPACE"
 
-cp oidc_tmpl.yaml oidc.yaml
+cp ../kops/oidc_tmpl.yaml oidc.yaml
 
 fill_template toreplacebyissuer $ISSUER oidc.yaml
 

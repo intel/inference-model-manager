@@ -121,3 +121,4 @@ helm-deployment/*/*.lock
 **/*.csr
 **/*.key
 **/*.pb
+scripts/*.npy

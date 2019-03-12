@@ -18,13 +18,6 @@
 . ../utils/progress_bar.sh
 . ../utils/fill_template.sh
 . ../utils/messages.sh
-
-export PROJECT=`gcloud config get-value project`
-export KOPS_FEATURE_FLAGS=AlphaAllowGCE
-if [ ! -z "$GCE_USER" ]; then
-export GOOGLE_APPLICATION_CREDENTIALS="$HOME/.config/gcloud/legacy_credentials/$GCE_USER/adc.json"
-fi
-export KOPS_STATE_STORE=gs://kubernetes-clusters-imm
 ```
 #### Create cluster
 ```
@@ -33,7 +26,7 @@ header "Installing kubernetes cluster"
 
 CLUSTER_NAME=$1
 GCE_REGION=$2
-cp cluster_template.yaml cluster.yaml
+cp ../kops/desiredcni.yaml ./cluster.yaml
 fill_template toreplacebyclustername $CLUSTER_NAME cluster.yaml
 fill_template us-west1 ${GCE_REGION} cluster.yaml
 kops create -f cluster.yaml

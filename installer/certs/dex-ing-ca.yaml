@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: ca-ing
-  namespace: default 
+  namespace: dex 
   labels:
     app: {{ template "fullname" . }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
