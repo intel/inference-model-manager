@@ -369,7 +369,6 @@ def test_grpc_client(images_list, images_numpy_path):
 
 def test_remove_tenant():
     # temporary sleep for debugging
-    time.sleep(600)
     assert delete_tenant().status_code == 200
     start_action = time.time()
     tick = start_action
