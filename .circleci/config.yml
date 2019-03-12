@@ -381,10 +381,10 @@ workflows:
     jobs:
       - style_and_unit_tests_mgt_api
       - rebuild_images
-      - functional_tests
+      - functional_tests:
           requires:
             - rebuild_images
       - style_and_unit_tests_crd
-      - gke_deployment
+      - gke_deployment:
           requires:
             - rebuild_images
