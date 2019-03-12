@@ -201,6 +201,7 @@ def perform_inference(rpc_timeout=RPC_TIMEOUT, image=image):
 
 
 def test_prediction_with_certificates():
+    time.sleep(30)
     endpoint_info.url = endpoint_info.info
     trusted_cert, trusted_key, trusted_ca = prepare_certs(
         CERT_SERVER,
@@ -223,7 +224,7 @@ def test_prediction_with_certificates():
 
 
 def test_jpeg_prediction_with_certificates():
-    time.sleep(10)
+    time.sleep(30)
 
     # resnet_v1 test
     prediction_response = perform_inference(image=jpeg_image)
@@ -268,7 +269,7 @@ def test_update_version_policy():
 
 
 def test_prediction_with_certificates_v2():
-    time.sleep(30)
+    time.sleep(60)
     running, pod_name = wait_endpoint_setup()
     endpoint_info.pod_name = pod_name
     assert running is True
@@ -282,6 +283,7 @@ def test_prediction_with_certificates_v2():
 
 
 def test_version_not_served():
+    time.sleep(30)
     stub, request = prepare_stub_and_request(endpoint_info.url, MODEL_NAME,
                                              model_version=1,
                                              creds=endpoint_info.credentials)
@@ -366,6 +368,8 @@ def test_grpc_client(images_list, images_numpy_path):
 
 
 def test_remove_tenant():
+    # temporary sleep for debugging
+    time.sleep(600)
     assert delete_tenant().status_code == 200
     start_action = time.time()
     tick = start_action
