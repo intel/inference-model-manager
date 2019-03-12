@@ -100,6 +100,7 @@ show_result $? "Done" "Aborting"
 cd ..
 
 cd ../scripts
+header "Preparing env variables and installing CA"
 . ./prepare_test_env.sh $DOMAIN_NAME $PROXY
 cd -
 

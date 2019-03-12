@@ -21,12 +21,13 @@ DOMAIN_NAME=$1
 DEFAULT_TENANT_NAME=$2
 PROXY=$3
 cd ../scripts
-header "Preparing env variables and installing CA"
-. ./prepare_test_env.sh $DOMAIN_NAME $PROXY
 header "Running tests"
 if [[ -z "$DEFAULT_TENANT_NAME" ]]; then
     response=`./imm ls t`
-    [[ $response =~ "Tenants present on platform: ['$DEFAULT_TENANT_NAME']" ]]
+    if [[ ! $response =~ "Tenants present on platform: ['$DEFAULT_TENANT_NAME']" ]]; then
+        failure "Default tenant is not presented on platform"
+        exit 1;
+    fi
 fi
 ./test_imm.sh
 cd -

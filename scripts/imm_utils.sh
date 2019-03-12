@@ -29,7 +29,7 @@ get_token() {
 	ID_TOKEN=`echo $TOKEN | jq -r '.id_token'`
 	EXPIRES_AT=`echo $TOKEN | jq -r '.expires_at'`
 	DEFAULT_TENANT=""
-	if [ ! -z "$DEFAULT_TENANT_NAME" ]; then
+	if [[ ! -z "$DEFAULT_TENANT_NAME" ]]; then
 	    DEFAULT_TENANT=", \"default_tenant\": \"${DEFAULT_TENANT_NAME}\""
 	fi
 	IMM_CFG="{\"management_api_port\": 443, \"management_api_address\": \"${MGMT_DOMAIN_NAME}\", \"ca_cert_path\": \"null\", \"access_token\": \"${ACCESS_TOKEN}\", \"id_token\": \"${ID_TOKEN}\", \"token_type\": \"${TOKEN_TYPE}\", \"refresh_token\": \"${REFRESH_TOKEN}\", \"expires_in\": \"${EXPIRES_IN}\", \"expires_at\": \"${EXPIRES_AT}\" $DEFAULT_TENANT}"
