@@ -338,7 +338,7 @@ jobs:
       - run:
           name: Create k8s cluster
           command: |
-            echo "${GOOGLE_AUTH_IN}" | base64 -d > /tmp/gcp-key.json
+            echo "${GOOGLE_IMM_KEY}" | base64 -d > /tmp/gcp-key.json
             export PR_NR=`basename ${CIRCLE_PULL_REQUEST}`
             export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
             export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
@@ -351,8 +351,8 @@ jobs:
             google-cloud-sdk-bigtable-emulator google-cloud-sdk-app-engine-python-extras google-cloud-sdk-datalab google-cloud-sdk-app-engine-java
             gcloud auth activate-service-account --key-file /tmp/gcp-key.json
             gcloud config set project "${GOOGLE_PROJECT_ID}"
-            gcloud container clusters create inferno-${CIRCLE_BRANCH}-${SHORT_SHA1} --zone us-west1-a --num-nodes 3 --machine-type "n1-standard-2" --min-cpu-platform "Intel Skylake"
-            gcloud container clusters get-credentials inferno-${CIRCLE_BRANCH}-${SHORT_SHA1} --zone us-west1-a --project "${GOOGLE_PROJECT_ID}"
+            gcloud container clusters create ${CLUSTER_NAME} --zone us-west1-a --num-nodes 3 --machine-type "n1-standard-2" --min-cpu-platform "Intel Skylake"
+            gcloud container clusters get-credentials ${CLUSTER_NAME} --zone us-west1-a --project "${GOOGLE_PROJECT_ID}"
             kubectl create serviceaccount --namespace kube-system tiller
             kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
             curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > get_helm.sh
