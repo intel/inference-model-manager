@@ -53,7 +53,7 @@ jobs:
       - run:
           name: Auth to gcp
           command: |
-            echo "${GOOGLE_AUTH_IN}" | base64 -d > /tmp/gcp-key.json
+            echo "${GOOGLE_IMM_KEY}" | base64 -d > /tmp/gcp-key.json
             export PR_NR=`basename ${CIRCLE_PULL_REQUEST}`
             export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`
             export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
