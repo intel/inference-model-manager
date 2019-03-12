@@ -15,7 +15,11 @@
 # limitations under the License.
 #
 
-sudo apt-get install -y iputils-ping expect expect-dev software-properties-common
+sudo apt-get install -y iputils-ping expect expect-dev software-properties-common libcap2-bin
+
+sudo chmod u+s `which ping`
+sudo setcap cap_net_raw+p /bin/ping
+
 KOPS=`command -v kops`
 if [ -z "$KOPS" ]; then
 curl -LO https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
@@ -46,5 +50,5 @@ wget https://github.com/mikefarah/yq/releases/download/2.2.1/yq_linux_amd64
 chmod a+x yq_linux_amd64
 sudo mv yq_linux_amd64 /usr/local/bin/yq
 fi
-sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt-get update && sudo apt-get install -y python3.6 proxytunnel python-pip python3-pip
+sudo add-apt-repository ppa:deadsnakes/ppa -y && sudo apt-get update && sudo apt-get install -y python3.6 proxytunnel python-pip python3-pip
 sudo pip3 install --upgrade virtualenv && sudo pip3 install --upgrade pip 
