@@ -48,7 +48,7 @@ if [ -z "$result" ]; then
   wait_time=0
   while [ -z "$result" ]
   do
-    export check=`ping foo.$DOMAIN_NAME`
+    export check=`ping foo.$DOMAIN_NAME -c 1 2>&1`
     echo $check         
     export result=`ping foo.$DOMAIN_NAME -c 1 2>&1|grep $EXTERNAL_IP`
     echo $result
