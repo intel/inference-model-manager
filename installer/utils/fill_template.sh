@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,11 +15,9 @@
 # limitations under the License.
 #
 
-# Example script generating TLS certificates for dex external interface to be configured in K8S ingress records.
-
-
-# Generate valid ing-dex server key/cert
-openssl genrsa -out ing-dex.key 4096
-openssl req -new -key ing-dex.key -out ing-dex.csr -subj "/CN=${DEX_DOMAIN_NAME}"
-openssl x509 -req -days 365 -in ing-dex.csr -CA ca-ing.crt -CAkey ca-ing.key -set_serial 01 -out ing-dex.crt
-cat ca-ing.crt >> ing-dex.crt
+function fill_template() {
+PATTERN=$1
+REPLACEMENT=$2
+FILE=$3
+CMD="${SED_CMD}  -i s@$PATTERN@$REPLACEMENT@g $FILE" && echo "$CMD" && `$CMD`
+}
