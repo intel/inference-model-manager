@@ -54,8 +54,6 @@ cd k8s
 . create_kops_cluster_gke.sh $DESIRED_KOPS_CLUSTER_NAME $GCE_ZONE
 . install_tiller.sh 
 cd ..
-else
-header "Skipping kubernetes cluster installation"
 fi
 
 cd ingress
@@ -83,15 +81,15 @@ cd dex
 cd .. 
 
 if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ]; then
-cd k8s
-. ./restart_k8sapi.sh $DESIRED_KOPS_CLUSTER_NAME $ISSUER $DEX_NAMESPACE 
-cd ..
+    cd k8s
+    . ./restart_k8sapi.sh $DESIRED_KOPS_CLUSTER_NAME $ISSUER $DEX_NAMESPACE 
+    cd ..
 else
-cd k8s
-DEX_CA=`./get_ca_ing_cert.sh`
-action_required "Please restart K8S API with OIDC config:\n oidcIssuerURL: $ISSUER: \noidcCA: $DEX_CA\noidcClientID: example-app\noidcGroupsClaim: groups\noidcUsernameClaim: email"
-read -p "Press [ENTER] when ready"
-cd -
+    cd k8s
+    DEX_CA=`./get_ca_ing_cert.sh`
+    action_required "Please restart K8S API with OIDC config:\n oidcIssuerURL: $ISSUER: \noidcCA: $DEX_CA\noidcClientID: example-app\noidcGroupsClaim: groups\noidcUsernameClaim: email"
+    read -p "Press [ENTER] when ready"
+    cd -
 fi
 
 cd management-api
