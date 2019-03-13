@@ -104,14 +104,14 @@ class AuthMiddleware:
         self.admin_user = AuthParameters.ADMIN_SCOPE
         self.tokenDecoder = TokenDecoder()
         if USE_SERVICE_ACCOUNT:
-           try:
-               tokenfile = open(SERVICE_ACCOUNT_TOKEN_FILE, "r")     
-               self.sa_token =  tokenfile.read()
-               tokenfile.close()
-           except Exception as e:
-               logger.error("Fatal error while loading service account token, Exception {} ".format(e))
+            try:
+                tokenfile = open(SERVICE_ACCOUNT_TOKEN_FILE, "r")     
+                self.sa_token = tokenfile.read()
+                tokenfile.close()
+            except Exception as e:
+                logger.error("Fatal error while loading service account token, exception {}"
+                             .format(e))
                    
-
     def process_request(self, req, resp):
 
         path = urlparse(req.url)[2]
