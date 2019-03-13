@@ -65,7 +65,7 @@ get_inference_accuracy(){
 echo "****************************ADMIN****************************"
 get_token admin
 
-if [[ -z "$default_tenant" ]]
+if [[ ! -z "$default_tenant" ]]
 then
     echo "Create tenant"
     response=`yes | ./imm c t ${TENANT_NAME} ${ADMIN_SCOPE}`
@@ -168,7 +168,7 @@ let "TESTS_NUMBER++"
 echo "****************************ADMIN****************************"
 get_token admin
 
-if [[ -z "$default_tenant" ]]
+if [[ ! -z "$default_tenant" ]]
 then
     echo "Delete tenant"
     response=`./imm rm t ${TENANT_NAME}`

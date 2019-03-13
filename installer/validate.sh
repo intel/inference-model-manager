@@ -22,7 +22,7 @@ DEFAULT_TENANT_NAME=$2
 PROXY=$3
 cd ../scripts
 header "Running tests"
-if [[ -z "$DEFAULT_TENANT_NAME" ]]; then
+if [[ ! -z "$DEFAULT_TENANT_NAME" ]]; then
     response=`./imm ls t`
     if [[ ! $response =~ "Tenants present on platform: ['$DEFAULT_TENANT_NAME']" ]]; then
         failure "Default tenant is not presented on platform"
