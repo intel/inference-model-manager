@@ -224,8 +224,6 @@ def test_prediction_with_certificates():
 
 
 def test_jpeg_prediction_with_certificates():
-    time.sleep(30)
-
     # resnet_v1 test
     prediction_response = perform_inference(image=jpeg_image)
     assert not prediction_response == "Failed"
@@ -236,7 +234,6 @@ def test_jpeg_prediction_with_certificates():
 
 
 def test_prediction_batch_with_certificates():
-    time.sleep(10)
     prediction_response = perform_inference()
     assert not prediction_response == "Failed"
     response = numpy.array(prediction_response.outputs[model_output].float_val)
@@ -283,7 +280,6 @@ def test_prediction_with_certificates_v2():
 
 
 def test_version_not_served():
-    time.sleep(30)
     stub, request = prepare_stub_and_request(endpoint_info.url, MODEL_NAME,
                                              model_version=1,
                                              creds=endpoint_info.credentials)
@@ -368,7 +364,6 @@ def test_grpc_client(images_list, images_numpy_path):
 
 
 def test_remove_tenant():
-    # temporary sleep for debugging
     assert delete_tenant().status_code == 200
     start_action = time.time()
     tick = start_action
