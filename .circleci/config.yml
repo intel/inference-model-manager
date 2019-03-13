@@ -366,7 +366,7 @@ jobs:
             cd ~/inference-model-manager/
             cd ~/inference-model-manager/installer
             ./prerequisites_ubuntu.sh
-            pip install -q awscli --upgrade
+            sudo pip install -q awscli --upgrade
             mv ./hooks/example_dns_entry_hook.sh ./hooks/dns_entry_hook.sh
             ./install.sh -d ${DOMAIN_NAME} -s
       - run:
