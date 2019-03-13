@@ -41,16 +41,15 @@ while getopts "h?qsk:d:z:g:p:A:S:t" opt; do
     s)  export SKIP_K8S_INSTALLATION="true"
         ;;
     g)  export GCE_USER=$OPTARG
-	    ;;
+	      ;;
     p)  export PROXY=$OPTARG
-	    ;;
+	      ;;
     A)  export MINIO_ACCESS_KEY=$OPTARG
         ;;
     S)  export MINIO_SECRET_KEY=$OPTARG
         ;;
-    t)  export SKIP_K8S_INSTALLATION="true"
-        export USE_SERVICE_ACCOUNT="true"
-      ;;    
+    t)  export USE_SERVICE_ACCOUNT="true"
+        ;;    
     esac
 done
 

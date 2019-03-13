@@ -60,5 +60,6 @@ fill_template "<use_service_account>" $USE_SERVICE_ACCOUNT values.yaml
 
 helm install .
 show_result $? "Installation of Management API succeded" "Failed to install Management API"
+kubectl create clusterrolebinding mgt-api-binding --clusterrole=cluster-admin --serviceaccount=mgt-api:mgt-api
 
 cd -
