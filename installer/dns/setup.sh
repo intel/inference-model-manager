@@ -47,8 +47,11 @@ if [ -z "$result" ]; then
   result=""
   wait_time=0
   while [ -z "$result" ]
-  do         
-    result=`ping foo.$DOMAIN_NAME -c 1 2>&1|grep $EXTERNAL_IP`
+  do
+    export check=`ping foo.$DOMAIN_NAME`
+    echo $check         
+    export result=`ping foo.$DOMAIN_NAME -c 1 2>&1|grep $EXTERNAL_IP`
+    echo $result
     sleep 20
     wait_time=$(($wait_time + 20))
     print_ne "\r\r\r\r\r\r\r\r\r\r\r\r elapsed time: $wait_time s"
