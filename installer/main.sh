@@ -80,10 +80,6 @@ cd dex
 . install.sh $ISSUER $DEX_NAMESPACE $DEX_DOMAIN_NAME
 cd .. 
 
-cd validate
-.  ./test_dex_ldap.sh https://$DEX_DOMAIN_NAME
-cd ..
-
 if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ]; then
 cd k8s
 . ./restart_k8sapi.sh $DESIRED_KOPS_CLUSTER_NAME $ISSUER $DEX_NAMESPACE 
