@@ -27,7 +27,7 @@ cd -
 
 . ../.venv/bin/activate
 
-SCOPE_NAME
+export USER_SCOPE='user'
 export TENANT_RESOURCES={}
 
 cd ../scripts
@@ -35,7 +35,7 @@ cd ../scripts
 
 get_token admin
 
-response=`yes n | ./imm create t $DEFAULT_TENANT_NAME $SCOPE_NAME`
+response=`yes n | ./imm create t $DEFAULT_TENANT_NAME $USER_SCOPE`
 show_result $? "Default tenant created" "Failed to create default tenant"
 # TODO behaviour when failed to create default tenant
 
