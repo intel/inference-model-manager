@@ -21,4 +21,4 @@ kubectl create secret generic ldap-certs --from-file=ldap.crt --from-file=ldap.k
 
 cd ..
 
-helm install --name imm-openldap -f ../../tests/deployment/ldap/values.yaml .
+helm install --name imm-openldap -f ../../tests/deployment/ldap/customLdifFiles.yaml .

@@ -15,9 +15,9 @@
 # limitations under the License.
 #
 
-# Example how to create self-signed CA for Management API external interface
+# Example how to create self-signed CA for OpenLDAP component
 
-# Generate CA for Management Api
+# Generate CA for OpenLDAP
 openssl genrsa -out ca-ldap.key 4096
 openssl req -new -x509 -days 365 -key ca-ldap.key -out ca.crt -subj "/CN=ca-ldap"
 
