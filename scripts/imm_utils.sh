@@ -18,7 +18,7 @@
 IMM_CONFIG_PATH=~/.immconfig
 
 get_token() {
-	user=$1
+	[[ -n $DEFAULT_TENANT_NAME ]] && user="admin" || user=$1
 	echo "Get $user token"
 	TOKEN=`python -W ignore ../tests/management_api_tests/authenticate.py $user`
 	TOKEN=`echo $TOKEN | tr \' \"`
