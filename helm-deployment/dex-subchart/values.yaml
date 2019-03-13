@@ -1,4 +1,4 @@
-issuer: "none"
+issuer: toreplacedbyissuer
 namespace: "dex"
 config:
   <Here you can put your dex config>
@@ -9,7 +9,7 @@ service:
 ingress:
   enabled: true
   # Used to create Ingress record (should used with service.type: ClusterIP).
-  hosts: none
+  hosts: toreplacedbyingresshosts
   serviceName: dex
   servicePort: 443
   annotations:
@@ -20,5 +20,5 @@ ingress:
      nginx.ingress.kubernetes.io/ssl-redirect: "false"
   tls:
      secretName: dex-key-cert
-     hosts: none
+     hosts: toreplacedbyingresstlshosts
 resources: {}

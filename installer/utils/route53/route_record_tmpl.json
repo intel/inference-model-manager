@@ -1,11 +1,11 @@
 {
             "Comment": "CREATE/DELETE/UPSERT a record ",
             "Changes": [{
-            "Action": "CREATE",
+            "Action": "<operation>",
                         "ResourceRecordSet": {
-                                    "Name": "*.toreplacebydomainname",
+                                    "Name": "*.<dns_domain_name>" ,
                                     "Type": "A",
                                     "TTL": 300,
-                                 "ResourceRecords": [{ "Value": "0.0.0.0"}]
+                                 "ResourceRecords": [{ "Value": "<ip_address>"}]
 }}]
 }

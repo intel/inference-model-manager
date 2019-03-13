@@ -33,12 +33,11 @@ echo "deploy dex"
 source ./deployment_dex.sh
 echo "deploy management api"
 echo "generate certs needed for tf serving endpoint test"
-if [ "$TF_TEST_CERTS" = "true" ]
-then
-echo "Generate remaining certs required to run platform"
-cd ../../helm-deployment/management-api-subchart/certs/ && ./scriptcert.sh && ./script-wrong-certs.sh
-cd $RETURN_DIR
+if [ "$TF_TEST_CERTS" = "true" ]; then
+    echo "Generate all certs required to run platform"
+    cd ../../helm-deployment/management-api-subchart/certs/ && ./scriptcert.sh && ./script-wrong-certs.sh
+    cd $RETURN_DIR
 fi
-echo "Copy dex CA"
-cp ../../helm-deployment/dex-subchart/certs/ca-dex.crt ../../helm-deployment/management-api-subchart/certs/ca-dex.crt
+echo "Copy ca-ing"
+cp ../../helm-deployment/dex-subchart/certs/ca-ing.* ../../helm-deployment/management-api-subchart/certs/
 source ./deployment_management_api.sh

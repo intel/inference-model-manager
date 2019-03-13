@@ -28,6 +28,6 @@ helm init --debug --upgrade --service-account tiller
 ```
 aws route53 change-resource-record-sets --hosted-zone-id Z11DOV0M5AJEBB --change-batch file://route_record.json
 ```
-where route_record.json is a json file containing ingress ip (echo $ING_IP) and your domain name (example in /inferno-platform/kops directory)
+where route_record.json is a json file containing ingress ip (echo $ING_IP) and your domain name (example in /inferno-platform/installer/utils/route53 directory)
 
 

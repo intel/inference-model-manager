@@ -1,6 +1,5 @@
 #!/bin/bash
-#
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,8 +14,15 @@
 # limitations under the License.
 #
 
-# Generate server key/cert
-openssl genrsa -out ing-mgt-api.key 4096
-openssl req -new -key ing-mgt-api.key -out ing-mgt-api.csr -subj "/CN=${MGMT_DOMAIN_NAME}"
-openssl x509 -req -days 365 -in ing-mgt-api.csr -CA ca-ing.crt -CAkey ca-ing.key -set_serial 01 -out ing-mgt-api.crt
-cat ca-ing.crt >> ing-mgt-api.crt
+ADDRESS=$1
+SUBJECT=$2
+PROXY=$3
+
+if [ ! -z "$PROXY" ]; then
+    proxytunnel -p $PROXY -d $ADDRESS:443 -a 7000 &
+    openssl s_client -connect localhost:7000 -servername $ADDRESS -showcerts  < /dev/null 2>/dev/null |grep "s:.*CN.*${SUBJECT}" -A 100 | openssl x509 -outform pem
+    kill `ps -ef | grep proxytunnel | awk '{print $2}'`
+else
+    openssl s_client -connect $ADDRESS:443 -servername $ADDRESS -showcerts  < /dev/null 2>/dev/null | grep "s:.*CN.*${SUBJECT}" -A 100|  openssl x509 -outform pem
+fi
+
