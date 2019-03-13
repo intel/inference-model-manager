@@ -27,7 +27,7 @@ cd -
 
 . ../.venv/bin/activate
 
-export USER_SCOPE='user'
+export USER_SCOPE='admin'
 export TENANT_RESOURCES={}
 
 cd ../scripts
