@@ -34,6 +34,8 @@ done
 success "External ip found: $EXTERNAL_IP"
 result=`ping dex.$DOMAIN_NAME -c 1 2>&1|grep $EXTERNAL_IP`
 sudo setcap cap_net_raw+p /bin/ping
+# change permissions for ping command
+sudo chmod u+s `which ping`
 
 if [ -z "$result" ]; then
   
