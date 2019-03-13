@@ -36,7 +36,6 @@ cd ../scripts
 get_token admin
 
 response=`yes n | ./imm create t $DEFAULT_TENANT_NAME $USER_SCOPE`
-show_result $? "Default tenant created" "Failed to create default tenant"
-# TODO behaviour when failed to create default tenant
+show_result $? "Default tenant created" failure "Failed to create default tenant"
 
 cd -
