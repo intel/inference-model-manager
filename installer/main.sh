@@ -104,7 +104,7 @@ header "Preparing env variables and installing CA"
 . ./prepare_test_env.sh $DOMAIN_NAME $PROXY
 cd -
 
-if [[ "$multitenant" == "no" ]]; then
+if [[ $STANDALONE == "yes" ]]; then
     export DEFAULT_TENANT_NAME="default-tenant"
     echo "Creating default tenant"
     . default_tenant.sh $DOMAIN_NAME $DEFAULT_TENANT_NAME $PROXY

@@ -27,7 +27,7 @@ cd -
 
 . ../.venv/bin/activate
 
-CLIENT_SUBJECT_NAME=`openssl x509 -noout -subject -in $HELM_TEMP_DIR/management-api-subchart/certs/client-tf.crt | sed -n '/^subject/s/^.*CN=//p'`
+SCOPE_NAME
 export TENANT_RESOURCES={}
 
 cd ../scripts
@@ -35,7 +35,7 @@ cd ../scripts
 
 get_token admin
 
-response=`yes n | ./imm create t $DEFAULT_TENANT_NAME $CLIENT_SUBJECT_NAME`
+response=`yes n | ./imm create t $DEFAULT_TENANT_NAME $SCOPE_NAME`
 show_result $? "Default tenant created" "Failed to create default tenant"
 # TODO behaviour when failed to create default tenant
 
