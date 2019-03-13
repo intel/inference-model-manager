@@ -35,7 +35,7 @@ class Tenants(object):
     @jsonschema.validate(tenant_post_schema)
     def on_post(self, req, resp):
         logger.info("Create new tenant")
-        for k,v in req.params.items():
+        for k, v in req.params.items():
             logger.info("Param {} val {}".format(k, v))
         body = req.media
         name = create_tenant(parameters=body, id_token=req.params['Authorization'])

@@ -105,13 +105,13 @@ class AuthMiddleware:
         self.tokenDecoder = TokenDecoder()
         if USE_SERVICE_ACCOUNT:
             try:
-                tokenfile = open(SERVICE_ACCOUNT_TOKEN_FILE, "r")     
+                tokenfile = open(SERVICE_ACCOUNT_TOKEN_FILE, "r")
                 self.sa_token = tokenfile.read()
                 tokenfile.close()
             except Exception as e:
                 logger.error("Fatal error while loading service account token, exception {}"
                              .format(e))
-                   
+
     def process_request(self, req, resp):
 
         path = urlparse(req.url)[2]
@@ -135,13 +135,13 @@ class AuthMiddleware:
             if not self._token_has_admin_priv(decoded):
                 raise falcon.HTTPForbidden('Forbidden', "Insufficient permissions")
 
-        if USE_SERVICE_ACCOUNT:         
+        if USE_SERVICE_ACCOUNT:
             req.params['Authorization'] = self.sa_token
             logger.info("Using service account token")
         else:
             req.params['Authorization'] = token
         logger.info("Decoded token : {}".format(decoded))
-        logger.info("Request : {}, method {}".format(req.path, req.method))
+        logger.info("Request path: {}, method {}".format(req.path, req.method))
 
     def _token_has_admin_priv(self, decoded):
         if self.admin_user in decoded['groups']:
