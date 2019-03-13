@@ -45,8 +45,6 @@ IMAGES_NUMPY_SRC="https://storage.googleapis.com/inference-eu/models_zoo/resnet_
 
 . ./imm_utils.sh
 
-default_tenant=`jq -r '.default_tenant' $IMM_CONFIG_PATH`
-
 get_inference_accuracy(){
     NUMBER_OF_MATCHES=0
     IFS=',' read -ra LABELS <<< "$LABEL_LIST"
@@ -65,17 +63,10 @@ get_inference_accuracy(){
 echo "****************************ADMIN****************************"
 get_token admin
 
-if [[ ! -z "$default_tenant" ]]
-then
-    echo "Create tenant"
-    response=`yes | ./imm c t ${TENANT_NAME} ${ADMIN_SCOPE}`
-
-    let "TESTS_NUMBER++"
-    [[ $response =~ "${TENANT_NAME} created" ]] && { echo "Test passed" && let "++PASSED_TESTS"; } || { echo "Test failed: $response" && exit 1; }
-else
-    TENANT_NAME=$default_tenant
-fi
-
+echo "Create tenant"
+response=`yes | ./imm c t ${TENANT_NAME} ${ADMIN_SCOPE}`
+let "TESTS_NUMBER++"
+[[ $response =~ "${TENANT_NAME} created" ]] && { echo "Test passed" && let "++PASSED_TESTS"; } || { echo "Test failed: $response" && exit 1; }
 
 echo "List tenants"
 response=`./imm ls t`
@@ -168,18 +159,15 @@ let "TESTS_NUMBER++"
 echo "****************************ADMIN****************************"
 get_token admin
 
-if [[ ! -z "$default_tenant" ]]
-then
-    echo "Delete tenant"
-    response=`./imm rm t ${TENANT_NAME}`
-    let "TESTS_NUMBER++"
-    [[ $response =~ "${TENANT_NAME} deleted" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
+echo "Delete tenant"
+response=`./imm rm t ${TENANT_NAME}`
+let "TESTS_NUMBER++"
+[[ $response =~ "${TENANT_NAME} deleted" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
 
-    echo "List tenants"
-    response=`./imm ls t`
-    let "TESTS_NUMBER++"
-    [[ ! $response =~ "${TENANT_NAME}" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
-fi
+echo "List tenants"
+response=`./imm ls t`
+let "TESTS_NUMBER++"
+[[ ! $response =~ "${TENANT_NAME}" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
 
 echo "Logout"
 response=`yes | ./imm logout`
