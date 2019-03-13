@@ -48,13 +48,13 @@ if [ -z "$result" ]; then
   wait_time=0
   while [ -z "$result" ]
   do
-    export check=`ping foo.$DOMAIN_NAME -c 1 2>&1`
+    export check=`sudo ping foo.$DOMAIN_NAME -c 1 2>&1`
     echo $check         
-    export result=`ping foo.$DOMAIN_NAME -c 1 2>&1|grep $EXTERNAL_IP`
+    export result=`sudo ping foo.$DOMAIN_NAME -c 1 2>&1|grep $EXTERNAL_IP`
     echo $result
     sleep 20
     wait_time=$(($wait_time + 20))
-    print_ne "\r\r\r\r\r\r\r\r\r\r\r\r elapsed time: $wait_time s"
+    echo "\r\r\r\r\r\r\r\r\r\r\r\r elapsed time: $wait_time s"
   done
   success "DNS records update confirmed"
 
