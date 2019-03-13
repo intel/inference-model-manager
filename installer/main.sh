@@ -54,8 +54,6 @@ cd k8s
 . create_kops_cluster_gke.sh $DESIRED_KOPS_CLUSTER_NAME $GCE_ZONE
 . install_tiller.sh 
 cd ..
-else
-header "Skipping kubernetes cluster installation"
 fi
 
 cd ingress
@@ -82,7 +80,11 @@ cd dex
 . install.sh $ISSUER $DEX_NAMESPACE $DEX_DOMAIN_NAME
 cd .. 
 
-if [ -z "$SKIP_K8S_INSTALLATION" ]; then
+cd validate
+.  ./test_dex_ldap.sh https://$DEX_DOMAIN_NAME
+cd ..
+
+if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ]; then
 cd k8s
 . ./restart_k8sapi.sh $DESIRED_KOPS_CLUSTER_NAME $ISSUER $DEX_NAMESPACE 
 cd ..
