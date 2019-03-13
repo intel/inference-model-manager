@@ -33,6 +33,7 @@ done
 
 success "External ip found: $EXTERNAL_IP"
 result=`ping dex.$DOMAIN_NAME -c 1 2>&1|grep $EXTERNAL_IP`
+sudo setcap cap_net_raw+p /bin/ping
 
 if [ -z "$result" ]; then
   
