@@ -124,17 +124,17 @@ TENANT_RESOURCES=${TENANT_RESOURCES:="{\"requests.cpu\": \"2\", \"requests.memor
 
 ENDPOINT_RESOURCES=${ENDPOINT_RESOURCES:="{\"requests.cpu\": \"0\", \"requests.memory\": \"0\"}"}
 
+DEFAULT_TENANT_NOT_EXPORTED_INFO="Please provide env var with default tenant name in order to operate with single tenant mode"
 DEFAULT_TENANT_USAGE_INFO="Using default tenant $DEFAULT_TENANT_NAME"
 
 case "$OPERATION" in
 	create | c) 
 		case "$RESOURCE" in
 			tenant | t)
-				[[ -z ${PARAM_1} ]] && read -p "Please provide tenant name (press enter for default) " PARAM_1
+				[[ -z ${PARAM_1} ]] && read -p "Please provide tenant name " PARAM_1
 				[[ -z ${PARAM_2} ]] && read -p "Please provide scope (group name) " PARAM_2
 				read -p "Do you want to generate client certificates Y/n?" GENERATE_CERTS
 				[[ $GENERATE_CERTS != "n" ]] && generate_client_certs && "Certs are stored in `pwd`"
-				[[ -z ${PARAM_1} ]] && PARAM_1=$DEFAULT_TENANT_NAME && echo $DEFAULT_TENANT_USAGE_INFO
 				CURL='curl $INSECURE -s -S -H "accept: application/json" \
 					-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json" \
 					-d "{\"name\": \"${PARAM_1}\", \"cert\": \"${CERT}\", \"scope\":\"${PARAM_2}\",\"quota\": ${TENANT_RESOURCES}}" \
@@ -149,7 +149,14 @@ case "$OPERATION" in
 				[[ -z ${PARAM_3} ]] && read -p "Please provide model version policy (press enter for default)" PARAM_3
 				[[ -z ${PARAM_4} ]] && read -p "Please provide tenant name (press enter for default) " PARAM_4
 				[[ -z ${PARAM_5} ]] && read -p "Please provide serving name (default: tf-serving) " PARAM_5
-				[[ -z ${PARAM_4} ]] && PARAM_4=$DEFAULT_TENANT_NAME && echo $DEFAULT_TENANT_USAGE_INFO
+				if [[ -z ${PARAM_4} ]]; then
+				    if [[ -z ${DEFAULT_TENANT_NAME} ]]; then
+				        echo $DEFAULT_TENANT_NOT_EXPORTED_INFO
+				    else
+				        PARAM_4=$DEFAULT_TENANT_NAME && echo $DEFAULT_TENANT_USAGE_INFO
+				    fi
+				fi
+
 				[[ -z ${PARAM_6} ]] && PARAM_6=client
 				[[ -z ${PARAM_5} ]] && PARAM_5=tf-serving
 				[[ -n ${PARAM_3} ]] && PARAM_3=", \"modelVersionPolicy\": \"${PARAM_3}\""
@@ -168,7 +175,13 @@ case "$OPERATION" in
 		case "$RESOURCE" in
 			tenant | t)
 				[[ -z ${PARAM_1} ]] && read -p "Please provide tenant name (press enter for default) " PARAM_1
-				[[ -z ${PARAM_1} ]] && PARAM_1=$DEFAULT_TENANT_NAME && echo $DEFAULT_TENANT_USAGE_INFO
+				if [[ -z ${PARAM_1} ]]; then
+				    if [[ -z ${DEFAULT_TENANT_NAME} ]]; then
+				        echo $DEFAULT_TENANT_NOT_EXPORTED_INFO
+				    else
+				        PARAM_1=$DEFAULT_TENANT_NAME && echo $DEFAULT_TENANT_USAGE_INFO
+				    fi
+				fi
 				CURL='curl $INSECURE -s -S -H "accept: application/json" \
 					-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json"  \
 					-d "{\"name\": \"${PARAM_1}\"}" -X DELETE \
@@ -181,6 +194,13 @@ case "$OPERATION" in
 				[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
 				[[ -z ${PARAM_2} ]] && read -p "Please provide tenant name (press enter for default) " PARAM_2
 				[[ -z ${PARAM_2} ]] && PARAM_2=$DEFAULT_TENANT_NAME && echo $DEFAULT_TENANT_USAGE_INFO
+				if [[ -z ${PARAM_2} ]]; then
+				    if [[ -z ${DEFAULT_TENANT_NAME} ]]; then
+				        echo $DEFAULT_TENANT_NOT_EXPORTED_INFO
+				    else
+				        PARAM_2=$DEFAULT_TENANT_NAME && echo $DEFAULT_TENANT_USAGE_INFO
+				    fi
+				fi
 				CURL='curl $INSECURE -s -S -H "accept: application/json" \
 					-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json"  \
 					-d "{\"endpointName\": \"${PARAM_1}\"}" -X DELETE \
@@ -193,7 +213,13 @@ case "$OPERATION" in
 				[[ -z ${PARAM_1} ]] && read -p "Please provide model name " PARAM_1
 				[[ -z ${PARAM_2} ]] && read -p "Please provide model version " PARAM_2
 				[[ -z ${PARAM_3} ]] && read -p "Please provide tenant name (press enter for default) " PARAM_3
-				[[ -z ${PARAM_3} ]] && PARAM_3=$DEFAULT_TENANT_NAME && echo $DEFAULT_TENANT_USAGE_INFO
+				if [[ -z ${PARAM_3} ]]; then
+				    if [[ -z ${DEFAULT_TENANT_NAME} ]]; then
+				        echo $DEFAULT_TENANT_NOT_EXPORTED_INFO
+				    else
+				        PARAM_3=$DEFAULT_TENANT_NAME && echo $DEFAULT_TENANT_USAGE_INFO
+				    fi
+				fi
 				CURL='curl $INSECURE -X DELETE -s -S \
 					"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_3}/models" -H "accept: application/json" \
 					-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json" \
@@ -209,7 +235,13 @@ case "$OPERATION" in
 			endpoint | e)
 				[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
 				[[ -z ${PARAM_2} ]] && read -p "Please provide tenant name (press enter for default) " PARAM_2
-				[[ -z ${PARAM_2} ]] && PARAM_2=$DEFAULT_TENANT_NAME && echo $DEFAULT_TENANT_USAGE_INFO
+				if [[ -z ${PARAM_2} ]]; then
+				    if [[ -z ${DEFAULT_TENANT_NAME} ]]; then
+				        echo $DEFAULT_TENANT_NOT_EXPORTED_INFO
+				    else
+				        PARAM_2=$DEFAULT_TENANT_NAME && echo $DEFAULT_TENANT_USAGE_INFO
+				    fi
+				fi
 				parameters=($PARAM_3 $PARAM_4 $PARAM_5 $PARAM_6 $PARAM_7 $PARAM_8 $PARAM_9 $PARAM_10)
 				i=0
 				while [ $i -lt 7 ] ; do
@@ -256,7 +288,13 @@ case "$OPERATION" in
 				[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
 				[[ -z ${PARAM_2} ]] && read -p "Please provide number of replicas " PARAM_2
 				[[ -z ${PARAM_3} ]] && read -p "Please provide tenant name (press enter for default) " PARAM_3
-				[[ -z ${PARAM_3} ]] && PARAM_3=$DEFAULT_TENANT_NAME && echo $DEFAULT_TENANT_USAGE_INFO
+				if [[ -z ${PARAM_3} ]]; then
+				    if [[ -z ${DEFAULT_TENANT_NAME} ]]; then
+				        echo $DEFAULT_TENANT_NOT_EXPORTED_INFO
+				    else
+				        PARAM_3=$DEFAULT_TENANT_NAME && echo $DEFAULT_TENANT_USAGE_INFO
+				    fi
+				fi
 				CURL='curl $INSECURE -X PATCH -s -S  \
 				"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_3}/endpoints/${PARAM_1}/replicas" -H "accept: application/json" \
 					-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json" \
@@ -320,7 +358,13 @@ case "$OPERATION" in
 				;;
 			endpoint | endpoints | e)
 				[[ -z ${PARAM_1} ]] && read -p "Please provide tenant name (press enter for default) " PARAM_1
-				[[ -z ${PARAM_1} ]] && PARAM_1=$DEFAULT_TENANT_NAME && echo $DEFAULT_TENANT_USAGE_INFO
+				if [[ -z ${PARAM_1} ]]; then
+				    if [[ -z ${DEFAULT_TENANT_NAME} ]]; then
+				        echo $DEFAULT_TENANT_NOT_EXPORTED_INFO
+				    else
+				        PARAM_1=$DEFAULT_TENANT_NAME && echo $DEFAULT_TENANT_USAGE_INFO
+				    fi
+				fi
 				CURL='curl $INSECURE -X GET -s -S \
 				"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_1}/endpoints" \
 				-H "accept: application/json" -H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json"'
@@ -330,7 +374,13 @@ case "$OPERATION" in
 				;;
 			model | models | m)
 				[[ -z ${PARAM_1} ]] && read -p "Please provide tenant name (press enter for default) " PARAM_1
-				[[ -z ${PARAM_1} ]] && PARAM_1=$DEFAULT_TENANT_NAME && echo $DEFAULT_TENANT_USAGE_INFO
+				if [[ -z ${PARAM_1} ]]; then
+				    if [[ -z ${DEFAULT_TENANT_NAME} ]]; then
+				        echo $DEFAULT_TENANT_NOT_EXPORTED_INFO
+				    else
+				        PARAM_1=$DEFAULT_TENANT_NAME && echo $DEFAULT_TENANT_USAGE_INFO
+				    fi
+				fi
 				CURL='curl $INSECURE -X GET -s -S \
 				"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_1}/models" \
 				-H "accept: application/json" -H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json"'
@@ -353,7 +403,13 @@ case "$OPERATION" in
 		[[ -z ${PARAM_1} ]] && read -p "Please provide model name " PARAM_1
 		[[ -z ${PARAM_2} ]] && read -p "Please provide model version " PARAM_2 
 		[[ -z ${PARAM_3} ]] && read -p "Please provide tenant name (press enter for default) " PARAM_3
-		[[ -z ${PARAM_3} ]] && PARAM_3=$DEFAULT_TENANT_NAME && echo $DEFAULT_TENANT_USAGE_INFO
+		if [[ -z ${PARAM_3} ]]; then
+				    if [[ -z ${DEFAULT_TENANT_NAME} ]]; then
+				        echo $DEFAULT_TENANT_NOT_EXPORTED_INFO
+				    else
+				        PARAM_3=$DEFAULT_TENANT_NAME && echo $DEFAULT_TENANT_USAGE_INFO
+				    fi
+				fi
 		python model_upload_cli.py $INSECURE ${RESOURCE} ${PARAM_1} ${PARAM_2} ${PARAM_3}
 		;;
 	run-inference | ri)
@@ -421,7 +477,13 @@ case "$OPERATION" in
 			endpoint | e )
 				[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
 				[[ -z ${PARAM_2} ]] && read -p "Please provide tenant name (press enter for default) " PARAM_2
-				[[ -z ${PARAM_2} ]] && PARAM_2=$DEFAULT_TENANT_NAME && echo $DEFAULT_TENANT_USAGE_INFO
+				if [[ -z ${PARAM_2} ]]; then
+				    if [[ -z ${DEFAULT_TENANT_NAME} ]]; then
+				        echo $DEFAULT_TENANT_NOT_EXPORTED_INFO
+				    else
+				        PARAM_2=$DEFAULT_TENANT_NAME && echo $DEFAULT_TENANT_USAGE_INFO
+				    fi
+				fi
 				CURL='curl $INSECURE -X GET -s -S -H "accept: application/json" \
 				-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json" \
 				https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_2}/endpoints/${PARAM_1}'
