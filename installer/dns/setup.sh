@@ -48,18 +48,18 @@ if [ -z "$result" ]; then
   fi
 
   header "Waiting in the loop for updated dns records"
-  result=""
-  wait_time=0
-  while [ -z "$result" ]
-  do
-    export check=`sudo ping foo.$DOMAIN_NAME -c 1 2>&1`
-    echo $check         
-    export result=`sudo ping foo.$DOMAIN_NAME -c 1 2>&1|grep $EXTERNAL_IP`
-    echo $result
-    sleep 20
-    wait_time=$(($wait_time + 20))
-    echo "\r\r\r\r\r\r\r\r\r\r\r\r elapsed time: $wait_time s"
-  done
+  cd ~/inference-model-manager/installer/utils/route53/
+  while [ -z $ING_IP ]; do sleep 10; ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}' -n mgt-api); done
+  virtualenv .venvaws -p python3
+  . .venvaws/bin/activate
+  pip install awscli --upgrade 
+  export AWS_DNS=`./apply.sh CREATE ${ING_IP} ${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com`
+  cat route_record.json
+  export AWS_DNS_ID=$(echo $AWS_DNS | jq '.ChangeInfo.Id')
+  echo ${AWS_DNS_ID} 
+  sleep 30
+  while [ "$STATUS" = "INSYNC" ]; do sleep 10; export STATUS=$(aws route53 get-change --id `echo ${AWS_DNS_ID} | tr -d "\""` | jq '.ChangeInfo.Status'); echo $STATUS; done
+  deactivate
   success "DNS records update confirmed"
 
 else
