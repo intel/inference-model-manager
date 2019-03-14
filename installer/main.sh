@@ -85,7 +85,7 @@ cd dex
 cd .. 
 
 if [ "$USE_SERVICE_ACCOUNT" == "false" ]; then 
-        if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ] && [ ! -z "$SKIP_K8S_INSTALLATION "]; then
+        if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ] && [ ! -z "$SKIP_K8S_INSTALLATION" ]; then
                 cd k8s
                 . ./restart_k8sapi.sh $DESIRED_KOPS_CLUSTER_NAME $ISSUER $DEX_NAMESPACE 
                 cd ..
