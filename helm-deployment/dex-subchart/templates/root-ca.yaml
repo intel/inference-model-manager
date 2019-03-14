@@ -1,0 +1,16 @@
+{{ if .Values.rootCAfile }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.rootCAsecret }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+type: Opaque
+data:
+  "ldap.ca": |-
+  {{ $.Files.Get .Values.rootCAfile | b64enc | indent 4 }}
+{{ end }}
