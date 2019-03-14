@@ -105,9 +105,8 @@ class AuthMiddleware:
         self.tokenDecoder = TokenDecoder()
         if USE_SERVICE_ACCOUNT:
             try:
-                tokenfile = open(SERVICE_ACCOUNT_TOKEN_FILE, "r")
-                self.sa_token = tokenfile.read()
-                tokenfile.close()
+                with open(SERVICE_ACCOUNT_TOKEN_FILE, "r") as f:
+                    self.sa_token = f.read()
             except Exception as e:
                 logger.error("Fatal error while loading service account token, exception {}"
                              .format(e))

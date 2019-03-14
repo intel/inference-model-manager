@@ -61,10 +61,4 @@ fill_template "<use_service_account>" $USE_SERVICE_ACCOUNT values.yaml
 helm install .
 show_result $? "Installation of Management API succeded" "Failed to install Management API"
 
-if [ "$USE_SERVICE_ACCOUNT" == "true" ]; then
-header "Creating cluster role binding for service account mgt-api:mgt-api"        
-kubectl create clusterrolebinding mgt-api-binding --clusterrole=cluster-admin --serviceaccount=mgt-api:mgt-api
-show_result $? "Done" "Failed"
-fi
-
 cd -
