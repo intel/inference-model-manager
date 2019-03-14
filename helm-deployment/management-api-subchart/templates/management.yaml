@@ -15,7 +15,7 @@ spec:
         - name: regcred
 {{ end }}
       serviceAccount: mgt-api
-      automountServiceAccountToken: {{ .Values.use_service_account }}
+      automountServiceAccountToken: {{ .Values.useServiceAccount }}
       containers:
       - name: management-api
         image: {{ .Values.image }}:{{ .Values.tag }}
@@ -23,7 +23,7 @@ spec:
         - containerPort: 443
         env:
         - name: USE_SERVICE_ACCOUNT
-          value: "{{ .Values.use_service_account }}"
+          value: "{{ .Values.useServiceAccount }}"
         - name: MINIO_ENDPOINT_ADDR
           valueFrom:
             secretKeyRef:
@@ -112,23 +112,4 @@ spec:
   selector:
     app: management-api
   type: ClusterIP
----
-{{- if .Values.use_service_account -}}
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: mgt-api
-  namespace: {{ .Values.namespace }}
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: mgt-api-cluster-admin-binding
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: cluster-admin
-subjects:
-- kind: ServiceAccount
-  name: mgt-api
-  namespace: {{ .Values.Namespace }}
-{{- end -}}
+
