@@ -321,8 +321,6 @@ jobs:
       - run:
           name: export environment variables
           command: |
-            #echo 'export MGMT_TAG=$(find management/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)' >> $BASH_ENV
-            #echo 'export CTRL_TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)' >> $BASH_ENV
             echo 'export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`' >> $BASH_ENV
             echo 'export CLUSTER_NAME="gke-imm-${SHORT_SHA1}-${CIRCLE_BRANCH}"' >> $BASH_ENV
             echo 'export CLUSTER_NAME_SHORT="gke-imm-${SHORT_SHA1}-${CIRCLE_BRANCH}"' >> $BASH_ENV
@@ -362,6 +360,8 @@ jobs:
           name: Download dependencies and deploy platfrom on GKE
           command: |
             cd ~/inference-model-manager/
+            export MGMT_TAG=$(find management/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
+            export CTRL_TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
             cd ~/inference-model-manager/installer
             ./prerequisites_ubuntu.sh
             sudo pip install -q awscli --upgrade
