@@ -122,4 +122,12 @@ test:
     repository: dduportal/bats
     tag: 0.4.0
 
-certs_secrets: ldap-certs
+# which secret should store the ldap TLS creds
+certs_secret: ldap-certs
+
+# if the secret is not presnet you can populate it using the files content
+
+cert_files:
+  ldap.crt: certs/ldap.crt
+  ldap.key: certs/ldap.key
+  ca.crt: certs/ca.crt

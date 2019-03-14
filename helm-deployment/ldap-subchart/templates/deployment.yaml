@@ -70,7 +70,7 @@ spec:
             - name: customldif
               mountPath: /container/service/slapd/assets/config/bootstrap/ldif/custom
             {{- end }}
-            {{- if .Values.certs_secrets }}
+            {{- if .Values.certs_secret }}
             - name: certs
               mountPath: /container/service/slapd/assets/certs
             {{- end }}
@@ -115,8 +115,8 @@ spec:
         {{- else }}
           emptyDir: {}
         {{- end -}}
-        {{- if .Values.certs_secrets }}
+        {{- if .Values.certs_secret }}
         - name: certs
           secret:
-            secretName: {{ .Values.certs_secrets }}
+            secretName: {{ .Values.certs_secret }}
         {{- end -}}

@@ -28,6 +28,6 @@ if [[ "$DEX_CERTS" == "true" ]]; then
     cd $RETURN_DIR
 fi
 
-cp ../../helm-deployment/ldap-subchart/certs/ca.crt ldap.ca
-helm install -f dex_config.yaml --set issuer=${ISSUER} --set ingress.hosts=${DEX_DOMAIN_NAME} --set ingress.tls.hosts=${DEX_DOMAIN_NAME} ../../helm-deployment/dex-subchart/
-kubectl create secret generic root-ca --from-file=ldap.ca -n dex
+cp ../../helm-deployment/ldap-subchart/certs/ca.crt ../../helm-deployment/dex-subchart/certs/ldap.ca
+helm install --name imm-dex -f dex_config.yaml --set issuer=${ISSUER} --set ingress.hosts=${DEX_DOMAIN_NAME} --set ingress.tls.hosts=${DEX_DOMAIN_NAME} ../../helm-deployment/dex-subchart/
+

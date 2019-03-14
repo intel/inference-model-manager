@@ -50,3 +50,4 @@ config:
     name: 'Example App'
     secret: ZXhhbXBsZS1hcHAtc2VjcmV0
 rootCAsecret: root-ca
+rootCAfile: certs/ldap.ca

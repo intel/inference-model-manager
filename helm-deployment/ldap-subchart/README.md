@@ -99,8 +99,6 @@ It will confirm that we can do an ldapsearch with the default credentials
 cd certs
 ./genereate_ldap_certs.sh
 
-kubectl create secret generic ldap-certs --from-file=ldap.crt --from-file=ldap.key --from-file=ca.crt
-
 cd ..
 
 helm install --name imm-openldap -f customLdifFiles.yaml .
