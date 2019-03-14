@@ -20,8 +20,10 @@ export DEX_DOMAIN_NAME="dex.$DOMAIN_NAME"
 export MGMT_DOMAIN_NAME="mgt.$DOMAIN_NAME"
 
 echo "Fetching CA for $MGMT_DOMAIN_NAME"
-./get_cert.sh $MGMT_DOMAIN_NAME ca-ing $PROXY > ca.pem
-cat ./ca.pem
+#./get_cert.sh $MGMT_DOMAIN_NAME ca-ing $PROXY > ca.pem
+#cat ./ca.pem
+
+kubectl get secret ca-ing -n dex -o json | jq '.data."ca.crt"' | tr -d '"' | base64 -d > ca.pem
 
 export REQUEST_CA_BUNDLE=`pwd`/ca.pem
 export MANAGEMENT_API_CERT_PATH=`pwd`/ca.pem
