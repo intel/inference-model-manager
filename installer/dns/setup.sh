@@ -60,7 +60,7 @@ if [ -z "$result" ]; then
   while [ "$STATUS" = "INSYNC" ]; do sleep 10; export STATUS=$(aws route53 get-change --id `echo ${AWS_DNS_ID} | tr -d "\""` | jq '.ChangeInfo.Status'); echo $STATUS; done
   deactivate
   success "DNS records update confirmed"
-
+  cd -
 else
   success "DNS entry already present"      
 fi
