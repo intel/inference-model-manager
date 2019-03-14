@@ -49,11 +49,10 @@ if [ -z "$result" ]; then
 
   header "Waiting in the loop for updated dns records"
   cd ~/inference-model-manager/installer/utils/route53/
-  while [ -z $ING_IP ]; do sleep 10; ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}' -n mgt-api); done
   virtualenv .venvaws -p python3
   . .venvaws/bin/activate
   pip install awscli --upgrade 
-  export AWS_DNS=`./apply.sh CREATE ${ING_IP} ${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com`
+  export AWS_DNS=`./apply.sh CREATE $EXTERNAL_IP ${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com`
   cat route_record.json
   export AWS_DNS_ID=$(echo $AWS_DNS | jq '.ChangeInfo.Id')
   echo ${AWS_DNS_ID} 
