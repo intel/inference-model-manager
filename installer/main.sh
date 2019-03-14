@@ -108,4 +108,4 @@ if [[ $STANDALONE == "yes" ]]; then
     . default_tenant.sh $DOMAIN_NAME $DEFAULT_TENANT_NAME $PROXY
 fi
 
-. validate.sh $DOMAIN_NAME $DEFAULT_TENANT_NAME $PROXY
+. validate.sh

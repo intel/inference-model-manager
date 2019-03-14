@@ -31,8 +31,7 @@ cd ../scripts
 . ./imm_utils.sh
 
 get_token admin
-
 response=`yes | ./imm create t $DEFAULT_TENANT_NAME $SCOPE`
-show_result $? "Default tenant $DEFAULT_TENANT_NAME created" "Failed to create default tenant $DEFAULT_TENANT_NAME"
-
+echo $response
+[[ $response =~ "Tenant $DEFAULT_TENANT_NAME created" ]] && success "Successfully created default tenant $DEFAULT_TENANT_NAME" || failure "Failed to create default tenant $DEFAULT_TENANT_NAME"
 cd -

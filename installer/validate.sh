@@ -17,10 +17,6 @@
 
 . ./utils/messages.sh
 
-DOMAIN_NAME=$1
-DEFAULT_TENANT_NAME=$2
-PROXY=$3
-
 cd ../scripts
 header "Running tests"
 ./test_imm.sh
