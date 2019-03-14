@@ -15,7 +15,6 @@
 # limitations under the License.
 #
 
-
 TENANT_NAME="tenanttest"
 ENDPOINT_NAME="endpointtest"
 SERVING_NAME="tf-serving"

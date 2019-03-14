@@ -82,7 +82,7 @@ cd ..
 
 if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ]; then
     cd k8s
-    . ./restart_k8sapi.sh $DESIRED_KOPS_CLUSTER_NAME $ISSUER $DEX_NAMESPACE 
+    . ./restart_k8sapi.sh $DESIRED_KOPS_CLUSTER_NAME $ISSUER $DEX_NAMESPACE
     cd ..
 else
     cd k8s
@@ -108,4 +108,4 @@ if [[ $STANDALONE == "yes" ]]; then
     . default_tenant.sh $DOMAIN_NAME $DEFAULT_TENANT_NAME $PROXY
 fi
 
-. validate.sh $DOMAIN_NAME $DEFAULT_TENANT_NAME $PROXY
+. validate.sh
