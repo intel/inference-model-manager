@@ -112,4 +112,10 @@ spec:
   selector:
     app: management-api
   type: ClusterIP
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mgt-api
+  namespace: {{ .Values.namespace }}
 
