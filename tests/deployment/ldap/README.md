@@ -4,4 +4,7 @@ In this directory are stored files directly needed to launch Openldap helm chart
 
 ### Installation
 
-```helm install --name <release name> -f values.yaml stable/openldap```
+```bash
+cd ..
+./deployment_imm_ldap.sh
+```
