@@ -234,7 +234,7 @@ jobs:
       - run:
           name: Run imm test
           command: |
-            git clone https://github.com/bats-core/bats-core.git && cd bats-core && ./install.sh /usr/local              
+            git clone https://github.com/bats-core/bats-core.git && cd bats-core && sudo ./install.sh /usr/local              
             . ~/inference-model-manager/.venv/bin/activate
             cd ~/inference-model-manager/scripts
             bats imm_test.bats
