@@ -73,7 +73,7 @@ Usage examples
   * Installation on GCE with `kops` using custom Minio access key and secret key and with proxy
   * `./install.sh -k <name> -d <domain> -s -q -p <proxy_address:port> -A <minio_access_key> -S <minio_secret_key>`
   * Installation on existing GKE kubernetes cluster
-  * ./install.sh -d <domain> -s`-t
+  * `./install.sh -d <domain> -s`-t
 ### Update DNS records for new domain
 #### Using AWS Route53
 * set up [awscli](https://aws.amazon.com/cli/)
