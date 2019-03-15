@@ -41,7 +41,7 @@ GENERAL_TENANT_NAME = os.environ.get('GENERAL_TENANT_NAME', 'test-tenant')
 SCOPE_NAME = os.environ.get('SCOPE_NAME', 'test')
 
 
-TENANT_RESOURCES = {'limits.cpu': '2', 'limits.memory': '2Gi', 'requests.cpu': '1',
+TENANT_RESOURCES = {'limits.cpu': '4', 'limits.memory': '4Gi', 'requests.cpu': '1',
                     'requests.memory': '1Gi'}
 
 SENSIBLE_ENDPOINT_RESOURCES = {'limits.cpu': '1000m', 'limits.memory': '1000Mi',

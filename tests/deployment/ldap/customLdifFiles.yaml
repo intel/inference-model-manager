@@ -1,6 +1,5 @@
-adminPassword: "admin"
 customLdifFiles:
-  imm-config.ldif: |-
+  ldif: |-
     dn: ou=People,dc=example,dc=org
     objectClass: organizationalUnit
     ou: People
@@ -44,6 +43,14 @@ customLdifFiles:
     cn: mercury
     mail: mercury@example.com
     userpassword: mercury_pass
+
+    dn: cn=user,ou=People,dc=example,dc=org
+    objectClass: person
+    objectClass: inetOrgPerson
+    sn: user
+    cn: user
+    mail: user@example.com
+    userpassword: *password*
 
     # Group definitions.
 

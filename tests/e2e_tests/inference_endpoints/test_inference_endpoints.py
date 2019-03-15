@@ -201,6 +201,7 @@ def perform_inference(rpc_timeout=RPC_TIMEOUT, image=image):
 
 
 def test_prediction_with_certificates():
+    time.sleep(30)
     endpoint_info.url = endpoint_info.info
     trusted_cert, trusted_key, trusted_ca = prepare_certs(
         CERT_SERVER,
@@ -223,8 +224,6 @@ def test_prediction_with_certificates():
 
 
 def test_jpeg_prediction_with_certificates():
-    time.sleep(10)
-
     # resnet_v1 test
     prediction_response = perform_inference(image=jpeg_image)
     assert not prediction_response == "Failed"
@@ -235,7 +234,6 @@ def test_jpeg_prediction_with_certificates():
 
 
 def test_prediction_batch_with_certificates():
-    time.sleep(10)
     prediction_response = perform_inference()
     assert not prediction_response == "Failed"
     response = numpy.array(prediction_response.outputs[model_output].float_val)
@@ -268,7 +266,7 @@ def test_update_version_policy():
 
 
 def test_prediction_with_certificates_v2():
-    time.sleep(30)
+    time.sleep(10)
     running, pod_name = wait_endpoint_setup()
     endpoint_info.pod_name = pod_name
     assert running is True

@@ -1,0 +1,22 @@
+customLdifFiles:
+  ldif: |-
+    dn: ou=People,dc=example,dc=org
+    objectClass: organizationalUnit
+    ou: People
+
+    # Group definitions.
+    dn: ou=Groups,dc=example,dc=org
+    objectClass: organizationalUnit
+    ou: Groups
+    dn: cn=admin,ou=Groups,dc=example,dc=org
+    objectClass: groupOfNames
+    cn: admin
+    member: cn=user,ou=People,dc=example,dc=org
+
+    dn: cn=user,ou=People,dc=example,dc=org
+    objectClass: person
+    objectClass: inetOrgPerson
+    sn: user
+    cn: user
+    mail: user@example.com
+    userpassword: *password*

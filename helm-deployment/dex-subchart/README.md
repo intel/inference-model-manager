@@ -18,6 +18,11 @@ export ISSUER=https://dex.<your domain>:443/dex # change 443 port if using kuber
 export DEX_NAMESPACE=dex
 export DEX_DOMAIN_NAME=dex.<your domain>
 ```
+If you are connecting to the Identity provider via secure https connection you might need to configure TLS trust with its endpoint.
+It can be done using helm chart parameters:
+- `rootCAsecret` - name of the secret to store CA certificate of IdP TLS endpoint.
+- `rootCAfile` - if set, it populates the secret named by `rootCAsecret` from the file in PEM format
+The CA certificate will be mounted in the dex container in '/etc/dex/ca' folder. You might need to adjust the dex connector configuration to use appropriate path to the certificate.
 
 
 ### Installation
