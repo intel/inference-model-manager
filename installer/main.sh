@@ -22,7 +22,22 @@ DNS_DOMAIN_NAME=$2
 GCE_ZONE=$3
 MINIO_ACCESS_KEY="${MINIO_ACCESS_KEY:=my_minio_key}"
 MINIO_SECRET_KEY="${MINIO_SECRET_KEY:=my_minio_secret}"
-MINIO_URL=minio.$DNS_DOMAIN_NAME
+MINIO_SIGNATURE="${MINIO_SIGNATURE:=s3v4}"
+MINIO_REGION="${MINIO_REGION:=us-east-1}"
+
+if [[ -z "${MINIO_URL}" ]]; then
+  MINIO_URL="http://minio.$DNS_DOMAIN_NAME"
+  INSTALL_MINIO=true
+else
+  INSTALL_MINIO=false
+fi
+
+if [[ $MINIO_URL == *"https"* ]];
+then
+    export USE_HTTPS=1
+else
+    export USE_HTTPS=0
+fi
 
 if [ -z $MGMT_IMAGE ]; then
 export MGMT_IMAGE=intelaipg/inference-model-manager-api
@@ -79,16 +94,18 @@ cd ingress
 cd ..
 
 cd crd
-. install.sh $DNS_DOMAIN_NAME
+. install.sh $DNS_DOMAIN_NAME $USE_HTTPS
 cd ..
 
 cd dns
 . setup.sh $DNS_DOMAIN_NAME
 cd ..
 
-cd minio
-. install.sh $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL
-cd ..
+if $INSTALL_MINIO ; then
+    cd minio
+    . install.sh $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL
+    cd ..
+fi
 
 cd ldap
 . install.sh
@@ -113,7 +130,7 @@ if [ "$MGT_API_AUTHORIZATION" == "false" ]; then
 fi
 
 cd management-api
-. ./install.sh $DOMAIN_NAME $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL $MGT_API_AUTHORIZATION
+. ./install.sh $DOMAIN_NAME $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL $MINIO_REGION $MINIO_SIGNATURE $MGT_API_AUTHORIZATION
 show_result $? "Done" "Aborting"
 cd ..
 

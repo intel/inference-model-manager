@@ -40,18 +40,6 @@ On Ubuntu, you can use script to install dependencies
 * If you don't provide DNS hook script, you will be asked to create DNS entry during installation.
 
 ## Run
-Additional options
-    -z - GCE cluster zone (if using kops and GCE)
-    -q - silent mode (shows only important logs)
-    -s - skip cluster creation via kops
-    -p - set proxy (address:port)
-    -A - set minio access key
-    -S - set minio secret key
-    -h/? - show help
-Usage examples
-    install.sh -k <name> -d <domain>
-    install.sh -k <name> -d <domain> -z <gce_zone>
-    install.sh -k <name> -d <domain> -s -q
 * Required optons:
   * `-k` - cluster name
   * `-d` - domain name
@@ -63,7 +51,10 @@ Usage examples
   * `-p` - set proxy (address:port)
   * `-A` - set minio access key
   * `-S` - set minio secret key
-  *  -t  - set single tenant mode and use Management API authorization instead of Kubernetes authorization
+  * `-U` - set minio URL, if this parameter is set, minio chart will not be deploy
+  * `-V` - set minio signature version, default: s3v4
+  * `-R` - set minio region, default: us-east-1
+  * `-t`  - set single tenant mode and use Management API authorization instead of Kubernetes authorization
            (use this option if it's not possible to restart kubernetes API, for 
            example in GKE cluster)
   * `-h/?` - show help
@@ -76,8 +67,10 @@ Usage examples
   * `./install.sh -d <domain> -s`
   * Installation on GCE with `kops` using custom Minio access key and secret key and with proxy
   * `./install.sh -k <name> -d <domain> -s -q -p <proxy_address:port> -A <minio_access_key> -S <minio_secret_key>`
-  * Installation on existing GKE kubernetes cluster
-  * `./install.sh -d <domain> -s`-t
+  * Installation on existing GKE kubernetes cluster in single tenant mode
+  * `./install.sh -d <domain> -s -t`
+  * Installation in existing kubernetes cluster using AWS S3:
+  `./install.sh -d <domain> -s -A <minio_access_key> -S <minio_secret_key> -R us-east-1 -U https://s3.amazonaws.com`
 ### Update DNS records for new domain
 #### Using AWS Route53
 * set up [awscli](https://aws.amazon.com/cli/)
