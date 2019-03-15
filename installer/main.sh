@@ -30,8 +30,8 @@ export DEX_DOMAIN_NAME=dex.$DNS_DOMAIN_NAME
 export DOMAIN_NAME=$DNS_DOMAIN_NAME
 export HELM_TEMP_DIR=`pwd`/helm-temp-dir
 
-if [ -z $USE_SERVICE_ACCOUNT ]; then
-    export USE_SERVICE_ACCOUNT="false"
+if [ -z $MGT_API_AUTHORIZATION ]; then
+    export MGT_API_AUTHORIZATION="false"
 fi
 
 if [[ ! -d ../.venv ]]; then
@@ -84,7 +84,7 @@ cd dex
 . install.sh $ISSUER $DEX_NAMESPACE $DEX_DOMAIN_NAME
 cd .. 
 
-if [ "$USE_SERVICE_ACCOUNT" == "false" ]; then 
+if [ "$MGT_API_AUTHORIZATION" == "false" ]; then 
         if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ] && [ ! -z "$SKIP_K8S_INSTALLATION" ]; then
                 cd k8s
                 . ./restart_k8sapi.sh $DESIRED_KOPS_CLUSTER_NAME $ISSUER $DEX_NAMESPACE 
@@ -100,7 +100,7 @@ fi
 
 
 cd management-api
-. ./install.sh $DOMAIN_NAME $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL $USE_SERVICE_ACCOUNT 
+. ./install.sh $DOMAIN_NAME $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL $MGT_API_AUTHORIZATION 
 show_result $? "Done" "Aborting"
 cd ..
 

@@ -48,7 +48,7 @@ while getopts "h?qsk:d:z:g:p:A:S:t" opt; do
         ;;
     S)  export MINIO_SECRET_KEY=$OPTARG
         ;;
-    t)  export USE_SERVICE_ACCOUNT="true"
+    t)  export MGT_API_AUTHORIZATION="true"
         ;;    
     esac
 done
