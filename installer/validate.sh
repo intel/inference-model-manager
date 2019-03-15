@@ -23,5 +23,5 @@ cd ../scripts
 header "Preparing env variables and installing CA"
 . ./prepare_test_env.sh $DOMAIN_NAME $PROXY
 header "Running tests"
-./test_imm.sh
+bats imm_tests.bats
 cd -
