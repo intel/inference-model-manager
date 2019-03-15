@@ -20,6 +20,7 @@ export DEX_DOMAIN_NAME="dex.$DOMAIN_NAME"
 export MGMT_DOMAIN_NAME="mgt.$DOMAIN_NAME"
 
 sudo pip install -r ./requirements.txt
+sudo pip install -r ../tests/requirements.txt
 
 echo "Fetching CA for $MGMT_DOMAIN_NAME"
 #./get_cert.sh $MGMT_DOMAIN_NAME ca-ing $PROXY > ca.pem
