@@ -24,7 +24,8 @@ DEFAULT_TENANT_NAME=$DEFAULT_TENANT_NAME
 . ../.venv/bin/activate
 
 SCOPE='admin'
-export USER_SCOPE=$SCOPE ADMIN_SCOPE=$SCOPE
+export USER_SCOPE=$SCOPE
+export ADMIN_SCOPE=$SCOPE
 export TENANT_RESOURCES={}
 
 cd ../scripts
