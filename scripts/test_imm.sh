@@ -62,7 +62,7 @@ get_inference_accuracy(){
 [[ ! -f ${NUMPY_PATH} ]] && echo "Downloading numpy images" && wget https://storage.googleapis.com/inference-eu/models_zoo/resnet_V1_50/datasets/10_v1_imgs.npy
 
 echo "****************************ADMIN****************************"
-$get_token $ADMIN_NAME
+get_token $ADMIN_NAME
 
 echo "Create tenant"
 response=`yes | ./imm c t ${TENANT_NAME} ${ADMIN_SCOPE}`
