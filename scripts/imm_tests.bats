@@ -1,4 +1,20 @@
 #!/usr/bin/env bats
+#
+# Copyright (c) 2018-2019 Intel Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 
 TENANT_NAME="tenanttest"
 ENDPOINT_NAME="endpointtest"
@@ -15,9 +31,9 @@ IMAGE_LIST="images/airliner.jpeg,images/arctic-fox.jpeg,images/bee.jpeg,images/g
 LABEL_LIST=" airliner, Arctic fox, bee, golden retriever, gorilla, magnetic compass, peacock, pelican, snail, zebra"
 JPEGS_INFERENCE_ACCURACY=0
 
-SERVER_CERT="../helm-deployment/management-api-subchart/certs/server-tf.crt"
-CLIENT_CERT="../helm-deployment/management-api-subchart/certs/client-tf.crt"
-CLIENT_KEY="../helm-deployment/management-api-subchart/certs/client-tf.key"
+SERVER_CERT="server-tf.crt"
+CLIENT_CERT="client-tf.crt"
+CLIENT_KEY="client-tf.key"
 
 SAVED_MODEL_SRC="https://storage.googleapis.com/inference-eu/models_zoo/resnet_V1_50/saved_model/saved_model.pb"
 IMAGES_NUMPY_SRC="https://storage.googleapis.com/inference-eu/models_zoo/resnet_V1_50/datasets/10_v1_imgs.npy"
@@ -46,7 +62,7 @@ echo "****************************ADMIN****************************"
 get_token admin
 
 @test "Create tenant" {
-response=`yes n | ./imm c t ${TENANT_NAME} ${ADMIN_SCOPE}`
+response=`yes | ./imm c t ${TENANT_NAME} ${ADMIN_SCOPE}`
 [[ $response =~ "${TENANT_NAME} created" ]]
 }
 
@@ -82,6 +98,11 @@ response=`./imm c e ${ENDPOINT_NAME} ${MODEL_NAME} "${MODEL_VERSION_POLICY}" ${T
 response=`./imm ls e ${TENANT_NAME}`
 [[ $response =~ "${ENDPOINT_NAME}" ]]
 }
+
+echo "Waiting for server certificate"
+sleep 20
+./get_cert.sh "${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}" ${DOMAIN_NAME}> ${SERVER_CERT}
+cat ${SERVER_CERT}
 
 echo "Waiting for running inference endpoint"
 while [[ ! $status =~ 'AVAILABLE' ]]; do sleep 5; status=`./imm g ms "${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}:443" ${MODEL_NAME} ${SERVER_CERT} ${CLIENT_CERT} ${CLIENT_KEY}`; echo -n "*"; done
