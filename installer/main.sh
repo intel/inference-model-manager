@@ -24,6 +24,20 @@ MINIO_ACCESS_KEY="${MINIO_ACCESS_KEY:=my_minio_key}"
 MINIO_SECRET_KEY="${MINIO_SECRET_KEY:=my_minio_secret}"
 MINIO_URL=minio.$DNS_DOMAIN_NAME
 
+if [ -z $MGMT_IMAGE ]; then
+export MGMT_IMAGE=intelaipg/inference-model-manager-api
+fi 
+if [ -z $CRD_IMAGE ]; then
+export CRD_IMAGE=intelaipg/inference-model-manager-crd
+fi
+if [ -z $MGMT_TAG ]; then
+export MGMT_TAG=0.2
+fi
+if [ -z $CTRL_TAG ]; then
+export CTRL_TAG=0.2
+fi
+
+
 export ISSUER=https://dex.$DNS_DOMAIN_NAME:443/dex # change 443 port if using kubernetes node port instead of load balancer
 export DEX_NAMESPACE=dex
 export DEX_DOMAIN_NAME=dex.$DNS_DOMAIN_NAME

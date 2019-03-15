@@ -47,6 +47,8 @@ cd $HELM_TEMP_DIR/management-api-subchart
 
 header "Installation of Management API"
 
+fill_template "<mgt_api_image>" $MGMT_IMAGE
+fill_template "<mgt_api_tag>" $MGMT_TAG
 fill_template "<management_api_desired_dns>" mgt.$DOMAIN_NAME values.yaml
 fill_template "<dns_for_inference_endpoints>" $DOMAIN_NAME values.yaml
 fill_template "<minio_access_key>" $MINIO_ACCESS_KEY values.yaml
