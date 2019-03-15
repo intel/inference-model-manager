@@ -174,14 +174,7 @@ case "$OPERATION" in
 	remove | rm)
 		case "$RESOURCE" in
 			tenant | t)
-				[[ -z ${PARAM_1} ]] && read -p "Please provide tenant name (press enter for default) " PARAM_1
-				if [[ -z ${PARAM_1} ]]; then
-				    if [[ -z ${DEFAULT_TENANT_NAME} ]]; then
-				        echo $DEFAULT_TENANT_NOT_EXPORTED_INFO
-				    else
-				        PARAM_1=$DEFAULT_TENANT_NAME && echo $DEFAULT_TENANT_USAGE_INFO
-				    fi
-				fi
+				[[ -z ${PARAM_1} ]] && read -p "Please provide tenant name " PARAM_1
 				CURL='curl $INSECURE -s -S -H "accept: application/json" \
 					-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json"  \
 					-d "{\"name\": \"${PARAM_1}\"}" -X DELETE \
