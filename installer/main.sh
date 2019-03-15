@@ -104,7 +104,6 @@ sleep 10
 cd -
 
 if [[ $STANDALONE == "yes" ]]; then
-    export DEFAULT_TENANT_NAME="default-tenant"
     echo "Creating default tenant"
     . default_tenant.sh $DOMAIN_NAME $PROXY
 fi

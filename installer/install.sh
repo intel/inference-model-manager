@@ -23,7 +23,6 @@ kops_env=""
 domain=""
 gce_zone="us-west1"
 quiet="no"
-stadalone="no"
 
 while getopts "h?qsk:d:z:g:p:A:S:t" opt; do
     case "$opt" in
@@ -49,7 +48,8 @@ while getopts "h?qsk:d:z:g:p:A:S:t" opt; do
         ;;
     S)  export MINIO_SECRET_KEY=$OPTARG
         ;;
-    t)  standalone="yes"
+    t)  export STANDALONE="yes"
+	export DEFAULT_TENANT_NAME="default-tenant"
     esac
 done
 
@@ -58,10 +58,9 @@ shift $((OPTIND-1))
 export B64DECODE="base64 --decode"
 export B64ENCODE="base64 -w0"
 export SED_CMD="sed"
-export STANDALONE=$standalone
 
 if [[ "$OSTYPE" == "darwin"* ]]; then     
-   brew install gnu-sed      
+   brew install gnu-sed     
    brew install expect
    export SED_CMD="gsed"
    export B64ENCODE="base64"
