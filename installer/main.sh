@@ -99,13 +99,14 @@ cd ..
 
 cd ../scripts
 header "Preparing env variables and installing CA"
+sleep 10
 . ./prepare_test_env.sh $DOMAIN_NAME $PROXY
 cd -
 
 if [[ $STANDALONE == "yes" ]]; then
     export DEFAULT_TENANT_NAME="default-tenant"
     echo "Creating default tenant"
-    . default_tenant.sh $DOMAIN_NAME $DEFAULT_TENANT_NAME $PROXY
+    . default_tenant.sh $DOMAIN_NAME $PROXY
 fi
 
 . validate.sh

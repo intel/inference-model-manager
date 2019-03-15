@@ -16,8 +16,8 @@
 #!/bin/bash
 
 DOMAIN_NAME=$1
-DEFAULT_TENANT_NAME=$2
-PROXY=$3
+PROXY=$2
+DEFAULT_TENANT_NAME=$DEFAULT_TENANT_NAME
 
 . ./utils/messages.sh
 
