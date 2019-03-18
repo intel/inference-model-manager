@@ -17,6 +17,9 @@
 
 . ../utils/messages.sh
 
+sudo chmod u+s `which ping`
+sudo setcap cap_net_raw+p /bin/ping
+
 DOMAIN_NAME=$1
 EXTERNAL_IP="<pending>"
 header "Waiting for external ip address"
@@ -44,17 +47,19 @@ if [ -z "$result" ]; then
   fi
 
   header "Waiting in the loop for updated dns records"
-  result=""
-  wait_time=0
-  while [ -z "$result" ]
-  do         
-    result=`ping foo.$DOMAIN_NAME -c 1 2>&1|grep $EXTERNAL_IP`
-    sleep 20
-    wait_time=$(($wait_time + 20))
-    print_ne "\r\r\r\r\r\r\r\r\r\r\r\r elapsed time: $wait_time s"
-  done
+  cd ~/inference-model-manager/installer/utils/route53/
+  virtualenv .venvaws -p python3
+  . .venvaws/bin/activate
+  pip install awscli --upgrade 
+  export AWS_DNS=`./apply.sh CREATE $EXTERNAL_IP ${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com`
+  cat route_record.json
+  export AWS_DNS_ID=$(echo $AWS_DNS | jq '.ChangeInfo.Id')
+  echo ${AWS_DNS_ID} 
+  sleep 30
+  while [ "$STATUS" = "INSYNC" ]; do sleep 10; export STATUS=$(aws route53 get-change --id `echo ${AWS_DNS_ID} | tr -d "\""` | jq '.ChangeInfo.Status'); echo $STATUS; done
+  deactivate
   success "DNS records update confirmed"
-
+  cd -
 else
   success "DNS entry already present"      
 fi
