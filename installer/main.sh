@@ -28,8 +28,11 @@ export ISSUER=https://dex.$DNS_DOMAIN_NAME:443/dex # change 443 port if using ku
 export DEX_NAMESPACE=dex
 export DEX_DOMAIN_NAME=dex.$DNS_DOMAIN_NAME
 export DOMAIN_NAME=$DNS_DOMAIN_NAME
-
 export HELM_TEMP_DIR=`pwd`/helm-temp-dir
+
+if [ -z $MGT_API_AUTHORIZATION ]; then
+    export MGT_API_AUTHORIZATION="false"
+fi
 
 if [[ ! -d ../.venv ]]; then
     virtualenv -p python3.6 ../.venv
@@ -81,20 +84,23 @@ cd dex
 . install.sh $ISSUER $DEX_NAMESPACE $DEX_DOMAIN_NAME
 cd .. 
 
-if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ]; then
-cd k8s
-. ./restart_k8sapi.sh $DESIRED_KOPS_CLUSTER_NAME $ISSUER $DEX_NAMESPACE 
-cd ..
-else
-cd k8s
-DEX_CA=`./get_ca_ing_cert.sh`
-action_required "Please restart K8S API with OIDC config:\n oidcIssuerURL: $ISSUER: \noidcCA: $DEX_CA\noidcClientID: example-app\noidcGroupsClaim: groups\noidcUsernameClaim: email"
-read -p "Press [ENTER] when ready"
-cd -
+if [ "$MGT_API_AUTHORIZATION" == "false" ]; then 
+        if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ] && [ ! -z "$SKIP_K8S_INSTALLATION" ]; then
+                cd k8s
+                . ./restart_k8sapi.sh $DESIRED_KOPS_CLUSTER_NAME $ISSUER $DEX_NAMESPACE 
+                cd ..
+        else
+                cd k8s
+                DEX_CA=`./get_ca_ing_cert.sh`
+                action_required "Please restart K8S API with OIDC config:\n oidcIssuerURL: $ISSUER: \noidcCA: $DEX_CA\noidcClientID: example-app\noidcGroupsClaim: groups\noidcUsernameClaim: email"
+                read -p "Press [ENTER] when ready"
+                cd -
+        fi
 fi
 
+
 cd management-api
-. ./install.sh $DOMAIN_NAME $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL 
+. ./install.sh $DOMAIN_NAME $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL $MGT_API_AUTHORIZATION 
 show_result $? "Done" "Aborting"
 cd ..
 

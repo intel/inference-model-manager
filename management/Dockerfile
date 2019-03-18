@@ -1,6 +1,7 @@
 FROM clearlinux:latest
 
 RUN swupd bundle-add python3-basic
+RUN rm -fr /run/lock/clrtrust.lock
 RUN clrtrust generate
 
 ENV WORKERS=4

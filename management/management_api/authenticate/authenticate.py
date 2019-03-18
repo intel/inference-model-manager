@@ -23,6 +23,7 @@ from jwt import JWT
 from falcon.media.validators import jsonschema
 
 from management_api.config import AuthParameters
+from management_api.config import USE_SERVICE_ACCOUNT, SERVICE_ACCOUNT_TOKEN_FILE
 from management_api.authenticate.auth_controller import get_auth_controller_url, get_token,\
     get_keys_from_dex
 from management_api.utils.logger import get_logger
@@ -102,6 +103,13 @@ class AuthMiddleware:
         self.no_auth_endpoints = ['/authenticate/token', '/authenticate']
         self.admin_user = AuthParameters.ADMIN_SCOPE
         self.tokenDecoder = TokenDecoder()
+        if USE_SERVICE_ACCOUNT:
+            try:
+                with open(SERVICE_ACCOUNT_TOKEN_FILE, "r") as f:
+                    self.sa_token = f.read()
+            except Exception as e:
+                logger.error("Fatal error while loading service account token, exception {}"
+                             .format(e))
 
     def process_request(self, req, resp):
 
@@ -126,8 +134,13 @@ class AuthMiddleware:
             if not self._token_has_admin_priv(decoded):
                 raise falcon.HTTPForbidden('Forbidden', "Insufficient permissions")
 
+        if USE_SERVICE_ACCOUNT:
+            req.params['Authorization'] = self.sa_token
+            logger.info("Using service account token")
+        else:
+            req.params['Authorization'] = token
         logger.info("Decoded token : {}".format(decoded))
-        logger.info("Request : {}".format(req.headers))
+        logger.info("Request path: {}, method {}".format(req.path, req.method))
 
     def _token_has_admin_priv(self, decoded):
         if self.admin_user in decoded['groups']:

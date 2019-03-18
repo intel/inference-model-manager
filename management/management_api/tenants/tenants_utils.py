@@ -195,7 +195,7 @@ def propagate_secret(source_secret_path, target_namespace, id_token):
 
 def propagate_portable_secrets(target_namespace, id_token):
     for portable_secret_path in PORTABLE_SECRETS_PATHS:
-            propagate_secret(portable_secret_path, target_namespace, id_token=id_token)
+        propagate_secret(portable_secret_path, target_namespace, id_token=id_token)
     logger.info('Portable secrets copied from default to {}'.format(target_namespace))
 
 

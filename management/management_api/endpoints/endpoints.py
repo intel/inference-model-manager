@@ -32,7 +32,7 @@ class Endpoints(object):
 
     def on_get(self, req, resp, tenant_name):
         namespace = tenant_name
-        endpoints = list_endpoints(namespace, id_token=req.get_header('Authorization'))
+        endpoints = list_endpoints(namespace, id_token=req.params['Authorization'])
         resp.status = falcon.HTTP_200
         resp.body = endpoints
 
@@ -41,7 +41,7 @@ class Endpoints(object):
         namespace = tenant_name
         body = req.media
         endpoint_url = create_endpoint(parameters=body, namespace=namespace,
-                                       id_token=req.get_header('Authorization'))
+                                       id_token=req.params['Authorization'])
         resp.status = falcon.HTTP_200
         model_existence = check_endpoint_model(namespace, body["modelName"])
         warning_message = '' if model_existence else \
@@ -53,7 +53,7 @@ class Endpoints(object):
         namespace = tenant_name
         body = req.media
         endpoint_url = delete_endpoint(parameters=body, namespace=namespace,
-                                       id_token=req.get_header('Authorization'))
+                                       id_token=req.params['Authorization'])
         resp.status = falcon.HTTP_200
         resp.body = 'Endpoint {} deleted\n'.format(endpoint_url)
 
@@ -65,7 +65,7 @@ class EndpointScale(object):
         body = req.media
         endpoint_url = scale_endpoint(parameters=body, namespace=namespace,
                                       endpoint_name=endpoint_name,
-                                      id_token=req.get_header('Authorization'))
+                                      id_token=req.params['Authorization'])
 
         message = 'Endpoint {} patched successfully. New values: {}\n'.format(endpoint_url, body)
         resp.status = falcon.HTTP_200
@@ -77,7 +77,7 @@ class Endpoint(object):
     def on_get(self, req, resp, tenant_name, endpoint_name):
         namespace = tenant_name
         endpoint = view_endpoint(endpoint_name=endpoint_name, namespace=namespace,
-                                 id_token=req.get_header('Authorization'))
+                                 id_token=req.params['Authorization'])
         resp.status = falcon.HTTP_200
         resp.body = endpoint
 
@@ -86,7 +86,7 @@ class Endpoint(object):
         namespace = tenant_name
         body = req.media
         endpoint_url = update_endpoint(body, namespace, endpoint_name,
-                                       id_token=req.get_header('Authorization'))
+                                       id_token=req.params['Authorization'])
         message = 'Endpoint {} patched successfully. New values: {}\n'.format(endpoint_url, body)
         resp.status = falcon.HTTP_200
         resp.body = message
