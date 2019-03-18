@@ -16,6 +16,15 @@
 #
 
 . utils/show_help.sh
+
+export B64DECODE="base64 --decode"
+export B64ENCODE="base64 -w0"
+export SED_CMD="sed"
+if [[ "$OSTYPE" == "darwin"* ]]; then     
+   export SED_CMD="gsed"
+   export B64ENCODE="base64"
+fi
+
 . utils/check_required_tools.sh
 
 OPTIND=1 
@@ -56,16 +65,6 @@ done
 
 shift $((OPTIND-1))
 
-export B64DECODE="base64 --decode"
-export B64ENCODE="base64 -w0"
-export SED_CMD="sed"
-
-if [[ "$OSTYPE" == "darwin"* ]]; then     
-   brew install gnu-sed
-   brew install expect
-   export SED_CMD="gsed"
-   export B64ENCODE="base64"
-fi
 
 FILTER_CMD="cat"
 if [[ "$quiet" == "yes" ]]; then
