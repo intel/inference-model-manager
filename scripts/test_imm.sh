@@ -23,6 +23,8 @@ MODEL_VERSION=1
 MODEL_VERSION_POLICY="{latest {} }"
 ADMIN_SCOPE="test"
 USER_SCOPE="test"
+ADMIN_NAME=admin
+[[ -n $DEFAULT_TENANT_NAME ]] && USER_NAME=admin || USER_NAME=user
 REPLICAS=2
 MODEL_PATH="saved_model.pb"
 NUMPY_PATH="10_v1_imgs.npy"
@@ -60,7 +62,7 @@ get_inference_accuracy(){
 [[ ! -f ${NUMPY_PATH} ]] && echo "Downloading numpy images" && wget https://storage.googleapis.com/inference-eu/models_zoo/resnet_V1_50/datasets/10_v1_imgs.npy
 
 echo "****************************ADMIN****************************"
-get_token admin
+get_token $ADMIN_NAME
 
 echo "Create tenant"
 response=`yes | ./imm c t ${TENANT_NAME} ${ADMIN_SCOPE}`
@@ -78,7 +80,7 @@ let "TESTS_NUMBER++"
 [[ $response =~ "Signed out" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
 
 echo "*****************************USER*****************************"
-get_token user
+get_token $USER_NAME
 
 echo "Model upload"
 response=`./imm u ${MODEL_PATH} ${MODEL_NAME} ${MODEL_VERSION} ${TENANT_NAME}`
@@ -156,7 +158,7 @@ let "TESTS_NUMBER++"
 [[ $response =~ "Signed out" ]] && { echo "Test passed" && let "PASSED_TESTS++"; } || echo "Test failed: $response"
 
 echo "****************************ADMIN****************************"
-get_token admin
+get_token $ADMIN_NAME
 
 echo "Delete tenant"
 response=`./imm rm t ${TENANT_NAME}`

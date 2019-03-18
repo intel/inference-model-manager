@@ -23,8 +23,8 @@ echo "Fetching CA for $MGMT_DOMAIN_NAME"
 ./get_cert.sh $MGMT_DOMAIN_NAME ca-ing $PROXY > ca.pem
 cat ./ca.pem
 
-export REQUEST_CA_BUNDLE=`pwd`/ca.pem
-export MANAGEMENT_API_CERT_PATH=`pwd`/ca.pem
+export REQUESTS_CA_BUNDLE=`pwd`/ca.pem
+export MANAGEMENT_CA_CERT_PATH=`pwd`/ca.pem
 export CURL_CA_BUNDLE=`pwd`/ca.pem
 
 export DEX_NAMESPACE="dex"

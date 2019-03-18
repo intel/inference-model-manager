@@ -16,15 +16,16 @@
 #!/bin/bash
 
 DOMAIN_NAME=$1
-DEFAULT_TENANT_NAME=$2
-PROXY=$3
+PROXY=$2
+DEFAULT_TENANT_NAME=$DEFAULT_TENANT_NAME
 
 . ./utils/messages.sh
 
 . ../.venv/bin/activate
 
 SCOPE='admin'
-export USER_SCOPE=$SCOPE ADMIN_SCOPE=$SCOPE
+export USER_SCOPE=$SCOPE
+export ADMIN_SCOPE=$SCOPE
 export TENANT_RESOURCES={}
 
 cd ../scripts
