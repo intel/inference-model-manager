@@ -26,12 +26,13 @@ cd $HELM_TEMP_DIR/dex-subchart/certs
 ./generate-ing-ca.sh
 ./generate-dex-certs.sh 
 ./generate-ing-dex-certs.sh
+cp ../../ldap-subchart/certs/ca.crt ./ldap.ca 
 cd -
 
 header "Installing DEX"
 cp ../../tests/deployment/dex_config.yaml ./
 export OPENLDAP_SVC=`kubectl get svc|grep "openldap   "| awk '{ print $1 }'`
-export OPENLDAP_SVC_ADDRESS="$OPENLDAP_SVC.default:389"
+export OPENLDAP_SVC_ADDRESS="$OPENLDAP_SVC.default:636"
 fill_template toreplacedbyissuer $ISSUER dex_config.yaml
 fill_template toreplacedbyhost $OPENLDAP_SVC_ADDRESS dex_config.yaml
 fill_template toreplacebyldapaddress $OPENLDAP_SVC_ADDRESS dex_config.yaml
