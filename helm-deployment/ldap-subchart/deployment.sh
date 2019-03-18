@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,21 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-import falcon
-
-from management_api.servings.servings_utils import list_servings, get_serving
-
-
-class Servings(object):
-    def on_get(self, req, resp):
-        response = list_servings(req.params['Authorization'])
-        resp.status = falcon.HTTP_OK
-        resp.body = response
-
-
-class Serving(object):
-    def on_get(self, req, resp, serving_name):
-        response = get_serving(req.params['Authorization'], serving_name)
-        resp.status = falcon.HTTP_OK
-        resp.body = response
+cd certs
+./genereate_ldap_certs.sh
+cd ..
+helm install --name imm-openldap -f ../../tests/deployment/ldap/customLdifFiles.yaml .

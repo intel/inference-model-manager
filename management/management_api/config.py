@@ -33,6 +33,8 @@ PLATFORM_ADMIN_LABEL = os.getenv('PLATFORM_ADMIN_LABEL', 'platform_admin')
 
 DEX_URL = os.getenv('DEX_URL', 'https://dex:443')
 DEX_EXTERNAL_URL = os.getenv('DEX_EXTERNAL_URL', f'dex.{PLATFORM_DOMAIN}:443')
+USE_SERVICE_ACCOUNT = os.getenv('USE_SERVICE_ACCOUNT', "False").lower() == "true"
+SERVICE_ACCOUNT_TOKEN_FILE = "/run/secrets/kubernetes.io/serviceaccount/token"
 
 DEFAULT_MODEL_VERSION_POLICY = '{latest{}}'
 

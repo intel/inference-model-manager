@@ -34,7 +34,11 @@ minio.accessKey - MinIo access key
 minio.secretKey - MinIo secret
 adminScope - the group with Platform admin permissions - should match JWT token groups scope
 platformAdminLabel - label needed for mgt-api to figure out which namespaces were created by it
+useMgtApiAuthorization - (true/false) - if set to true, authorization of user token in kubernetes cluster will
+                         be disabled, management api will verify user token and use service account 
+                         on behalf of the user. If set to false, mgt api will pass user token to kubernetes api.
 private_registry: false # If you use private registry and your cluster do not have access to that registry set this value to "true". Below you can see what else you need to do 
+
 ```
 
 If you in previous step set docker_secret variable to ``true`` you have to create a secret in the cluster which holds your authorization token. Whole process is described [here](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/#create-a-secret-in-the-cluster-that-holds-your-authorization-token).

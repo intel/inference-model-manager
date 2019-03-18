@@ -59,7 +59,9 @@ Usage examples
   * `-p` - set proxy (address:port)
   * `-A` - set minio access key
   * `-S` - set minio secret key
-  * `-t` - set single tenant mode
+  *  -t  - set single tenant mode and use Management API authorization instead of Kubernetes authorization
+           (use this option if it's not possible to restart kubernetes API, for 
+           example in GKE cluster)
   * `-h/?` - show help
 * Usage examples
   * Installation with `kops` 
@@ -70,6 +72,8 @@ Usage examples
   * `./install.sh -d <domain> -s`
   * Installation on GCE with `kops` using custom Minio access key and secret key and with proxy
   * `./install.sh -k <name> -d <domain> -s -q -p <proxy_address:port> -A <minio_access_key> -S <minio_secret_key>`
+  * Installation on existing GKE kubernetes cluster
+  * `./install.sh -d <domain> -s`-t
 ### Update DNS records for new domain
 #### Using AWS Route53
 * set up [awscli](https://aws.amazon.com/cli/)

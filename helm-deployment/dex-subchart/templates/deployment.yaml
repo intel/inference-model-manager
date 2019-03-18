@@ -25,6 +25,10 @@ spec:
           mountPath: /etc/dex/cfg
         - name: https-tls
           mountPath: /etc/dex/tls/https/server
+        {{- if .Values.rootCAsecret }}
+        - name: rootca
+          mountPath: /etc/dex/ca
+        {{- end}}
         resources:
 {{ toYaml .Values.resources | indent 10 }}
         env:
@@ -41,3 +45,8 @@ spec:
         secret:
           defaultMode: 420
           secretName: dex-key-cert
+      {{- if .Values.rootCAsecret }}
+      - name: rootca
+        secret:
+          secretName: {{ .Values.rootCAsecret }}
+      {{- end}}

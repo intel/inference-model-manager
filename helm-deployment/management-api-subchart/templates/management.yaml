@@ -21,6 +21,8 @@ spec:
         ports:
         - containerPort: 443
         env:
+        - name: USE_SERVICE_ACCOUNT
+          value: "{{ .Values.useMgtApiAuthorization }}"
         - name: MINIO_ENDPOINT_ADDR
           valueFrom:
             secretKeyRef:
@@ -115,3 +117,4 @@ kind: ServiceAccount
 metadata:
   name: mgt-api
   namespace: {{ .Values.namespace }}
+

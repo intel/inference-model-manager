@@ -1,5 +1,6 @@
+#!/bin/bash
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,20 +15,13 @@
 # limitations under the License.
 #
 
-import falcon
+# Example how to create self-signed CA for OpenLDAP component
 
-from management_api.servings.servings_utils import list_servings, get_serving
+# Generate CA for OpenLDAP
+openssl genrsa -out ca-ldap.key 4096
+openssl req -new -x509 -days 365 -key ca-ldap.key -out ca.crt -subj "/CN=ca-ldap"
 
-
-class Servings(object):
-    def on_get(self, req, resp):
-        response = list_servings(req.params['Authorization'])
-        resp.status = falcon.HTTP_OK
-        resp.body = response
-
-
-class Serving(object):
-    def on_get(self, req, resp, serving_name):
-        response = get_serving(req.params['Authorization'], serving_name)
-        resp.status = falcon.HTTP_OK
-        resp.body = response
+# Generate server key/cert
+openssl genrsa -out ldap.key 4096
+openssl req -new -key ldap.key -out ldap.csr -subj "/CN=imm-openldap.default"
+openssl x509 -req -days 365 -in ldap.csr -CA ca.crt -CAkey ca-ldap.key -set_serial 01 -out ldap.crt

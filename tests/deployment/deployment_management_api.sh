@@ -33,4 +33,6 @@ helm install --set image=$MGMT_IMAGE --set tag=$MGMT_TAG --set platformDomain=$D
 --set dexExternalURL=dex.${DOMAIN_NAME}:443 --set ingress.hosts=${MGMT_DOMAIN_NAME} \
 --set ingress.tls.hosts=${MGMT_DOMAIN_NAME} --set minio.endpoint=$MINIO_ENDPOINT \
 --set minio.endpointUrl=$MINIO_URL --set minio.accessKey=$MINIO_ACCESS_KEY \
---set minio.secretKey=$MINIO_SECRET_KEY ../../helm-deployment/management-api-subchart/
+--set minio.secretKey=$MINIO_SECRET_KEY ../../helm-deployment/management-api-subchart/ \
+--set automountServiceAccountToken=false \
+--set useMgtApiAuthorization=false
