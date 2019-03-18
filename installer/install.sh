@@ -41,15 +41,16 @@ while getopts "h?qsk:d:z:g:p:A:S:t" opt; do
     s)  export SKIP_K8S_INSTALLATION="true"
         ;;
     g)  export GCE_USER=$OPTARG
-	      ;;
+        ;;
     p)  export PROXY=$OPTARG
-	      ;;
+        ;;
     A)  export MINIO_ACCESS_KEY=$OPTARG
         ;;
     S)  export MINIO_SECRET_KEY=$OPTARG
         ;;
     t)  export MGT_API_AUTHORIZATION="true"
-        ;;    
+        export DEFAULT_TENANT_NAME="default-tenant"
+        ;;
     esac
 done
 
@@ -60,7 +61,7 @@ export B64ENCODE="base64 -w0"
 export SED_CMD="sed"
 
 if [[ "$OSTYPE" == "darwin"* ]]; then     
-   brew install gnu-sed      
+   brew install gnu-sed
    brew install expect
    export SED_CMD="gsed"
    export B64ENCODE="base64"

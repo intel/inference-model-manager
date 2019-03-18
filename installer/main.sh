@@ -56,7 +56,7 @@ cd -
 if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ] && [ -z "$SKIP_K8S_INSTALLATION" ]; then
 cd k8s
 . create_kops_cluster_gke.sh $DESIRED_KOPS_CLUSTER_NAME $GCE_ZONE
-. install_tiller.sh 
+. install_tiller.sh
 cd ..
 fi
 
@@ -69,7 +69,7 @@ cd crd
 cd ..
 
 cd dns
-. setup.sh $DNS_DOMAIN_NAME 
+. setup.sh $DNS_DOMAIN_NAME
 cd ..
 
 cd minio
@@ -82,12 +82,12 @@ cd ..
 
 cd dex
 . install.sh $ISSUER $DEX_NAMESPACE $DEX_DOMAIN_NAME
-cd .. 
+cd ..
 
-if [ "$MGT_API_AUTHORIZATION" == "false" ]; then 
+if [ "$MGT_API_AUTHORIZATION" == "false" ]; then
         if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ] && [ ! -z "$SKIP_K8S_INSTALLATION" ]; then
                 cd k8s
-                . ./restart_k8sapi.sh $DESIRED_KOPS_CLUSTER_NAME $ISSUER $DEX_NAMESPACE 
+                . ./restart_k8sapi.sh $DESIRED_KOPS_CLUSTER_NAME $ISSUER $DEX_NAMESPACE
                 cd ..
         else
                 cd k8s
@@ -98,11 +98,20 @@ if [ "$MGT_API_AUTHORIZATION" == "false" ]; then
         fi
 fi
 
-
 cd management-api
-. ./install.sh $DOMAIN_NAME $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL $MGT_API_AUTHORIZATION 
+. ./install.sh $DOMAIN_NAME $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL $MGT_API_AUTHORIZATION
 show_result $? "Done" "Aborting"
 cd ..
 
-. ./validate.sh $DOMAIN_NAME $PROXY
+cd ../scripts
+header "Preparing env variables and installing CA"
+sleep 10
+. ./prepare_test_env.sh $DOMAIN_NAME $PROXY
+cd -
 
+if [[ -n $DEFAULT_TENANT_NAME ]]; then
+    echo "Creating default tenant"
+    . default_tenant.sh $DOMAIN_NAME $PROXY
+fi
+
+. validate.sh

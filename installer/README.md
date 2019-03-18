@@ -59,9 +59,9 @@ Usage examples
   * `-p` - set proxy (address:port)
   * `-A` - set minio access key
   * `-S` - set minio secret key
-  *  -t  - use management api authorization inestead of kubernetes authorization
+  *  -t  - set single tenant mode and use Management API authorization instead of Kubernetes authorization
            (use this option if it's not possible to restart kubernetes API, for 
-            example in GKE cluster)
+           example in GKE cluster)
   * `-h/?` - show help
 * Usage examples
   * Installation with `kops` 
@@ -88,6 +88,8 @@ cd utils/route53
 cd utils/route53
 ./apply.sh DELETE $IP_ADDRESS $DOMAIN_NAME
 ```
+## Single Tenant mode
+Single Tenant mode will create tenant which will be default tenant to use while interacting with platform. It has well-known name `default-tenant`.
 
 ## Tests
 * Prerequisites:

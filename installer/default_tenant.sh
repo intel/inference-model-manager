@@ -1,6 +1,5 @@
-#!/bin/bash
 #
-# Copyright (c) 2018-2019 Intel Corporation
+# Copyright (c) 2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,10 +13,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+#!/bin/bash
+
+DOMAIN_NAME=$1
+PROXY=$2
+DEFAULT_TENANT_NAME=$DEFAULT_TENANT_NAME
 
 . ./utils/messages.sh
 
+. ../.venv/bin/activate
+
+SCOPE='admin'
+export USER_SCOPE=$SCOPE
+export ADMIN_SCOPE=$SCOPE
+export TENANT_RESOURCES={}
+
 cd ../scripts
-header "Running tests"
-./test_imm.sh
+. ./imm_utils.sh
+
+get_token admin
+response=`yes | ./imm create t $DEFAULT_TENANT_NAME $SCOPE`
+echo $response
+[[ $response =~ "Tenant $DEFAULT_TENANT_NAME created" ]] && success "Successfully created default tenant $DEFAULT_TENANT_NAME" || failure "Failed to create default tenant $DEFAULT_TENANT_NAME"
 cd -
