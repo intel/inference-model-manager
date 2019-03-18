@@ -440,7 +440,7 @@ case "$OPERATION" in
 				;;
 			endpoint | e )
 				[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
-				[[ -z ${PARAM_2} ]] && read -p "Please provide tenant name (press enter for default) " PARAM_2
+				[[ -z ${PARAM_2} ]] && read -p "Please provide tenant name " PARAM_2
 				if [[ -z ${PARAM_2} ]]; then
 				    if [[ -z ${DEFAULT_TENANT_NAME} ]]; then
 				        echo $DEFAULT_TENANT_NOT_EXPORTED_INFO
