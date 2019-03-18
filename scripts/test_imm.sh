@@ -104,7 +104,7 @@ let "TESTS_NUMBER++"
 
 echo "Waiting for server certificate"
 sleep 15
-./get_cert.sh "${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}" ${DOMAIN_NAME}> ${SERVER_CERT}
+./get_cert.sh "${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}" ${DOMAIN_NAME} ${PROXY}> ${SERVER_CERT}
 cat ${SERVER_CERT}
 
 echo "Waiting for running inference endpoint"
