@@ -41,17 +41,16 @@ while getopts "h?qsk:d:z:g:p:A:S:t" opt; do
     s)  export SKIP_K8S_INSTALLATION="true"
         ;;
     g)  export GCE_USER=$OPTARG
-	    ;;
+        ;;
     p)  export PROXY=$OPTARG
-	    ;;
+        ;;
     A)  export MINIO_ACCESS_KEY=$OPTARG
         ;;
     S)  export MINIO_SECRET_KEY=$OPTARG
         ;;
-    t)  export STANDALONE="yes"
-        export MGT_API_AUTHORIZATION="true"
+    t)  export MGT_API_AUTHORIZATION="true"
         export DEFAULT_TENANT_NAME="default-tenant"
-	    ;;
+        ;;
     esac
 done
 

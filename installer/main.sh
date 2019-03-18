@@ -56,7 +56,7 @@ cd -
 if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ] && [ -z "$SKIP_K8S_INSTALLATION" ]; then
 cd k8s
 . create_kops_cluster_gke.sh $DESIRED_KOPS_CLUSTER_NAME $GCE_ZONE
-. install_tiller.sh 
+. install_tiller.sh
 cd ..
 fi
 
@@ -69,7 +69,7 @@ cd crd
 cd ..
 
 cd dns
-. setup.sh $DNS_DOMAIN_NAME 
+. setup.sh $DNS_DOMAIN_NAME
 cd ..
 
 cd minio
@@ -82,7 +82,7 @@ cd ..
 
 cd dex
 . install.sh $ISSUER $DEX_NAMESPACE $DEX_DOMAIN_NAME
-cd .. 
+cd ..
 
 if [ "$MGT_API_AUTHORIZATION" == "false" ]; then
         if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ] && [ ! -z "$SKIP_K8S_INSTALLATION" ]; then
@@ -109,7 +109,7 @@ sleep 10
 . ./prepare_test_env.sh $DOMAIN_NAME $PROXY
 cd -
 
-if [[ $STANDALONE == "yes" ]]; then
+if [[ -n $DEFAULT_TENANT_NAME ]]; then
     echo "Creating default tenant"
     . default_tenant.sh $DOMAIN_NAME $PROXY
 fi
