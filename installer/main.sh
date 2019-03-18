@@ -28,7 +28,6 @@ export ISSUER=https://dex.$DNS_DOMAIN_NAME:443/dex # change 443 port if using ku
 export DEX_NAMESPACE=dex
 export DEX_DOMAIN_NAME=dex.$DNS_DOMAIN_NAME
 export DOMAIN_NAME=$DNS_DOMAIN_NAME
-
 export HELM_TEMP_DIR=`pwd`/helm-temp-dir
 
 if [ -z $MGT_API_AUTHORIZATION ]; then

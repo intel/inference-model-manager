@@ -18,7 +18,6 @@ ADDRESS=$1
 SUBJECT=$2
 PROXY=$3
 
-sleep 10
 if [ ! -z "$PROXY" ]; then
     proxytunnel -p $PROXY -d $ADDRESS:443 -a 7000 &
     openssl s_client -connect localhost:7000 -servername $ADDRESS -showcerts  < /dev/null 2>/dev/null |grep "s:.*CN.*${SUBJECT}" -A 100 | openssl x509 -outform pem
