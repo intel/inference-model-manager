@@ -4,10 +4,10 @@ __Note:__ To use all features of imm you need to install packages from requireme
 ```pip install -r requirements.txt```, if you don't have them already.
 
 ### Single Tenant mode
-While operating with Single Tenant mode, run `prepare_env_standalone.sh` for proper usage.
+While operating with Single Tenant mode, run `prepare_env_single_tenant_mode.sh` for proper usage.
 Run:
 ```
-. ./prepare_env_standalone.sh`
+. ./prepare_env_single_tenant_mode.sh`
 ```
 
 ### Authenticate
