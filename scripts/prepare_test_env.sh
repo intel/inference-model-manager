@@ -23,10 +23,8 @@ sudo pip install -r ./requirements.txt
 sudo pip install -r ../tests/requirements.txt
 
 echo "Fetching CA for $MGMT_DOMAIN_NAME"
-# ./get_cert.sh $MGMT_DOMAIN_NAME ca-ing $PROXY > ca.pem
-# cat ./ca.pem
-
-kubectl get secret ca-ing -n dex -o json | jq '.data."ca.crt"' | tr -d '"' | base64 -d > ca.pem
+sudo ./get_cert.sh $MGMT_DOMAIN_NAME ca-ing $PROXY > ca.pem
+cat ./ca.pem
 
 export REQUESTS_CA_BUNDLE=`pwd`/ca.pem
 export MANAGEMENT_CA_CERT_PATH=`pwd`/ca.pem
