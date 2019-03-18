@@ -441,12 +441,10 @@ case "$OPERATION" in
 			endpoint | e )
 				[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
 				[[ -z ${PARAM_2} ]] && read -p "Please provide tenant name " PARAM_2
-				if [[ -z ${PARAM_2} ]]; then
-				    if [[ -z ${DEFAULT_TENANT_NAME} ]]; then
-				        echo $DEFAULT_TENANT_NOT_EXPORTED_INFO
-				    else
-				        PARAM_2=$DEFAULT_TENANT_NAME && echo $DEFAULT_TENANT_USAGE_INFO
-				    fi
+				if [[ -n ${DEFAULT_TENANT_NAME} ]]; then
+				     PARAM_2=$DEFAULT_TENANT_NAME
+				else
+				    [[ -z ${PARAM_2} ]] && read -p "Please provide tenant name " PARAM_2
 				fi
 				CURL='curl $INSECURE -X GET -s -S -H "accept: application/json" \
 				-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json" \
