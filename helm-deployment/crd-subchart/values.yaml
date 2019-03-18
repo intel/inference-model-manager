@@ -1,5 +1,5 @@
 image: <crd_image>
-tag: <images_tag>
+tag: <crd_tag>
 namespace: "crd"
 docker_secret: false
 platformDomain: <dns_domain_name>
