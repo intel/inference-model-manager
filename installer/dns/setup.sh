@@ -51,7 +51,7 @@ if [ -z "$result" ]; then
   virtualenv .venvaws -p python3
   . .venvaws/bin/activate
   pip install awscli --upgrade 
-  export AWS_DNS=`./apply.sh CREATE $EXTERNAL_IP ${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com`
+  export AWS_DNS=`./apply.sh CREATE $EXTERNAL_IP ${DOMAIN_NAME}`
   cat route_record.json
   export AWS_DNS_ID=$(echo $AWS_DNS | jq '.ChangeInfo.Id')
   echo ${AWS_DNS_ID} 

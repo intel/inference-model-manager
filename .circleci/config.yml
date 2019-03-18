@@ -329,7 +329,7 @@ jobs:
             echo 'export CLUSTER_NAME_SHORT_TP=`echo ${CLUSTER_NAME_SHORT} | cut -c 1-20`' >> $BASH_ENV
             echo 'export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"' >> $BASH_ENV
             echo 'export DEX_DOMAIN_NAME="dex.${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com"' >> $BASH_ENV
-            echo 'export MGMT_DOMAIN_NAME="mgmt.${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com"' >> $BASH_ENV
+            echo 'export MGMT_DOMAIN_NAME="mgt.${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com"' >> $BASH_ENV
             echo 'export DOMAIN_NAME="${CLUSTER_NAME_SHORT}.nlpnp.adsdcsp.com"' >> $BASH_ENV
             echo 'export MGMT_IMAGE="gcr.io/constant-cubist-173123/management-api"' >> $BASH_ENV
             echo 'export CRD_IMAGE="gcr.io/constant-cubist-173123/server-controller-prod"' >> $BASH_ENV
