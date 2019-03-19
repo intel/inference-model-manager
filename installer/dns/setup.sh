@@ -53,6 +53,7 @@ if [ -z "$result" ]; then
   while [ -z "$result" ]
   do         
     result=`sudo ping foo.$DOMAIN_NAME -c 1 2>&1|grep $EXTERNAL_IP`
+    echo "ping result: $result"
     sleep 20
     wait_time=$(($wait_time + 20))
     print_ne "\r\r\r\r\r\r\r\r\r\r\r\r elapsed time: $wait_time s"
