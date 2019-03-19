@@ -120,7 +120,7 @@ if __name__ == "__main__":
     user = arr[0]
     if len(arr) > 1:
         password = arr[1]
-        token = authenticate(user, password) 
+        token = authenticate(user, password)
     if user == 'admin':
         token = get_admin_token()
     elif user == 'user':
