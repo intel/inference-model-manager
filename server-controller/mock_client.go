@@ -40,8 +40,8 @@ func (c *mockClient) Create(namespace string, templateValues interface{}) error 
 	return c.err
 }
 
-func (*mockClient) Delete(namespace string, name string) error {
-	return nil
+func (c *mockClient) Delete(namespace string, name string) error {
+	return c.err
 }
 
 func (c *mockClient) Update(namespace string, name string, templateValues interface{}) error {
