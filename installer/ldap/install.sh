@@ -29,6 +29,6 @@ else
 helm install --name imm-openldap -f ../../../tests/deployment/ldap/customLdifFiles.yaml .
 fi
 show_result $? "LDAP installation succeded" "Failed to install LDAP"
-header "Waiting 2 minutes"
-progress_bar 120
+header "Waiting 4 minutes"
+progress_bar 240
 cd $DIR
