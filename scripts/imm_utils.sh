@@ -46,3 +46,16 @@ remove_resources() {
     echo "Tests failed. Error occurred during ${error_message} test" 
     exit 1
 }
+
+get_tenant_name() {
+        local __TENANT=$1
+        local TENANT=${!__TENANT}
+        if [[ -n ${DEFAULT_TENANT_NAME} ]]; then
+             [[ -z ${TENANT} ]] && read -p "Please provide tenant name (default: $DEFAULT_TENANT_NAME) " TENANT
+             [[ -z ${TENANT} ]] && TENANT=$DEFAULT_TENANT_NAME
+        else
+             [[ -z ${TENANT} ]] && read -p "Please provide tenant name " TENANT
+        fi
+        echo "$TENANT"
+        eval $__TENANT="'$TENANT'"
+}
