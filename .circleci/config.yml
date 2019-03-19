@@ -367,9 +367,11 @@ jobs:
             export CTRL_TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
             cd ~/inference-model-manager/installer
             mv ./hooks/example_dns_entry_hook.sh ./hooks/dns_entry_hook.sh
+            echo "Before PR"
             ./prerequisites_ubuntu.sh
+            echo "After PR"
             sudo pip install -q awscli --upgrade
-            . ./install.sh -d ${DOMAIN_NAME} -s -t
+            ./install.sh -d ${DOMAIN_NAME} -s -t
       - run:
           name: Delete cluster on GKE
           when: on_success
