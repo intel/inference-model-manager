@@ -145,9 +145,10 @@ case "$OPERATION" in
 				[[ -z ${PARAM_2} ]] && read -p "Please provide model name " PARAM_2
 				[[ -z ${PARAM_3} ]] && read -p "Please provide model version policy (press enter for default)" PARAM_3
 				if [[ -n ${DEFAULT_TENANT_NAME} ]]; then
-				     PARAM_4=$DEFAULT_TENANT_NAME
+				     [[ -z ${PARAM_4} ]] && read -p "Please provide tenant name (default: $DEFAULT_TENANT_NAME) " PARAM_4
+				     [[ -z ${PARAM_4} ]] && PARAM_4=$DEFAULT_TENANT_NAME
 				else
-				    [[ -z ${PARAM_4} ]] && read -p "Please provide tenant name " PARAM_4
+				     [[ -z ${PARAM_4} ]] && read -p "Please provide tenant name " PARAM_4
 				fi
 				[[ -z ${PARAM_5} ]] && read -p "Please provide serving name (default: tf-serving) " PARAM_5
 				[[ -z ${PARAM_6} ]] && PARAM_6=client
