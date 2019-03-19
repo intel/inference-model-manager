@@ -55,7 +55,7 @@ get_inference_accuracy(){
 [[ ! -f ${MODEL_PATH} ]] && echo "Downloading model" && wget https://storage.googleapis.com/inference-eu/models_zoo/resnet_V1_50/saved_model/saved_model.pb
 [[ ! -f ${NUMPY_PATH} ]] && echo "Downloading numpy images" && wget https://storage.googleapis.com/inference-eu/models_zoo/resnet_V1_50/datasets/10_v1_imgs.npy
 
-#echo "****************************ADMIN****************************"
+#"****************************ADMIN****************************"
 @test "Get admin token" {
     response="$(get_token admin)"
     grep -E "Token is saved" <<< $response
@@ -76,7 +76,7 @@ get_inference_accuracy(){
     grep -E "Signed out" <<< $response
 }
 
-#echo "*****************************USER*****************************"
+#"*****************************USER*****************************"
 @test "Get user token" {
     response="$(get_token user)"
     grep -E "Token is saved" <<< $response
@@ -159,7 +159,7 @@ get_inference_accuracy(){
     grep -E "Signed out" <<< $response
 }
 
-#echo "****************************ADMIN****************************"
+#"****************************ADMIN****************************"
 @test "Get admin token after user logout" {
     response="$(get_token admin)"
     grep -E "Token is saved" <<< $response

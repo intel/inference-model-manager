@@ -93,16 +93,31 @@ Single Tenant mode will create tenant which will be default tenant to use while 
 
 ## Tests
 * Prerequisites:
+  * bats
+    ```
+    git clone https://github.com/bats-core/bats-core.git && cd bats-core && ./install.sh /usr/local
+    ```
   * python3.6 or higher
   * activated virtualenv (described in the Prerequisites section)
 * Run:
-  ```
-  . validate.sh <domain_name> 
-  ```
-  * using proxy
-  ```
-  . validate.sh <domain_name> <proxy_with_port>
-  ```
+  * *recommended* (validate.sh scripts exports all required variables)
+    ```
+    . validate.sh <domain_name> 
+    ```
+    * using proxy
+      ```
+      . validate.sh <domain_name> <proxy_with_port>
+      ```
+  * running plain tests (this requires to export all variables mentioned in prepare_test_env.sh
+    script)
+    * pretty-printed
+      ```
+      bats imm_tests.bats
+      ```
+    * tap output
+      ```
+      bats --tap imm_tests.bats
+      ```
 * Troubleshooting
   * ```
 	Get admin token
