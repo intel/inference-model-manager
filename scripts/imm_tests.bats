@@ -120,7 +120,7 @@ get_inference_accuracy(){
 @test "Run inference on numpy file" {
     response="$(./imm ri ${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}:443 ${MODEL_NAME} numpy ${NUMPY_PATH} 10 ${SERVER_CERT} ${CLIENT_CERT} ${CLIENT_KEY})"
     echo "$response" >&3
-    grep -E "Imagenet top results in a single batch" <<< $response
+    grep -E "Imagenetx top results in a single batch" <<< $response
 }
 
 @test "Run inference on jpg images" {
