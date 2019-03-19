@@ -99,7 +99,7 @@ var inferenceEndpointsTestAdd = []struct {
 		clientErrors: clientErr{nil, nil, nil, errors.New("")}},
 }
 
-func serverAdd(infer crv1.InferenceEndpoint, errs clientErr) string {
+func testAdd(infer crv1.InferenceEndpoint, errs clientErr) string {
 	var buf bytes.Buffer
 	log.SetOutput(&buf)
 	defer func() {
@@ -119,10 +119,65 @@ func serverAdd(infer crv1.InferenceEndpoint, errs clientErr) string {
 	return buf.String()
 }
 
+var inferenceEndpointsTestUpdateTemplate = []struct {
+	name         string
+	oldServer    crv1.InferenceEndpoint
+	newServer    crv1.InferenceEndpoint
+	expected     string
+	clientErrors clientErr
+}{
+	{
+		name: "No such template",
+		oldServer: crv1.InferenceEndpoint{
+			TypeMeta:   metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{},
+			Spec:       crv1.InferenceEndpointSpec{},
+			Status:     crv1.InferenceEndpointStatus{}},
+		newServer: crv1.InferenceEndpoint{
+			TypeMeta:   metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{},
+			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test"},
+			Status:     crv1.InferenceEndpointStatus{}},
+		expected:     "There is no such template",
+		clientErrors: clientErr{nil, nil, nil, nil}},
+}
+
+func testUpdateTemplate(oldServer, newServer crv1.InferenceEndpoint, errs clientErr) string {
+	var buf bytes.Buffer
+	log.SetOutput(&buf)
+	defer func() {
+		log.SetOutput(os.Stderr)
+	}()
+	updateMap := make(map[string]templateClients)
+	configMapClient := newMockClient(errs.configMapError)
+	deploymentClient := newMockClient(errs.deploymentClientError)
+	serviceClient := newMockClient(errs.serviceClientError)
+	ingressClient := newMockClient(errs.ingressClientError)
+	k8sClients := templateClients{deploymentClient, serviceClient, ingressClient, configMapClient}
+	updateMap["test"] = k8sClients
+	hooks := serverHooks{updateMap}
+	oldInferenceEndpoint := oldServer
+	newInferenceEndpoint := newServer
+	hooks.updateTemplate(&oldInferenceEndpoint, &newInferenceEndpoint)
+	return buf.String()
+}
+
 func TestAdd(t *testing.T) {
 	for _, tt := range inferenceEndpointsTestAdd {
 		t.Run(tt.name, func(t *testing.T) {
-			got := serverAdd(tt.inferenceEndpoint, tt.clientErrors)
+			got := testAdd(tt.inferenceEndpoint, tt.clientErrors)
+			if !strings.Contains(got, tt.expected) {
+				t.Logf("Expected: (%s), got: (%s)\n", tt.expected, got)
+				t.Fail()
+			}
+		})
+	}
+}
+
+func TestUpdateTemplate(t *testing.T) {
+	for _, tt := range inferenceEndpointsTestUpdateTemplate {
+		t.Run(tt.name, func(t *testing.T) {
+			got := testUpdateTemplate(tt.oldServer, tt.newServer, tt.clientErrors)
 			if !strings.Contains(got, tt.expected) {
 				t.Logf("Expected: (%s), got: (%s)\n", tt.expected, got)
 				t.Fail()
