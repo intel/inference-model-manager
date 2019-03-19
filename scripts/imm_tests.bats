@@ -113,6 +113,8 @@ get_inference_accuracy(){
     run bash -c "./get_cert.sh ${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME} ${DOMAIN_NAME} ${PROXY} > ${SERVER_CERT}"
     cat $SERVER_CERT
     while [[ ! $status =~ 'AVAILABLE' ]]; do sleep 5; status="$(./imm g ms ${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}:443 ${MODEL_NAME} ${SERVER_CERT} ${CLIENT_CERT} ${CLIENT_KEY})"; done
+    # make sure that it started serving - it's better to wait little bit longer than suffer random failures in CI
+    sleep 60
 }
 
 @test "Run inference on numpy file" {

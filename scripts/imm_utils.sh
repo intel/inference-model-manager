@@ -47,6 +47,9 @@ remove_resources() {
     exit 1
 }
 
+# This function reads the variable name $1 where tenant name is/will be stored.
+# If variable with name $1 is empty, it will read the input or store default value in that variable.
+# It it's not empty, it will not change it's value 
 get_tenant_name() {
         local __TENANT=$1
         local TENANT=${!__TENANT}
@@ -56,6 +59,5 @@ get_tenant_name() {
         else
              [[ -z ${TENANT} ]] && read -p "Please provide tenant name " TENANT
         fi
-        echo "$TENANT"
         eval $__TENANT="'$TENANT'"
 }
