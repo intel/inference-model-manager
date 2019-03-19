@@ -20,4 +20,7 @@
 cd ../scripts
 header "Running tests"
 bats imm_tests.bats
+RESULT=$?
+echo "Smoke tests exit code: $RESULT"
 cd -
+exit $RESULT
