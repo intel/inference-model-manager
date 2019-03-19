@@ -365,6 +365,7 @@ jobs:
             export MGMT_TAG=$(find management/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
             export CTRL_TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
             cd ~/inference-model-manager/installer
+            mv ./hooks/example_dns_entry_hook.sh ./hooks/dns_entry_hook.sh
             ./prerequisites_ubuntu.sh
             sudo pip install -q awscli --upgrade
             ./install.sh -d ${DOMAIN_NAME} -s -t
