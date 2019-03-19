@@ -140,6 +140,76 @@ var inferenceEndpointsTestUpdateTemplate = []struct {
 			Status:     crv1.InferenceEndpointStatus{}},
 		expected:     "There is no such template",
 		clientErrors: clientErr{nil, nil, nil, nil}},
+	{
+		name: "Success to update template",
+		oldServer: crv1.InferenceEndpoint{
+			TypeMeta:   metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{},
+			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test"},
+			Status:     crv1.InferenceEndpointStatus{}},
+		newServer: crv1.InferenceEndpoint{
+			TypeMeta:   metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{},
+			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test"},
+			Status:     crv1.InferenceEndpointStatus{}},
+		expected:     "updated successfully",
+		clientErrors: clientErr{nil, nil, nil, nil}},
+	{
+		name: "Config map update error",
+		oldServer: crv1.InferenceEndpoint{
+			TypeMeta:   metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{},
+			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test"},
+			Status:     crv1.InferenceEndpointStatus{}},
+		newServer: crv1.InferenceEndpoint{
+			TypeMeta:   metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{},
+			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test"},
+			Status:     crv1.InferenceEndpointStatus{}},
+		expected:     "ERROR during configMap update",
+		clientErrors: clientErr{errors.New(""), nil, nil, nil}},
+	{
+		name: "Deployment update error",
+		oldServer: crv1.InferenceEndpoint{
+			TypeMeta:   metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{},
+			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test"},
+			Status:     crv1.InferenceEndpointStatus{}},
+		newServer: crv1.InferenceEndpoint{
+			TypeMeta:   metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{},
+			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test"},
+			Status:     crv1.InferenceEndpointStatus{}},
+		expected:     "ERROR during deployment update",
+		clientErrors: clientErr{nil, errors.New(""), nil, nil}},
+	{
+		name: "Service creation error",
+		oldServer: crv1.InferenceEndpoint{
+			TypeMeta:   metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{},
+			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test"},
+			Status:     crv1.InferenceEndpointStatus{}},
+		newServer: crv1.InferenceEndpoint{
+			TypeMeta:   metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{},
+			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test"},
+			Status:     crv1.InferenceEndpointStatus{}},
+		expected:     "ERROR during service create",
+		clientErrors: clientErr{nil, nil, errors.New(""), nil}},
+	{
+		name: "Ingress update error",
+		oldServer: crv1.InferenceEndpoint{
+			TypeMeta:   metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{},
+			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test"},
+			Status:     crv1.InferenceEndpointStatus{}},
+		newServer: crv1.InferenceEndpoint{
+			TypeMeta:   metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{},
+			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test"},
+			Status:     crv1.InferenceEndpointStatus{}},
+		expected:     "ERROR during ingress update",
+		clientErrors: clientErr{nil, nil, nil, errors.New("")}},
 }
 
 func testUpdateTemplate(oldServer, newServer crv1.InferenceEndpoint, errs clientErr) string {

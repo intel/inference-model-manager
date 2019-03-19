@@ -4,6 +4,7 @@ ENV GOBIN=/go/bin
 ENV PATH=$PATH:$GOBIN
 
 RUN swupd bundle-add go-basic make
+RUN rm -fr /run/lock/clrtrust.lock
 RUN clrtrust generate
 
 RUN go get -u github.com/golang/dep/cmd/dep
