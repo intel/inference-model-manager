@@ -17,9 +17,6 @@
 
 sudo apt-get install -y iputils-ping expect expect-dev software-properties-common libcap2-bin
 
-sudo chmod u+s `which ping`
-sudo setcap cap_net_raw+p /bin/ping
-
 KOPS=`command -v kops`
 if [ -z "$KOPS" ]; then
 curl -LO https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
