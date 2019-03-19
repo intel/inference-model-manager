@@ -19,5 +19,5 @@
 
 cd ../scripts
 header "Running tests"
-./test_imm.sh
+bats imm_tests.bats
 cd -
