@@ -81,7 +81,7 @@ get_inference_accuracy(){
     response="$(get_token user)"
     grep -E "Token is saved" <<< $response
 }
-
+#
 
 @test "Model upload" {
     response="$(./imm u ${MODEL_PATH} ${MODEL_NAME} ${MODEL_VERSION} ${TENANT_NAME})"
@@ -96,18 +96,22 @@ get_inference_accuracy(){
 
 @test "Create endpoint" {
     response=`./imm c e ${ENDPOINT_NAME} ${MODEL_NAME} "${MODEL_VERSION_POLICY}" ${TENANT_NAME} ${SERVING_NAME}`
+    echo "Create endpoint response: $response"
+    echo "Grep for ${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}" 
     echo "$response" >&3
     grep -E "${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}" <<< $response
 }
 
 @test "List endpoints" {
     response="$(./imm ls e ${TENANT_NAME})"
+    echo "List endpoints response: $response"
     grep -E "${ENDPOINT_NAME}" <<< $response
 }
 
 @test "Check if endpoint is up and running" {
     sleep 20
-    run bash -c "./get_cert.sh ${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME} ${DOMAIN_NAME} > ${SERVER_CERT}"
+    run bash -c "./get_cert.sh ${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME} ${DOMAIN_NAME} ${PROXY} > ${SERVER_CERT}"
+    cat $SERVER_CERT
     while [[ ! $status =~ 'AVAILABLE' ]]; do sleep 5; status="$(./imm g ms ${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}:443 ${MODEL_NAME} ${SERVER_CERT} ${CLIENT_CERT} ${CLIENT_KEY})"; done
 }
 
