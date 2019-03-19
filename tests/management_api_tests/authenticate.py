@@ -21,7 +21,9 @@ import sys
 from urllib.parse import urljoin, urlparse, parse_qs
 from bs4 import BeautifulSoup
 from requests_oauthlib import OAuth2Session
-
+from requests import urllib3
+urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 dex_baseurl = os.environ.get('DEX_URL', 'http://127.0.0.1:8080')
 
@@ -114,6 +116,11 @@ def get_token(userpass):
 if __name__ == "__main__":
     user = sys.argv[1]
     token = None
+    arr = user.split(':')
+    user = arr[0]
+    if len(arr) > 1:
+        password = arr[1]
+        token = authenticate(user, password) 
     if user == 'admin':
         token = get_admin_token()
     elif user == 'user':

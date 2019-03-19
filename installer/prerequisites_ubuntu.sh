@@ -52,3 +52,5 @@ sudo mv yq_linux_amd64 /usr/local/bin/yq
 fi
 sudo add-apt-repository ppa:deadsnakes/ppa -y && sudo apt-get update && sudo apt-get install -y python3.6 proxytunnel python-pip python3-pip
 sudo pip3 install --upgrade virtualenv && sudo pip3 install --upgrade pip 
+
+git clone https://github.com/bats-core/bats-core.git && cd bats-core && ./install.sh /usr/local
