@@ -72,5 +72,5 @@ if [[ "$quiet" == "yes" ]]; then
     FILTER_CMD="grep --color=none '[[:cntrl:]]'"
 fi
 
-. unbuffer ./main.sh "$kops_env" "$domain" "$gce_zone" 2>&1 | tee install.log | ${FILTER_CMD}
+unbuffer ./main.sh "$kops_env" "$domain" "$gce_zone" 2>&1 | tee install.log | ${FILTER_CMD}
 
