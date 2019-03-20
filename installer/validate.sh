@@ -24,7 +24,7 @@ RESULT=$?
 echo "Smoke tests exit code: $RESULT"
 cd -
 if [ $RESULT -eq 0 ]; then
-  echo "IMM installation succeded!!!"
+  echo "IMM installation succeeded!!!"
     if [ ! -z $IMM_USER_CREDENTIALS ]; then
       echo "IMM login credentials: $IMM_USER_CREDENTIALS"
     fi
