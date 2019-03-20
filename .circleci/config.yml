@@ -195,10 +195,8 @@ jobs:
             sleep 250            
             kubectl create serviceaccount --namespace kube-system tiller
             kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
-            curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > get_helm.sh
-            chmod 700 get_helm.sh
-            sleep 150
-            ./get_helm.sh
+            export DESIRED_VERSION=v2.13.0
+            curl -sSL https://raw.githubusercontent.com/helm/helm/master/scripts/get | bash
             helm init --service-account tiller --upgrade
             sleep 20
 
