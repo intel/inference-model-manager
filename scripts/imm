@@ -133,7 +133,7 @@ case "$OPERATION" in
 				[[ -z ${PARAM_1} ]] && read -p "Please provide tenant name " PARAM_1
 				[[ -z ${PARAM_2} ]] && read -p "Please provide scope (group name) " PARAM_2
 				read -p "Do you want to generate client certificates Y/n?" GENERATE_CERTS
-				[[ $GENERATE_CERTS != "n" ]] && generate_client_certs && "Certs are stored in `pwd`"
+				[[ $GENERATE_CERTS != "n" ]] && generate_client_certs && echo "Client certificates for inference are stored in `pwd`"
 				CURL='curl $INSECURE -s -S -H "accept: application/json" \
 					-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json" \
 					-d "{\"name\": \"${PARAM_1}\", \"cert\": \"${CERT}\", \"scope\":\"${PARAM_2}\",\"quota\": ${TENANT_RESOURCES}}" \
