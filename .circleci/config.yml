@@ -348,9 +348,9 @@ jobs:
             sudo apt-get update && sudo apt-get --only-upgrade install kubectl google-cloud-sdk google-cloud-sdk-app-engine-grpc google-cloud-sdk-pubsub-emulator \
             google-cloud-sdk-app-engine-go google-cloud-sdk-cloud-build-local google-cloud-sdk-datastore-emulator google-cloud-sdk-app-engine-python google-cloud-sdk-cbt \
             google-cloud-sdk-bigtable-emulator google-cloud-sdk-app-engine-python-extras google-cloud-sdk-datalab google-cloud-sdk-app-engine-java
-            gcloud auth activate-service-account --key-file /tmp/gcp-key.json
-            gcloud config set project "${GOOGLE_PROJECT_ID}"
-            gcloud container clusters create ${CLUSTER_NAME} --zone us-west1-a --num-nodes 3 --machine-type "n1-standard-2" --min-cpu-platform "Intel Skylake"
+            sudo gcloud auth activate-service-account --key-file /tmp/gcp-key.json
+            sudo gcloud config set project "${GOOGLE_PROJECT_ID}"
+            sudo gcloud container clusters create ${CLUSTER_NAME} --zone us-west1-a --num-nodes 3 --machine-type "n1-standard-2" --min-cpu-platform "Intel Skylake"
             sudo gcloud container clusters get-credentials ${CLUSTER_NAME} --zone us-west1-a --project "${GOOGLE_PROJECT_ID}"
             kubectl create serviceaccount --namespace kube-system tiller
             kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
