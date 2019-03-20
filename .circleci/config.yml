@@ -356,7 +356,7 @@ jobs:
             sudo kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
             sudo curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > get_helm.sh
             sudo chmod 700 get_helm.sh
-            ./get_helm.sh
+            sudo ./get_helm.sh
             sudo helm init --service-account tiller --upgrade
             sleep 20
       - run:
