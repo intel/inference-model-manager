@@ -95,15 +95,12 @@ get_inference_accuracy(){
 
 @test "Create endpoint" {
     response=`./imm c e ${ENDPOINT_NAME} ${MODEL_NAME} "${MODEL_VERSION_POLICY}" ${TENANT_NAME} ${SERVING_NAME}`
-    echo "Create endpoint response: $response"
-    echo "Grep for ${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}" 
     echo "$response" >&3
     grep -E "${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}" <<< $response
 }
 
 @test "List endpoints" {
     response="$(./imm ls e ${TENANT_NAME})"
-    echo "List endpoints response: $response"
     grep -E "${ENDPOINT_NAME}" <<< $response
 }
 
