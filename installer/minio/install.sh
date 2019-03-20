@@ -19,7 +19,7 @@
 . ../utils/messages.sh
 MINIO_ACCESS_KEY=$1
 MINIO_SECRET_KEY=$2
-MINIO_EXTERNAL_URL=$3
+MINIO_EXTERNAL_URL=`echo "$3" | awk -F/ '{print $3}'`
 
 header "Installing test minio storage"
 
