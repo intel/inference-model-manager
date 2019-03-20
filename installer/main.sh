@@ -74,7 +74,7 @@ cd k8s
 cd ..
 fi
 
-sleep 150
+sleep 450
 cd ingress
 . install.sh
 cd ..
