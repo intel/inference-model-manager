@@ -26,7 +26,7 @@ MINIO_SIGNATURE="${MINIO_SIGNATURE:=s3v4}"
 MINIO_REGION="${MINIO_REGION:=us-east-1}"
 
 if [[ -z "${MINIO_URL}" ]]; then
-  MINIO_URL="http://minio.$DNS_DOMAIN_NAME"
+  MINIO_URL="minio.$DNS_DOMAIN_NAME"
   INSTALL_MINIO=true
 else
   INSTALL_MINIO=false
