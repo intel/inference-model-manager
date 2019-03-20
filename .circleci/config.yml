@@ -348,23 +348,16 @@ jobs:
             sudo apt-get update && sudo apt-get --only-upgrade install kubectl google-cloud-sdk google-cloud-sdk-app-engine-grpc google-cloud-sdk-pubsub-emulator \
             google-cloud-sdk-app-engine-go google-cloud-sdk-cloud-build-local google-cloud-sdk-datastore-emulator google-cloud-sdk-app-engine-python google-cloud-sdk-cbt \
             google-cloud-sdk-bigtable-emulator google-cloud-sdk-app-engine-python-extras google-cloud-sdk-datalab google-cloud-sdk-app-engine-java
-            echo "1"
             sudo gcloud auth activate-service-account --key-file /tmp/gcp-key.json
-            echo "2"
             sudo gcloud config set project "${GOOGLE_PROJECT_ID}"
-            echo "3"
             sudo gcloud container clusters create ${CLUSTER_NAME} --zone us-west1-a --num-nodes 3 --machine-type "n1-standard-2" --min-cpu-platform "Intel Skylake"
-            echo "4"
             sudo gcloud container clusters get-credentials ${CLUSTER_NAME} --zone us-west1-a --project "${GOOGLE_PROJECT_ID}"
-            echo "5"
             sudo kubectl create serviceaccount --namespace kube-system tiller
-            echo "6"
             sudo kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
-            echo "7"
-            curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > get_helm.sh
-            chmod 700 get_helm.sh
+            sudo curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > get_helm.sh
+            sudo chmod 700 get_helm.sh
             ./get_helm.sh
-            helm init --service-account tiller --upgrade
+            sudo helm init --service-account tiller --upgrade
             sleep 20
       - run:
           name: Download dependencies and deploy platfrom on GKE
