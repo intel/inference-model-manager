@@ -146,7 +146,7 @@ case "$OPERATION" in
 				[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
 				[[ -z ${PARAM_2} ]] && read -p "Please provide model name " PARAM_2
 				[[ -z ${PARAM_3} ]] && read -p "Please provide model version policy (press enter for default)" PARAM_3
-        get_tenant_name PARAM_4
+			        get_tenant_name PARAM_4
 				[[ -z ${PARAM_5} ]] && read -p "Please provide serving name (default: tf-serving) " PARAM_5
 				[[ -z ${PARAM_6} ]] && PARAM_6=client
 				[[ -z ${PARAM_5} ]] && PARAM_5=tf-serving
@@ -176,7 +176,7 @@ case "$OPERATION" in
 				;;
 			endpoint | e)
 				[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
-        get_tenant_name PARAM_2
+			        get_tenant_name PARAM_2
 				CURL='curl $INSECURE -s -S -H "accept: application/json" \
 					-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json"  \
 					-d "{\"endpointName\": \"${PARAM_1}\"}" -X DELETE \
@@ -188,7 +188,7 @@ case "$OPERATION" in
 			model | m)
 				[[ -z ${PARAM_1} ]] && read -p "Please provide model name " PARAM_1
 				[[ -z ${PARAM_2} ]] && read -p "Please provide model version " PARAM_2
-        get_tenant_name PARAM_3
+			        get_tenant_name PARAM_3
 				CURL='curl $INSECURE -X DELETE -s -S \
 					"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_3}/models" -H "accept: application/json" \
 					-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json" \
@@ -203,7 +203,7 @@ case "$OPERATION" in
 		case "$RESOURCE" in
 			endpoint | e)
 				[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
-        get_tenant_name PARAM_2
+			        get_tenant_name PARAM_2
 				parameters=($PARAM_3 $PARAM_4 $PARAM_5 $PARAM_6 $PARAM_7 $PARAM_8 $PARAM_9 $PARAM_10)
 				i=0
 				while [ $i -lt 7 ] ; do
@@ -249,7 +249,7 @@ case "$OPERATION" in
 			endpoint | e)
 				[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
 				[[ -z ${PARAM_2} ]] && read -p "Please provide number of replicas " PARAM_2
-        get_tenant_name PARAM_3
+			        get_tenant_name PARAM_3
 				CURL='curl $INSECURE -X PATCH -s -S  \
 				"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_3}/endpoints/${PARAM_1}/replicas" -H "accept: application/json" \
 					-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json" \
@@ -312,7 +312,7 @@ case "$OPERATION" in
 				eval "$CURL"
 				;;
 			endpoint | endpoints | e)
-        get_tenant_name PARAM_1
+			        get_tenant_name PARAM_1
 				CURL='curl $INSECURE -X GET -s -S \
 				"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_1}/endpoints" \
 				-H "accept: application/json" -H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json"'
@@ -321,7 +321,7 @@ case "$OPERATION" in
 				eval "$CURL"
 				;;
 			model | models | m)
-        get_tenant_name PARAM_1
+			        get_tenant_name PARAM_1
 				CURL='curl $INSECURE -X GET -s -S \
 				"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_1}/models" \
 				-H "accept: application/json" -H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json"'
@@ -343,7 +343,7 @@ case "$OPERATION" in
 		[[ -z ${RESOURCE} ]] && read -p "Please provide model path " RESOURCE
 		[[ -z ${PARAM_1} ]] && read -p "Please provide model name " PARAM_1
 		[[ -z ${PARAM_2} ]] && read -p "Please provide model version " PARAM_2 
-    get_tenant_name PARAM_3
+		get_tenant_name PARAM_3
 		python model_upload_cli.py $INSECURE ${RESOURCE} ${PARAM_1} ${PARAM_2} ${PARAM_3}
 		;;
 	run-inference | ri)
@@ -410,7 +410,7 @@ case "$OPERATION" in
 				;;
 			endpoint | e )
 				[[ -z ${PARAM_1} ]] && read -p "Please provide endpoint name " PARAM_1
-        get_tenant_name PARAM_2
+			        get_tenant_name PARAM_2
 				CURL='curl $INSECURE -X GET -s -S -H "accept: application/json" \
 				-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json" \
 				https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants/${PARAM_2}/endpoints/${PARAM_1}'

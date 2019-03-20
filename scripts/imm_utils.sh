@@ -19,14 +19,14 @@ IMM_CONFIG_PATH=~/.immconfig
 
 get_token() {
 	user=$1
-  TOKEN=""
-  if [ ! -z "$SINGLE_TENANT_USER" ]; then    
-    	TOKEN=`python -W ignore ../tests/management_api_tests/authenticate.py $SINGLE_TENANT_USER`
-  else
+  	TOKEN=""
+	if [ ! -z "$IMM_USER_CREDENTIALS" ]; then    
+	    TOKEN=`python -W ignore ../tests/management_api_tests/authenticate.py $IMM_USER_CREDENTIALS`
+	else
 	    echo "Get $user token"
-    	TOKEN=`python -W ignore ../tests/management_api_tests/authenticate.py $user`
-  fi
-	TOKEN=`echo $TOKEN | tr \' \"`
+    	    TOKEN=`python -W ignore ../tests/management_api_tests/authenticate.py $user`
+        fi
+        TOKEN=`echo $TOKEN | tr \' \"`
 	ACCESS_TOKEN=`echo $TOKEN | jq -r '.access_token'`
 	TOKEN_TYPE=`echo $TOKEN | jq -r '.token_type'`
 	EXPIRES_IN=`echo $TOKEN | jq -r '.expires_in'`

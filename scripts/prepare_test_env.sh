@@ -34,8 +34,7 @@ export CURL_CA_BUNDLE=`pwd`/ca.pem
 if [ "$MGT_API_AUTHORIZATION" == "true" ]; then
   USER_PASSWD=`kubectl get secret imm-openldap-customldif -o yaml|grep immconfig|awk '{ print $2 }'|base64 --decode|grep userpassword|awk '{ print $2 }'`
   USER_NAME=user@example.com
-  export SINGLE_TENANT_USER=$USER_NAME:$USER_PASSWD
-  echo "Single tenant credentials : $SINGLE_TENANT_USER"
+  export IMM_USER_CREDENTIALS=$USER_NAME:$USER_PASSWD
 fi
 
 export DEX_NAMESPACE="dex"

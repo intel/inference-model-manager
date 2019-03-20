@@ -25,8 +25,8 @@ echo "Smoke tests exit code: $RESULT"
 cd -
 if [ $RESULT -eq 0 ]; then
   echo "IMM installation succeded!!!"
-    if [ ! -z $SINGLE_TENANT_USER ]; then
-      echo "IMM login credentials: $SINGLE_TENANT_USER"
+    if [ ! -z $IMM_USER_CREDENTIALS ]; then
+      echo "IMM login credentials: $IMM_USER_CREDENTIALS"
     fi
   else 
   echo "IMM validation failed, please check logs"        
