@@ -369,7 +369,7 @@ jobs:
             mv ./hooks/example_dns_entry_hook.sh ./hooks/dns_entry_hook.sh
             ./prerequisites_ubuntu.sh
             sudo pip install -q awscli --upgrade
-            ./install.sh -d ${DOMAIN_NAME} -s -t
+            sudo ./install.sh -d ${DOMAIN_NAME} -s -t
       - run:
           name: Delete cluster on GKE
           when: on_success
