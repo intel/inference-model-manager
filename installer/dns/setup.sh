@@ -50,7 +50,11 @@ if [ -z "$result" ]; then
   while [ -z "$result" ]
   do         
     result=`curl https://foo.$DOMAIN_NAME:443 -k -v -c 1 2>&1|grep $EXTERNAL_IP`
-    echo "curl result: $result"
+    if [ -z "$result" ]; then
+       # try with ping     
+       result=`ping foo.$DOMAIN_NAME -c 1 2>&1|grep $EXTERNAL_IP`
+    fi
+    echo "dns check result: $result"
     sleep 20
     wait_time=$(($wait_time + 20))
     print_ne "\r\r\r\r\r\r\r\r\r\r\r\r elapsed time: $wait_time s"

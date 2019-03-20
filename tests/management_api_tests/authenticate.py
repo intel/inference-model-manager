@@ -114,8 +114,12 @@ def get_token(userpass):
 
 
 if __name__ == "__main__":
-    user = sys.argv[1]
     token = None
+    credentials = sys.argv[1].split(':')
+    user = credentials[0]
+    if len(credentials) > 1:
+        password = credentials[1]
+        token = authenticate(user, password)
     if user == 'admin':
         token = get_admin_token()
     elif user == 'user':

@@ -19,9 +19,14 @@ IMM_CONFIG_PATH=~/.immconfig
 
 get_token() {
 	user=$1
-	echo "Get $user token"
-	TOKEN=`python ../tests/management_api_tests/authenticate.py $user`
-	TOKEN=`echo $TOKEN | tr \' \"`
+  	TOKEN=""
+	if [ ! -z "$IMM_USER_CREDENTIALS" ]; then    
+	    TOKEN=`python -W ignore ../tests/management_api_tests/authenticate.py $IMM_USER_CREDENTIALS`
+	else
+	    echo "Get $user token"
+    	    TOKEN=`python -W ignore ../tests/management_api_tests/authenticate.py $user`
+        fi
+        TOKEN=`echo $TOKEN | tr \' \"`
 	ACCESS_TOKEN=`echo $TOKEN | jq -r '.access_token'`
 	TOKEN_TYPE=`echo $TOKEN | jq -r '.token_type'`
 	EXPIRES_IN=`echo $TOKEN | jq -r '.expires_in'`
@@ -40,4 +45,19 @@ remove_resources() {
     ./imm logout
     echo "Tests failed. Error occurred during ${error_message} test" 
     exit 1
+}
+
+# This function reads the variable name $1 where tenant name is/will be stored.
+# If variable with name $1 is empty, it will read the input or store default value in that variable.
+# It it's not empty, it will not change it's value 
+get_tenant_name() {
+        local __TENANT=$1
+        local TENANT=${!__TENANT}
+        if [[ -n ${DEFAULT_TENANT_NAME} ]]; then
+             [[ -z ${TENANT} ]] && read -p "Please provide tenant name (default: $DEFAULT_TENANT_NAME) " TENANT
+             [[ -z ${TENANT} ]] && TENANT=$DEFAULT_TENANT_NAME
+        else
+             [[ -z ${TENANT} ]] && read -p "Please provide tenant name " TENANT
+        fi
+        eval $__TENANT="'$TENANT'"
 }

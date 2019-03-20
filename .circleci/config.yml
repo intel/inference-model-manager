@@ -131,10 +131,11 @@ jobs:
       - run:
           name: Prepare environment variables
           command: |
+            echo 'export BRANCH_SHORT=`echo ${CIRCLE_BRANCH} | cut -c1-9`' >> $BASH_ENV
             echo 'export KOPS_FEATURE_FLAGS=AlphaAllowGCE' >> $BASH_ENV
             echo 'export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`' >> $BASH_ENV
-            echo 'export CLUSTER_NAME="imm-${SHORT_SHA1}-${CIRCLE_BRANCH}.k8s.local"' >> $BASH_ENV
-            echo 'export CLUSTER_NAME_SHORT="imm-${SHORT_SHA1}-${CIRCLE_BRANCH}"' >> $BASH_ENV
+            echo 'export CLUSTER_NAME="imm-${SHORT_SHA1}-${BRANCH_SHORT}.k8s.local"' >> $BASH_ENV
+            echo 'export CLUSTER_NAME_SHORT="imm-${SHORT_SHA1}-${BRANCH_SHORT}"' >> $BASH_ENV
             echo 'export KOPS_STATE_STORE=gs://kubernetes-clusters-imm' >> $BASH_ENV
             echo 'export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp-key.json"' >> $BASH_ENV
             echo 'export CLUSTER_NAME_SHORT_TP=`echo ${CLUSTER_NAME_SHORT} | cut -c 1-20`' >> $BASH_ENV
