@@ -357,9 +357,9 @@ jobs:
             echo "4"
             sudo gcloud container clusters get-credentials ${CLUSTER_NAME} --zone us-west1-a --project "${GOOGLE_PROJECT_ID}"
             echo "5"
-            kubectl create serviceaccount --namespace kube-system tiller
+            sudo kubectl create serviceaccount --namespace kube-system tiller
             echo "6"
-            kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+            sudo kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
             echo "7"
             curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > get_helm.sh
             chmod 700 get_helm.sh
