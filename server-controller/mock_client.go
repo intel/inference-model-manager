@@ -26,10 +26,11 @@ import (
 
 type mockClient struct {
 	err error
+	errP error
 }
 
-func newMockClient(err error) resource.Client {
-	return &mockClient{err}
+func newMockClient(err error, errP error) resource.Client {
+	return &mockClient{err, errP}
 }
 
 func (*mockClient) Reify(templateValues interface{}) ([]byte, error) {
@@ -48,8 +49,8 @@ func (c *mockClient) Update(namespace string, name string, templateValues interf
 	return c.err
 }
 
-func (*mockClient) Patch(namespace string, name string, data []byte) error {
-	return nil
+func (c *mockClient) Patch(namespace string, name string, data []byte) error {
+	return c.errP
 }
 
 func (*mockClient) Get(namespace, name string) (runtime.Object, error) {
