@@ -131,7 +131,7 @@ jobs:
       - run:
           name: Prepare environment variables
           command: |
-            echo 'export BRANCH_SHORT=`echo ${CIRCLE_BRANCH} | cut -c1-9`' >> $BASH_ENV
+            echo 'export BRANCH_SHORT=`echo ${CIRCLE_BRANCH} |tr -d "\-\_" |cut -c1-9`' >> $BASH_ENV
             echo 'export KOPS_FEATURE_FLAGS=AlphaAllowGCE' >> $BASH_ENV
             echo 'export SHORT_SHA1=`echo ${CIRCLE_SHA1} | cut -c 1-6`' >> $BASH_ENV
             echo 'export CLUSTER_NAME="imm-${SHORT_SHA1}-${BRANCH_SHORT}.k8s.local"' >> $BASH_ENV

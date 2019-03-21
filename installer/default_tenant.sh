@@ -31,7 +31,17 @@ export TENANT_RESOURCES={}
 cd ../scripts
 . ./imm_utils.sh
 
-get_token admin
+EXPECTED="There are no tenants present on platform" 
+
+while [[ "$TENANTS" != $EXPECTED ]]; do 
+        get_token admin
+        TENANTS=`./imm ls t`; 
+        if [[ "$TENANTS" != $EXPECTED ]]; then
+          echo "IMM not ready";         
+          sleep 5; 
+        fi
+done
+
 response=`yes | ./imm create t $DEFAULT_TENANT_NAME $SCOPE`
 echo $response
 [[ $response =~ "Tenant $DEFAULT_TENANT_NAME created" ]] && success "Successfully created default tenant $DEFAULT_TENANT_NAME" || failure "Failed to create default tenant $DEFAULT_TENANT_NAME"
