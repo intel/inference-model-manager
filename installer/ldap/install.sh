@@ -16,7 +16,7 @@
 #
 
 . ../utils/messages.sh
-. ../utils/progress_bar.sh
+. ../utils/wait_for_pod.sh
 DIR=`pwd`
 cd $HELM_TEMP_DIR/ldap-subchart/
 header "Installing LDAP"
@@ -26,9 +26,10 @@ cd ..
 if [ "$MGT_API_AUTHORIZATION" == "true" ]; then
 helm install --name imm-openldap -f ./customLdifFiles.yaml .
 else
+# use test configuration
 helm install --name imm-openldap -f ../../../tests/deployment/ldap/customLdifFiles.yaml .
 fi
 show_result $? "LDAP installation succeded" "Failed to install LDAP"
-header "Waiting 3 minutes"
-progress_bar 180
+header "Waiting for ldap to be ready"
+wait_for_pod 600 imm-openldap default
 cd $DIR
