@@ -240,3 +240,46 @@ func TestUpdateTemplate(t *testing.T) {
 		})
 	}
 }
+
+var patchDataTest = patchData{ModelName: "test", ModelVersionPolicy: "test", Namespace: "test", ResourcePath: "test"}
+
+var dataTestPrepareJSONPatchFromMap = []struct {
+	name          string
+	resourceType  string
+	mapPatch      []interface{}
+	oldData       map[string]string
+	newData       map[string]string
+	patchData     patchData
+	expectedError error
+}{
+	{
+		name:          "No changes",
+		resourceType:  "test",
+		mapPatch:      make([]interface{}, 0),
+		oldData:       map[string]string{"test": "test"},
+		newData:       map[string]string{"test": "test"},
+		patchData:     patchDataTest,
+		expectedError: nil,
+	},
+	{
+		name:          "Unequal maps",
+		resourceType:  "test",
+		mapPatch:      make([]interface{}, 0),
+		oldData:       map[string]string{"test": "test"},
+		newData:       map[string]string{"tes": "test"},
+		patchData:     patchDataTest,
+		expectedError: nil,
+	},
+}
+
+func TestPrepareJSONPatchFromMap(t *testing.T) {
+	for _, tt := range dataTestPrepareJSONPatchFromMap {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := prepareJSONPatchFromMap(tt.resourceType, tt.mapPatch, tt.oldData, tt.newData, tt.patchData)
+			if !(err == tt.expectedError) {
+				t.Logf("Expected: (%s), got: (%s)\n", tt.expectedError, err)
+				t.Fail()
+			}
+		})
+	}
+}
