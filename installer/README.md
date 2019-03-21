@@ -39,6 +39,15 @@ On Ubuntu, you can use script to install dependencies
   See `./hooks/example_dns_entry_hook.sh`
 * If you don't provide DNS hook script, you will be asked to create DNS entry during installation.
 
+## Docker images
+Default images used during platform deployment:
+* intelaipg/inference-model-manager-api:latest
+* intelaipg/inference-model-manager-crd:latest
+
+But exists possibility to specify custom image and tag.
+For Management-API set environment variables: `MGMT_IMAGE` and `MGMT_TAG`.
+For CRD set environment variables: `CRD_IMAGE` and `CRD_TAG`.
+
 ## Run
 * Required optons:
   * `-k` - cluster name

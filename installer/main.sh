@@ -46,10 +46,10 @@ if [ -z $CRD_IMAGE ]; then
     export CRD_IMAGE=intelaipg/inference-model-manager-crd
 fi
 if [ -z $MGMT_TAG ]; then
-    export MGMT_TAG=0.3rc
+    export MGMT_TAG=latest
 fi
-if [ -z $CTRL_TAG ]; then
-    export CTRL_TAG=0.3rc
+if [ -z $CRD_TAG ]; then
+    export CRD_TAG=latest
 fi
 
 

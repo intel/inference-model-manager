@@ -7,7 +7,7 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-body-size: 32m
 spec:
   rules:
-    - host: <minio_external_url>
+    - host: <minio_external_uri>
       http:
         paths:
         - path: /
