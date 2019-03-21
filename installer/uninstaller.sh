@@ -21,7 +21,7 @@ delete_release_if_included_in_list() {
     [[ $CHARTS_LIST =~ (^|[[:space:]])$chart_name($|[[:space:]]) ]] && echo "Release will be deleted" && helm del --debug --purge $release_name || echo 'Release wont be deleted'
 }
 
-CHARTS_LIST="management-api-chart crd-subchart openldap dex-subchart ingress minio"
+CHARTS_LIST="imm-management-api-chart imm-crd-subchart imm-openldap imm-dex-subchart imm-ingress minio"
 HELM_LS_OUTPUT=`helm ls --output json`
 HELM_LIST=`jq --arg namearg "Releases" '.[$namearg]' <<< $HELM_LS_OUTPUT`
 

@@ -1,4 +1,4 @@
-name: openldap
+name: imm-openldap
 home: https://www.openldap.org
 version: 0.3.0
 appVersion: 2.4.44
