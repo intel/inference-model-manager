@@ -19,7 +19,7 @@
 . ../utils/messages.sh
 MINIO_ACCESS_KEY=$1
 MINIO_SECRET_KEY=$2
-MINIO_EXTERNAL_URL=`echo "$3" | awk -F/ '{print $3}'`
+MINIO_EXTERNAL_URI=`echo "$3" | awk -F/ '{print $3}'`
 
 header "Installing test minio storage"
 
@@ -32,8 +32,8 @@ FAILED=$?
 show_result "$FAILED" "Minio storage installed" "Failed to install Minio storage"
 cd -
 cp minio_ing_tmpl.yaml minio_ing.yaml
-fill_template "<minio_external_url>" $MINIO_EXTERNAL_URL minio_ing.yaml
+fill_template "<minio_external_url>" $MINIO_EXTERNAL_URI minio_ing.yaml
 kubectl create -f minio_ing.yaml
 FAILED=$?
-show_result "$FAILED" "Minio ingress created at $MINIO_EXTERNAL_URL" "Failed to install Minio ingress"
+show_result "$FAILED" "Minio ingress created at $MINIO_EXTERNAL_URI" "Failed to install Minio ingress"
 

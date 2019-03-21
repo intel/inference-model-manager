@@ -40,16 +40,16 @@ else
 fi
 
 if [ -z $MGMT_IMAGE ]; then
-export MGMT_IMAGE=intelaipg/inference-model-manager-api
+    export MGMT_IMAGE=intelaipg/inference-model-manager-api
 fi
 if [ -z $CRD_IMAGE ]; then
-export CRD_IMAGE=intelaipg/inference-model-manager-crd
+    export CRD_IMAGE=intelaipg/inference-model-manager-crd
 fi
 if [ -z $MGMT_TAG ]; then
-export MGMT_TAG=0.3rc
+    export MGMT_TAG=0.3rc
 fi
 if [ -z $CTRL_TAG ]; then
-export CTRL_TAG=0.3rc
+    export CTRL_TAG=0.3rc
 fi
 
 
@@ -83,10 +83,10 @@ cd -
 
 
 if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ] && [ -z "$SKIP_K8S_INSTALLATION" ]; then
-cd k8s
-. create_kops_cluster_gke.sh $DESIRED_KOPS_CLUSTER_NAME $GCE_ZONE
-. install_tiller.sh
-cd ..
+    cd k8s
+    . create_kops_cluster_gke.sh $DESIRED_KOPS_CLUSTER_NAME $GCE_ZONE
+    . install_tiller.sh
+    cd ..
 fi
 
 cd ingress
