@@ -132,3 +132,7 @@ Single Tenant mode will create tenant which will be default tenant to use while 
     ```
       This problem occurs when you run tests outside virtualenv.
       Please check *Install required dependencies* in **Prerequisites** section.
+      
+## Uninstall
+To uninstall platform from kubernetes cluster you can use script:
+```./uninstaller.sh```
