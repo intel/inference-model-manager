@@ -32,7 +32,7 @@ sleep 5
 done
 
 success "External ip found: $EXTERNAL_IP"
-result=`ping dex.$DOMAIN_NAME -c 1 2>&1|grep $EXTERNAL_IP`
+result=`curl https://foo.$DOMAIN_NAME:443 -k -v -c 1 2>&1|grep $EXTERNAL_IP`
 
 if [ -z "$result" ]; then
   
@@ -43,17 +43,24 @@ if [ -z "$result" ]; then
     action_required  "Please update DNS records for domain $DOMAIN_NAME to point $EXTERNAL_IP"
   fi
 
+
   header "Waiting in the loop for updated dns records"
   result=""
   wait_time=0
   while [ -z "$result" ]
   do         
-    result=`ping foo.$DOMAIN_NAME -c 1 2>&1|grep $EXTERNAL_IP`
+    result=`curl https://foo.$DOMAIN_NAME:443 -k -v -c 1 2>&1|grep $EXTERNAL_IP`
+    if [ -z "$result" ]; then
+       # try with ping     
+       result=`ping foo.$DOMAIN_NAME -c 1 2>&1|grep $EXTERNAL_IP`
+    fi
+    echo "dns check result: $result"
     sleep 20
     wait_time=$(($wait_time + 20))
     print_ne "\r\r\r\r\r\r\r\r\r\r\r\r elapsed time: $wait_time s"
   done
   success "DNS records update confirmed"
+
 
 else
   success "DNS entry already present"      

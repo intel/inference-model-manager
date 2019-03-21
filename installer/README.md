@@ -14,6 +14,10 @@
   * for mac it is downloaded during installation
 * `export GOOGLE_APPLICATION_CREDENTIALS` if using kops (or use -g switch)  
 * domain for IMM
+* bats
+    ```
+    git clone https://github.com/bats-core/bats-core.git && cd bats-core && ./install.sh /usr/local
+    ```
 
 On Ubuntu, you can use script to install dependencies
 `./prerequisites_ubuntu.sh`
@@ -96,13 +100,27 @@ Single Tenant mode will create tenant which will be default tenant to use while 
   * python3.6 or higher
   * activated virtualenv (described in the Prerequisites section)
 * Run:
-  ```
-  . validate.sh <domain_name> 
-  ```
-  * using proxy
-  ```
-  . validate.sh <domain_name> <proxy_with_port>
-  ```
+  * *recommended* (validate.sh scripts exports all required variables)
+    ```
+    . validate.sh <domain_name> 
+    example:
+    . validate.sh my-domain.com
+    ```
+    * using proxy
+      ```
+      . validate.sh <domain_name> <proxy_with_port>
+      . validate.sh my-domain.com my-proxy.com:911
+      ```
+  * running plain tests (this requires to export all variables mentioned in prepare_test_env.sh
+    script)
+    * pretty-printed
+      ```
+      bats imm_tests.bats
+      ```
+    * tap output
+      ```
+      bats --tap imm_tests.bats
+      ```
 * Troubleshooting
   * ```
 	Get admin token

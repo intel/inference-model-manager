@@ -20,12 +20,19 @@ export DEX_DOMAIN_NAME="dex.$DOMAIN_NAME"
 export MGMT_DOMAIN_NAME="mgt.$DOMAIN_NAME"
 
 echo "Fetching CA for $MGMT_DOMAIN_NAME"
-./get_cert.sh $MGMT_DOMAIN_NAME ca-ing $PROXY > ca.pem
+./get_cert_kubectl.sh > ca.pem
 cat ./ca.pem
 
 export REQUESTS_CA_BUNDLE=`pwd`/ca.pem
 export MANAGEMENT_CA_CERT_PATH=`pwd`/ca.pem
 export CURL_CA_BUNDLE=`pwd`/ca.pem
+
+
+if [ "$MGT_API_AUTHORIZATION" == "true" ]; then
+  USER_PASSWD=`kubectl get secret imm-openldap-customldif -o yaml|grep immconfig|awk '{ print $2 }'|base64 --decode|grep userpassword|awk '{ print $2 }'`
+  USER_NAME=user@example.com
+  export IMM_USER_CREDENTIALS=$USER_NAME:$USER_PASSWD
+fi
 
 export DEX_NAMESPACE="dex"
 export MGT_NAMESPACE="mgt-api"

@@ -19,5 +19,16 @@
 
 cd ../scripts
 header "Running tests"
-./test_imm.sh
+bats imm_tests.bats
+RESULT=$?
+echo "Smoke tests exit code: $RESULT"
 cd -
+if [ $RESULT -eq 0 ]; then
+  echo "IMM installation succeeded!!!"
+    if [ ! -z $IMM_USER_CREDENTIALS ]; then
+      echo "IMM login credentials: $IMM_USER_CREDENTIALS"
+    fi
+  else 
+  echo "IMM validation failed, please check logs"        
+fi
+exit $RESULT
