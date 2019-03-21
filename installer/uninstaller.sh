@@ -15,12 +15,20 @@
 # limitations under the License.
 #
 
-charts_list="management-api-chart crd-subchart openldap dex-subchart ingress"
-HELM_OUTPUT=`helm ls --output json`
-HELM_LIST=`jq --arg namearg "Releases" '.[$namearg]' <<< $HELM_OUTPUT`
+delete_release_if_included_in_list() {
+    chart_name=$1
+    release_name=$2
+    [[ $CHARTS_LIST =~ (^|[[:space:]])$chart_name($|[[:space:]]) ]] && echo "Release will be deleted" && helm del --debug --purge $release_name || echo 'Release wont be deleted'
+}
+
+CHARTS_LIST="management-api-chart crd-subchart openldap dex-subchart ingress minio"
+HELM_LS_OUTPUT=`helm ls --output json`
+HELM_LIST=`jq --arg namearg "Releases" '.[$namearg]' <<< $HELM_LS_OUTPUT`
+
+
 jq -c '.[]' <<< $HELM_LIST | while read i; do
    echo "Chart metadata: $i"
-   chart_name=`jq --arg namearg "Chart" '.[$namearg]' <<< $i | tr -d '"' | tr -d '.0123456789' | rev | cut -c 2- | rev`
-   release_name=`jq --arg namearg "Name" '.[$namearg]' <<< $i | tr -d '"'`
-   [[ $charts_list =~ (^|[[:space:]])$chart_name($|[[:space:]]) ]] && echo "Release will be deleted" && helm del --debug --purge $release_name || echo 'Release wont be deleted'
+   CHART_NAME=`jq --arg namearg "Chart" '.[$namearg]' <<< $i | tr -d '"' | tr -d '.0123456789' | rev | cut -c 2- | rev`
+   RELEASE_NAME=`jq --arg namearg "Name" '.[$namearg]' <<< $i | tr -d '"'`
+   delete_release_if_included_in_list $CHART_NAME $RELEASE_NAME
 done
