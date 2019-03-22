@@ -33,7 +33,7 @@ domain=""
 gce_zone="us-west1"
 quiet="no"
 
-while getopts "h?qsk:d:z:g:p:A:S:U:V:R:t" opt; do
+while getopts "h?qsk:d:z:g:p:f:A:S:U:V:R:t" opt; do
     case "$opt" in
     h|\?)
         show_help
@@ -52,6 +52,8 @@ while getopts "h?qsk:d:z:g:p:A:S:U:V:R:t" opt; do
     g)  export GCE_USER=$OPTARG
         ;;
     p)  export PROXY=$OPTARG
+        ;;
+    f)  export RELEASE_PREFIX=$OPTARG
         ;;
     A)  export MINIO_ACCESS_KEY=$OPTARG
         ;;

@@ -12,5 +12,5 @@ spec:
         paths:
         - path: /
           backend:
-            serviceName: test-minio
+            serviceName: <minio_service>
             servicePort: 9000

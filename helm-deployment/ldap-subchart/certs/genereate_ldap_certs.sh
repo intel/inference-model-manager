@@ -16,6 +16,7 @@
 #
 
 # Example how to create self-signed CA for OpenLDAP component
+LDAP_DOMAIN_NAME="${LDAP_DOMAIN_NAME:=imm-openldap.default}"
 
 # Generate CA for OpenLDAP
 openssl genrsa -out ca-ldap.key 4096
@@ -23,5 +24,5 @@ openssl req -new -x509 -days 365 -key ca-ldap.key -out ca.crt -subj "/CN=ca-ldap
 
 # Generate server key/cert
 openssl genrsa -out ldap.key 4096
-openssl req -new -key ldap.key -out ldap.csr -subj "/CN=imm-openldap.default"
+openssl req -new -key ldap.key -out ldap.csr -subj "/CN=${LDAP_DOMAIN_NAME}"
 openssl x509 -req -days 365 -in ldap.csr -CA ca.crt -CAkey ca-ldap.key -set_serial 01 -out ldap.crt
