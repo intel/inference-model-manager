@@ -41,7 +41,8 @@ var (
 		ObjectMeta: metav1.ObjectMeta{},
 		Spec:       crv1.InferenceEndpointSpec{},
 		Status:     crv1.InferenceEndpointStatus{}}
-	newError = errors.New("")
+
+	errorNew = errors.New("")
 )
 
 type resourceError struct {
@@ -107,7 +108,7 @@ var inferenceEndpointsTestAdd = []struct {
 		inferenceEndpoint: inferenceEndpoint,
 		expected:          "ERROR during configMap creation",
 		clientErrors: clientError{
-			configMapError:        resourceError{createError: newError},
+			configMapError:        resourceError{createError: errorNew},
 			deploymentClientError: resourceNoError,
 			serviceClientError:    resourceNoError,
 			ingressClientError:    resourceNoError,
@@ -119,7 +120,7 @@ var inferenceEndpointsTestAdd = []struct {
 		expected:          "ERROR during deployment creation",
 		clientErrors: clientError{
 			configMapError:        resourceNoError,
-			deploymentClientError: resourceError{createError: newError},
+			deploymentClientError: resourceError{createError: errorNew},
 			serviceClientError:    resourceNoError,
 			ingressClientError:    resourceNoError,
 		},
@@ -130,7 +131,7 @@ var inferenceEndpointsTestAdd = []struct {
 		expected:          "ERROR during adding configDate label to deployment",
 		clientErrors: clientError{
 			configMapError:        resourceNoError,
-			deploymentClientError: resourceError{patchError: newError},
+			deploymentClientError: resourceError{patchError: errorNew},
 			serviceClientError:    resourceNoError,
 			ingressClientError:    resourceNoError,
 		},
@@ -142,7 +143,7 @@ var inferenceEndpointsTestAdd = []struct {
 		clientErrors: clientError{
 			configMapError:        resourceNoError,
 			deploymentClientError: resourceNoError,
-			serviceClientError:    resourceError{createError: newError},
+			serviceClientError:    resourceError{createError: errorNew},
 			ingressClientError:    resourceNoError,
 		},
 	},
@@ -154,7 +155,7 @@ var inferenceEndpointsTestAdd = []struct {
 			configMapError:        resourceNoError,
 			deploymentClientError: resourceNoError,
 			serviceClientError:    resourceNoError,
-			ingressClientError:    resourceError{createError: newError},
+			ingressClientError:    resourceError{createError: errorNew},
 		},
 	},
 }
@@ -233,7 +234,7 @@ var inferenceEndpointsTestUpdate = []struct {
 			configMapError:        resourceNoError,
 			deploymentClientError: resourceNoError,
 			serviceClientError:    resourceNoError,
-			ingressClientError:    resourceError{patchError: newError},
+			ingressClientError:    resourceError{patchError: errorNew},
 		},
 	},
 	{
@@ -258,7 +259,7 @@ var inferenceEndpointsTestUpdate = []struct {
 		expected: "ERROR during deployment update operation",
 		clientErrors: clientError{
 			configMapError:        resourceNoError,
-			deploymentClientError: resourceError{patchError: newError},
+			deploymentClientError: resourceError{patchError: errorNew},
 			serviceClientError:    resourceNoError,
 			ingressClientError:    resourceNoError,
 		},
@@ -306,7 +307,7 @@ var inferenceEndpointsTestUpdateTemplate = []struct {
 		newServer: inferenceEndpoint,
 		expected:  "ERROR during configMap update",
 		clientErrors: clientError{
-			configMapError:        resourceError{updateError: newError},
+			configMapError:        resourceError{updateError: errorNew},
 			deploymentClientError: resourceNoError,
 			serviceClientError:    resourceNoError,
 			ingressClientError:    resourceNoError,
@@ -319,7 +320,7 @@ var inferenceEndpointsTestUpdateTemplate = []struct {
 		expected:  "ERROR during deployment update",
 		clientErrors: clientError{
 			configMapError:        resourceNoError,
-			deploymentClientError: resourceError{updateError: newError},
+			deploymentClientError: resourceError{updateError: errorNew},
 			serviceClientError:    resourceNoError,
 			ingressClientError:    resourceNoError,
 		},
@@ -332,7 +333,7 @@ var inferenceEndpointsTestUpdateTemplate = []struct {
 		clientErrors: clientError{
 			configMapError:        resourceNoError,
 			deploymentClientError: resourceNoError,
-			serviceClientError:    resourceError{deleteError: newError},
+			serviceClientError:    resourceError{deleteError: errorNew},
 			ingressClientError:    resourceNoError,
 		},
 	},
@@ -344,7 +345,7 @@ var inferenceEndpointsTestUpdateTemplate = []struct {
 		clientErrors: clientError{
 			configMapError:        resourceNoError,
 			deploymentClientError: resourceNoError,
-			serviceClientError:    resourceError{createError: newError},
+			serviceClientError:    resourceError{createError: errorNew},
 			ingressClientError:    resourceNoError,
 		},
 	},
@@ -357,7 +358,7 @@ var inferenceEndpointsTestUpdateTemplate = []struct {
 			configMapError:        resourceNoError,
 			deploymentClientError: resourceNoError,
 			serviceClientError:    resourceNoError,
-			ingressClientError:    resourceError{updateError: newError},
+			ingressClientError:    resourceError{updateError: errorNew},
 		},
 	},
 }
