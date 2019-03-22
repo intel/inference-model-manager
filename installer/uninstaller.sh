@@ -64,5 +64,4 @@ else
     [[ $DELETE_CHARTS != "n" ]] && for i in "${helm_arr[@]}"; do helm del --debug --purge $i ; done
 fi
 
-kubectl delete ing minio-ingress
-
+kubectl delete ing minio-ingress || true

@@ -14,4 +14,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-helm install ../../helm-deployment/ing-subchart/
+helm install --name "imm-ingress" ../../helm-deployment/ing-subchart/
