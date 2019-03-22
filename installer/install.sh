@@ -33,7 +33,7 @@ domain=""
 gce_zone="us-west1"
 quiet="no"
 
-while getopts "h?qsk:d:z:g:p:A:S:t" opt; do
+while getopts "h?qsk:d:z:g:p:A:S:U:V:R:t" opt; do
     case "$opt" in
     h|\?)
         show_help
@@ -46,7 +46,7 @@ while getopts "h?qsk:d:z:g:p:A:S:t" opt; do
     d)  domain=$OPTARG
         ;;
     z)  gce_zone=$OPTARG
-        ;;      
+        ;;
     s)  export SKIP_K8S_INSTALLATION="true"
         ;;
     g)  export GCE_USER=$OPTARG
@@ -57,11 +57,18 @@ while getopts "h?qsk:d:z:g:p:A:S:t" opt; do
         ;;
     S)  export MINIO_SECRET_KEY=$OPTARG
         ;;
+    U)  export MINIO_URL=$OPTARG
+        ;;
+    V)  export MINIO_SIGNATURE=$OPTARG
+        ;;
+    R)  export MINIO_REGION=$OPTARG
+        ;;
     t)  export MGT_API_AUTHORIZATION="true"
         export DEFAULT_TENANT_NAME="default-tenant"
         ;;
     esac
 done
+
 
 shift $((OPTIND-1))
 

@@ -3,5 +3,5 @@ tag: <crd_tag>
 namespace: "crd"
 docker_secret: false
 platformDomain: <dns_domain_name>
-s3_use_https: 0
+s3_use_https: <use_https>
 s3_verify_ssl: 0

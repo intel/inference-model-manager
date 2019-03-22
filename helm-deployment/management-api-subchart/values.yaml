@@ -35,8 +35,8 @@ minio:
   secretKey: <minio_secret_key>
   endpoint: <minio_endpoint>
   endpointUrl: <minio_endpoint_url>
-  minioRegion: "us-east-1"
-  minioSignatureVersion: "s3v4"
+  minioRegion: <minio_region>
+  minioSignatureVersion: <minio_signature>
 dex:
   id: example-app
   redirectURIs: 'http://127.0.0.1:5555/callback'

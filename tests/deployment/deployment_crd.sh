@@ -15,4 +15,4 @@
 # limitations under the License.
 #
 
-helm install --set image=$CRD_IMAGE --set tag=$CRD_TAG --set platformDomain=$DOMAIN_NAME ../../helm-deployment/crd-subchart/
+helm install --set image=$CRD_IMAGE --set tag=$CRD_TAG --set platformDomain=$DOMAIN_NAME --set s3_use_https=0 ../../helm-deployment/crd-subchart/

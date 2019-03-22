@@ -22,19 +22,34 @@ DNS_DOMAIN_NAME=$2
 GCE_ZONE=$3
 MINIO_ACCESS_KEY="${MINIO_ACCESS_KEY:=my_minio_key}"
 MINIO_SECRET_KEY="${MINIO_SECRET_KEY:=my_minio_secret}"
-MINIO_URL=minio.$DNS_DOMAIN_NAME
+MINIO_SIGNATURE="${MINIO_SIGNATURE:=s3v4}"
+MINIO_REGION="${MINIO_REGION:=us-east-1}"
+
+if [[ -z "${MINIO_URL}" ]]; then
+  MINIO_URL="http://minio.$DNS_DOMAIN_NAME"
+  INSTALL_MINIO=true
+else
+  INSTALL_MINIO=false
+fi
+
+if [[ $MINIO_URL =~ ^https ]];
+then
+    export USE_HTTPS=1
+else
+    export USE_HTTPS=0
+fi
 
 if [ -z $MGMT_IMAGE ]; then
-export MGMT_IMAGE=intelaipg/inference-model-manager-api
-fi 
+    export MGMT_IMAGE=intelaipg/inference-model-manager-api
+fi
 if [ -z $CRD_IMAGE ]; then
-export CRD_IMAGE=intelaipg/inference-model-manager-crd
+    export CRD_IMAGE=intelaipg/inference-model-manager-crd
 fi
 if [ -z $MGMT_TAG ]; then
-export MGMT_TAG=0.3rc
+    export MGMT_TAG=latest
 fi
-if [ -z $CTRL_TAG ]; then
-export CTRL_TAG=0.3rc
+if [ -z $CRD_TAG ]; then
+    export CRD_TAG=latest
 fi
 
 
@@ -68,10 +83,10 @@ cd -
 
 
 if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ] && [ -z "$SKIP_K8S_INSTALLATION" ]; then
-cd k8s
-. create_kops_cluster_gke.sh $DESIRED_KOPS_CLUSTER_NAME $GCE_ZONE
-. install_tiller.sh
-cd ..
+    cd k8s
+    . create_kops_cluster_gke.sh $DESIRED_KOPS_CLUSTER_NAME $GCE_ZONE
+    . install_tiller.sh
+    cd ..
 fi
 
 cd ingress
@@ -79,16 +94,18 @@ cd ingress
 cd ..
 
 cd crd
-. install.sh $DNS_DOMAIN_NAME
+. install.sh $DNS_DOMAIN_NAME $USE_HTTPS
 cd ..
 
 cd dns
 . setup.sh $DNS_DOMAIN_NAME
 cd ..
 
-cd minio
-. install.sh $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL
-cd ..
+if [[ "$INSTALL_MINIO" ]]; then
+    cd minio
+    . install.sh $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL
+    cd ..
+fi
 
 cd ldap
 . install.sh
@@ -113,7 +130,7 @@ if [ "$MGT_API_AUTHORIZATION" == "false" ]; then
 fi
 
 cd management-api
-. ./install.sh $DOMAIN_NAME $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL $MGT_API_AUTHORIZATION
+. ./install.sh $DOMAIN_NAME $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL $MINIO_REGION $MINIO_SIGNATURE $MGT_API_AUTHORIZATION
 show_result $? "Done" "Aborting"
 cd ..
 

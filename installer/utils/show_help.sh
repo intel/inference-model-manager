@@ -27,13 +27,18 @@ Additional options
     -q - silent mode (shows only important logs)
     -s - skip cluster creation via kops
     -p - set proxy (address:port)
+    -t - single tenant mode
     -A - set minio access key
     -S - set minio secret key
+    -U - set URL to minio (if this parameter is set, minio chart will not be deploy)
+    -V - set signature version for minio (default: s3v4)
+    -R - set region for minio (default: us-east-1)
     -h/? - show help
 Usage examples  
     ${0##*/} -k <name> -d <domain>
     ${0##*/} -k <name> -d <domain> -z <gce_zone>
     ${0##*/} -k <name> -d <domain> -s -q
     ${0##*/} -k <name> -d <domain> -s -q -p myproxy.com:911 -A minio_access_key -S minio_secret_key
+    ${0##*/} -k <name> -d <domain> -s -q -A minio_access_key -S minio_secret_key -U url_to_minio -R us-west-2
 EOF
 }

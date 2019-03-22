@@ -18,12 +18,15 @@
 DOMAIN_NAME=$1
 MINIO_ACCESS_KEY=$2
 MINIO_SECRET_KEY=$3
-MINIO_ENDPOINT=$4
-MGT_API_AUTHORIZATION=$5
+MINIO_EXTERNAL_URL=$4
+MINIO_REGION=$5
+MINIO_SIGNATURE=$6
+MGT_API_AUTHORIZATION=$7
 
 export MGMT_DOMAIN_NAME=mgt.$DOMAIN_NAME
 export MGT_NAMESPACE=mgt-api
 export DOMAIN_NAME=$DOMAIN_NAME
+export MINIO_EXTERNAL_URI=`echo "$MINIO_EXTERNAL_URL" | awk -F/ '{print $3}'`
 
 . ../utils/fill_template.sh
 . ../utils/messages.sh
@@ -53,8 +56,10 @@ fill_template "<management_api_desired_dns>" mgt.$DOMAIN_NAME values.yaml
 fill_template "<dns_for_inference_endpoints>" $DOMAIN_NAME values.yaml
 fill_template "<minio_access_key>" $MINIO_ACCESS_KEY values.yaml
 fill_template "<minio_secret_key>" $MINIO_SECRET_KEY values.yaml
-fill_template "<minio_endpoint>" $MINIO_ENDPOINT values.yaml
-fill_template "<minio_endpoint_url>" http://$MINIO_ENDPOINT values.yaml
+fill_template "<minio_endpoint>" $MINIO_EXTERNAL_URI values.yaml
+fill_template "<minio_endpoint_url>" $MINIO_EXTERNAL_URL values.yaml
+fill_template "<minio_signature>" $MINIO_SIGNATURE values.yaml
+fill_template "<minio_region>" $MINIO_REGION values.yaml
 fill_template "<groupName>" admin values.yaml
 fill_template "<adminScope>" admin values.yaml
 fill_template "<platformAdmin>" admin values.yaml
