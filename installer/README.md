@@ -136,3 +136,8 @@ Single Tenant mode will create tenant which will be default tenant to use while 
 ## Uninstall
 To uninstall platform from kubernetes cluster you can use script:
 ```./uninstaller.sh```
+
+This script also delete all Kubernetes namespaces created by platform. That namespaces have label `created_by`.
+In default installation option, this label has value `platform_admin`. If during installation you changed [platformAdminLabel](https://github.com/IntelAI/inference-model-manager/blob/master/helm-deployment/management-api-subchart/values.yaml#L28) value in Helm-values,
+please export the same value as `PLATFORM_ADMIN_LABEL` env, before launching `uninstaller`.
+

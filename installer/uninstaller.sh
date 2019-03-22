@@ -18,10 +18,10 @@
 delete_release_if_included_in_list() {
     chart_name=$1
     release_name=$2
-    [[ $CHARTS_LIST =~ (^|[[:space:]])$chart_name($|[[:space:]]) ]] && echo "Release will be deleted" && helm del --debug --purge $release_name || echo 'Release wont be deleted'
+    [[ $CHARTS_LIST =~ (^|[[:space:]])$chart_name($|[[:space:]]) ]] && echo "Release will be deleted" && helm del --debug --purge $release_name || echo 'Release wont be deleted, because chart name is out from names in imm platform'
 }
 
-CHARTS_LIST="imm-management-api-chart imm-crd-subchart imm-openldap imm-dex-subchart imm-ingress minio"
+CHARTS_LIST="imm-management-api-chart imm-crd-subchart imm-openldap imm-dex-subchart imm-ingress imm-minio"
 HELM_LS_OUTPUT=`helm ls --output json`
 HELM_LIST=`jq --arg namearg "Releases" '.[$namearg]' <<< $HELM_LS_OUTPUT`
 
@@ -31,4 +31,19 @@ jq -c '.[]' <<< $HELM_LIST | while read i; do
    CHART_NAME=`jq --arg namearg "Chart" '.[$namearg]' <<< $i | tr -d '"' | tr -d '.0123456789' | rev | cut -c 2- | rev`
    RELEASE_NAME=`jq --arg namearg "Name" '.[$namearg]' <<< $i | tr -d '"'`
    delete_release_if_included_in_list $CHART_NAME $RELEASE_NAME
+done
+
+PLATFORM_ADMIN_LABEL="${PLATFORM_ADMIN_LABEL:=platform_admin}"
+K8S_NS_OUTPUT=`kubectl get ns --output=json`
+K8S_NS_LIST=`jq --arg namearg "items" '.[$namearg]' <<< $K8S_NS_OUTPUT`
+jq -c '.[]' <<< $K8S_NS_LIST | while read i; do
+   echo "Namespace metadata: $i"
+   CREATED_BY=`jq '.metadata.labels.created_by' <<< $i | tr -d '"'`
+   NAMESPACE=`jq '.metadata.name' <<< $i | tr -d '"'`
+   if [[ $CREATED_BY == *"${PLATFORM_ADMIN_LABEL}"* ]]; then
+      kubectl delete ns $NAMESPACE
+      echo "$NAMESPACE deleted"
+   else
+      echo "$NAMESPACE will not be deleted, beacuse is not created by platform"
+   fi
 done
