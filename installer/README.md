@@ -4,7 +4,7 @@
 * python3.6
 * virtualenv ```pip install virtualenv```
 * [yq](https://github.com/mikefarah/yq) *(Use this specific version of yq)*
-* [jq](https://stedolan.github.io/jq/)
+* [jq](https://stedolan.github.io/jq/) (version 1.5)
 * [helm](https://github.com/helm/helm)
 * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 * [kops](https://github.com/IntelAI/inference-model-manager/tree/master/kops) or other tool for
