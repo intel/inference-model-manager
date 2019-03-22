@@ -27,7 +27,6 @@ import (
 	crv1 "github.com/IntelAI/inference-model-manager/server-controller/apis/cr/v1"
 	"os"
 	"strings"
-	"text/template"
 )
 
 var (
@@ -42,32 +41,43 @@ var (
 		ObjectMeta: metav1.ObjectMeta{},
 		Spec:       crv1.InferenceEndpointSpec{},
 		Status:     crv1.InferenceEndpointStatus{}}
+	newError = errors.New("")
 )
 
+type resourceError struct {
+	createError error
+	patchError  error
+	updateError error
+	deleteError error
+}
+
+var resourceNoError = resourceError{
+	createError: nil,
+	patchError:  nil,
+	updateError: nil,
+	deleteError: nil,
+}
+
 type clientError struct {
-	configMapError             error
-	deploymentClientError      error
-	deploymentClientPatchError error
-	serviceClientError         error
-	ingressClientError         error
-	ingressClientPatchError    error
+	configMapError        resourceError
+	deploymentClientError resourceError
+	serviceClientError    resourceError
+	ingressClientError    resourceError
 }
 
 var nilClientError = clientError{
-	configMapError:             nil,
-	deploymentClientError:      nil,
-	deploymentClientPatchError: nil,
-	serviceClientError:         nil,
-	ingressClientError:         nil,
-	ingressClientPatchError:    nil,
+	configMapError:        resourceNoError,
+	deploymentClientError: resourceNoError,
+	serviceClientError:    resourceNoError,
+	ingressClientError:    resourceNoError,
 }
 
 func createTemplateClients(errs clientError) map[string]templateClients {
 	updateMap := make(map[string]templateClients)
-	configMapClient := newMockClient(errs.configMapError, nil)
-	deploymentClient := newMockClient(errs.deploymentClientError, errs.deploymentClientPatchError)
-	serviceClient := newMockClient(errs.serviceClientError, nil)
-	ingressClient := newMockClient(errs.ingressClientError, errs.ingressClientPatchError)
+	configMapClient := newMockClient(errs.configMapError.createError, errs.configMapError.patchError, errs.configMapError.updateError, errs.configMapError.deleteError)
+	deploymentClient := newMockClient(errs.deploymentClientError.createError, errs.deploymentClientError.patchError, errs.deploymentClientError.updateError, errs.deploymentClientError.deleteError)
+	serviceClient := newMockClient(errs.serviceClientError.createError, errs.serviceClientError.patchError, errs.serviceClientError.updateError, errs.serviceClientError.deleteError)
+	ingressClient := newMockClient(errs.ingressClientError.createError, errs.ingressClientError.patchError, errs.ingressClientError.updateError, errs.ingressClientError.deleteError)
 	k8sClients := templateClients{deploymentClient, serviceClient, ingressClient, configMapClient}
 	updateMap["test"] = k8sClients
 	updateMap["exist"] = k8sClients
@@ -96,31 +106,56 @@ var inferenceEndpointsTestAdd = []struct {
 		name:              "Config map creation error",
 		inferenceEndpoint: inferenceEndpoint,
 		expected:          "ERROR during configMap creation",
-		clientErrors:      clientError{errors.New(""), nil, nil, nil, nil, nil},
+		clientErrors: clientError{
+			configMapError:        resourceError{createError: newError},
+			deploymentClientError: resourceNoError,
+			serviceClientError:    resourceNoError,
+			ingressClientError:    resourceNoError,
+		},
 	},
 	{
 		name:              "Deployment creation error",
 		inferenceEndpoint: inferenceEndpoint,
 		expected:          "ERROR during deployment creation",
-		clientErrors:      clientError{nil, errors.New(""), nil, nil, nil, nil},
+		clientErrors: clientError{
+			configMapError:        resourceNoError,
+			deploymentClientError: resourceError{createError: newError},
+			serviceClientError:    resourceNoError,
+			ingressClientError:    resourceNoError,
+		},
 	},
 	{
 		name:              "Deployment patch error",
 		inferenceEndpoint: inferenceEndpoint,
 		expected:          "ERROR during adding configDate label to deployment",
-		clientErrors:      clientError{nil, nil, errors.New(""), nil, nil, nil},
+		clientErrors: clientError{
+			configMapError:        resourceNoError,
+			deploymentClientError: resourceError{patchError: newError},
+			serviceClientError:    resourceNoError,
+			ingressClientError:    resourceNoError,
+		},
 	},
 	{
 		name:              "Service creation error",
 		inferenceEndpoint: inferenceEndpoint,
 		expected:          "ERROR during service creation",
-		clientErrors:      clientError{nil, nil, nil, errors.New(""), nil, nil},
+		clientErrors: clientError{
+			configMapError:        resourceNoError,
+			deploymentClientError: resourceNoError,
+			serviceClientError:    resourceError{createError: newError},
+			ingressClientError:    resourceNoError,
+		},
 	},
 	{
 		name:              "Ingress creation error",
 		inferenceEndpoint: inferenceEndpoint,
 		expected:          "ERROR during ingress creation",
-		clientErrors:      clientError{nil, nil, nil, nil, errors.New(""), nil},
+		clientErrors: clientError{
+			configMapError:        resourceNoError,
+			deploymentClientError: resourceNoError,
+			serviceClientError:    resourceNoError,
+			ingressClientError:    resourceError{createError: newError},
+		},
 	},
 }
 
@@ -186,15 +221,20 @@ var inferenceEndpointsTestUpdate = []struct {
 		clientErrors: nilClientError,
 	},
 	{
-		name:      "Ingress update fail",
+		name:      "Ingress patch fail",
 		oldServer: inferenceEndpoint,
 		newServer: crv1.InferenceEndpoint{
 			TypeMeta:   metav1.TypeMeta{},
 			ObjectMeta: metav1.ObjectMeta{},
 			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test", SubjectName: "test"},
 			Status:     crv1.InferenceEndpointStatus{}},
-		expected:     "ERROR during ingress update operation",
-		clientErrors: clientError{nil, nil, nil, nil, nil, errors.New("")},
+		expected: "ERROR during ingress update operation",
+		clientErrors: clientError{
+			configMapError:        resourceNoError,
+			deploymentClientError: resourceNoError,
+			serviceClientError:    resourceNoError,
+			ingressClientError:    resourceError{patchError: newError},
+		},
 	},
 	{
 		name:      "ModelName different",
@@ -208,15 +248,20 @@ var inferenceEndpointsTestUpdate = []struct {
 		clientErrors: nilClientError,
 	},
 	{
-		name:      "Deployment update fail",
+		name:      "Deployment patch fail",
 		oldServer: inferenceEndpoint,
 		newServer: crv1.InferenceEndpoint{
 			TypeMeta:   metav1.TypeMeta{},
 			ObjectMeta: metav1.ObjectMeta{},
 			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test", ModelName: "test"},
 			Status:     crv1.InferenceEndpointStatus{}},
-		expected:     "ERROR during deployment update operation",
-		clientErrors: clientError{nil, nil, errors.New(""), nil, nil, nil},
+		expected: "ERROR during deployment update operation",
+		clientErrors: clientError{
+			configMapError:        resourceNoError,
+			deploymentClientError: resourceError{patchError: newError},
+			serviceClientError:    resourceNoError,
+			ingressClientError:    resourceNoError,
+		},
 	},
 }
 
@@ -256,29 +301,65 @@ var inferenceEndpointsTestUpdateTemplate = []struct {
 		clientErrors: nilClientError,
 	},
 	{
-		name:         "Config map update error",
-		oldServer:    inferenceEndpoint,
-		newServer:    inferenceEndpoint,
-		expected:     "ERROR during configMap update",
-		clientErrors: clientError{errors.New(""), nil, nil, nil, nil, nil}},
+		name:      "Config map update error",
+		oldServer: inferenceEndpoint,
+		newServer: inferenceEndpoint,
+		expected:  "ERROR during configMap update",
+		clientErrors: clientError{
+			configMapError:        resourceError{updateError: newError},
+			deploymentClientError: resourceNoError,
+			serviceClientError:    resourceNoError,
+			ingressClientError:    resourceNoError,
+		},
+	},
 	{
-		name:         "Deployment update error",
-		oldServer:    inferenceEndpoint,
-		newServer:    inferenceEndpoint,
-		expected:     "ERROR during deployment update",
-		clientErrors: clientError{nil, errors.New(""), nil, nil, nil, nil}},
+		name:      "Deployment update error",
+		oldServer: inferenceEndpoint,
+		newServer: inferenceEndpoint,
+		expected:  "ERROR during deployment update",
+		clientErrors: clientError{
+			configMapError:        resourceNoError,
+			deploymentClientError: resourceError{updateError: newError},
+			serviceClientError:    resourceNoError,
+			ingressClientError:    resourceNoError,
+		},
+	},
 	{
-		name:         "Service deletion error",
-		oldServer:    inferenceEndpoint,
-		newServer:    inferenceEndpoint,
-		expected:     "ERROR during service delete",
-		clientErrors: clientError{nil, nil, nil, errors.New(""), nil, nil}},
+		name:      "Service deletion error",
+		oldServer: inferenceEndpoint,
+		newServer: inferenceEndpoint,
+		expected:  "ERROR during service delete",
+		clientErrors: clientError{
+			configMapError:        resourceNoError,
+			deploymentClientError: resourceNoError,
+			serviceClientError:    resourceError{deleteError: newError},
+			ingressClientError:    resourceNoError,
+		},
+	},
 	{
-		name:         "Ingress update error",
-		oldServer:    inferenceEndpoint,
-		newServer:    inferenceEndpoint,
-		expected:     "ERROR during ingress update",
-		clientErrors: clientError{nil, nil, nil, nil, errors.New(""), nil}},
+		name:      "Service creation error",
+		oldServer: inferenceEndpoint,
+		newServer: inferenceEndpoint,
+		expected:  "ERROR during service create",
+		clientErrors: clientError{
+			configMapError:        resourceNoError,
+			deploymentClientError: resourceNoError,
+			serviceClientError:    resourceError{createError: newError},
+			ingressClientError:    resourceNoError,
+		},
+	},
+	{
+		name:      "Ingress patch error",
+		oldServer: inferenceEndpoint,
+		newServer: inferenceEndpoint,
+		expected:  "ERROR during ingress update",
+		clientErrors: clientError{
+			configMapError:        resourceNoError,
+			deploymentClientError: resourceNoError,
+			serviceClientError:    resourceNoError,
+			ingressClientError:    resourceError{updateError: newError},
+		},
+	},
 }
 
 func testUpdateTemplate(oldServer, newServer crv1.InferenceEndpoint, errs clientError) string {
@@ -334,7 +415,7 @@ var dataTestPrepareJSONPatchFromMap = []struct {
 		oldData:       map[string]string{"test": "test"},
 		newData:       map[string]string{"test1": "test"},
 		patchData:     patchDataTest,
-		expectedError: template.ExecError{Name: "New", Err: errors.New("can't evaluate field ResourcePathTest in type main.patchData")},
+		expectedError: errors.New("can't evaluate field ResourcePathTest in type main.patchData"),
 		resourcePath:  "{{.ResourcePathTest}}",
 	},
 }
