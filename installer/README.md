@@ -78,7 +78,7 @@ For CRD set environment variables: `CRD_IMAGE` and `CRD_TAG`.
   * `./install.sh -k <name> -d <domain> -s -q -p <proxy_address:port> -A <minio_access_key> -S <minio_secret_key>`
   * Installation on existing GKE kubernetes cluster in single tenant mode
   * `./install.sh -d <domain> -s -t`
-  * Installation in existing kubernetes cluster using AWS S3:
+  * Installation on existing kubernetes cluster using AWS S3:
   `./install.sh -d <domain> -s -A <minio_access_key> -S <minio_secret_key> -R us-east-1 -U https://s3.amazonaws.com`
 ### Update DNS records for new domain
 #### Using AWS Route53
