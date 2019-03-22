@@ -27,6 +27,7 @@ import (
 	crv1 "github.com/IntelAI/inference-model-manager/server-controller/apis/cr/v1"
 	"os"
 	"strings"
+	"text/template"
 )
 
 var (
@@ -182,10 +183,10 @@ var inferenceEndpointsTestUpdate = []struct {
 			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test", SubjectName: "test"},
 			Status:     crv1.InferenceEndpointStatus{}},
 		expected:     "Ingress updated successfully",
-		clientErrors: clientError{nil, nil, nil, nil, nil, nil},
+		clientErrors: nilClientError,
 	},
 	{
-		name:      "SubjectName different",
+		name:      "Ingress update fail",
 		oldServer: inferenceEndpoint,
 		newServer: crv1.InferenceEndpoint{
 			TypeMeta:   metav1.TypeMeta{},
@@ -204,10 +205,10 @@ var inferenceEndpointsTestUpdate = []struct {
 			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test", ModelName: "test"},
 			Status:     crv1.InferenceEndpointStatus{}},
 		expected:     "Deployment updated successfully",
-		clientErrors: clientError{nil, nil, nil, nil, nil, nil},
+		clientErrors: nilClientError,
 	},
 	{
-		name:      "ModelName different",
+		name:      "Deployment update fail",
 		oldServer: inferenceEndpoint,
 		newServer: crv1.InferenceEndpoint{
 			TypeMeta:   metav1.TypeMeta{},
@@ -304,6 +305,7 @@ var dataTestPrepareJSONPatchFromMap = []struct {
 	newData       map[string]string
 	patchData     patchData
 	expectedError error
+	resourcePath  string
 }{
 	{
 		name:          "No changes",
@@ -313,15 +315,27 @@ var dataTestPrepareJSONPatchFromMap = []struct {
 		newData:       map[string]string{"test": "test"},
 		patchData:     patchDataTest,
 		expectedError: nil,
+		resourcePath:  "",
 	},
 	{
 		name:          "Unequal maps",
 		resourceType:  "test",
 		mapPatch:      make([]interface{}, 0),
 		oldData:       map[string]string{"test": "test"},
-		newData:       map[string]string{"tes": "test"},
+		newData:       map[string]string{"test1": "test"},
 		patchData:     patchDataTest,
 		expectedError: nil,
+		resourcePath:  "",
+	},
+	{
+		name:          "Wrong resource path",
+		resourceType:  "test",
+		mapPatch:      make([]interface{}, 0),
+		oldData:       map[string]string{"test": "test"},
+		newData:       map[string]string{"test1": "test"},
+		patchData:     patchDataTest,
+		expectedError: template.ExecError{Name: "New", Err: errors.New("can't evaluate field ResourcePathTest in type main.patchData")},
+		resourcePath:  "{{.ResourcePathTest}}",
 	},
 }
 
@@ -364,10 +378,19 @@ func TestUpdateTemplate(t *testing.T) {
 func TestPrepareJSONPatchFromMap(t *testing.T) {
 	for _, tt := range dataTestPrepareJSONPatchFromMap {
 		t.Run(tt.name, func(t *testing.T) {
+			if !(tt.resourcePath == "") {
+				oldResourcePath := resourcePath
+				defer func() {
+					resourcePath = oldResourcePath
+				}()
+				resourcePath = tt.resourcePath
+			}
 			_, err := prepareJSONPatchFromMap(tt.resourceType, tt.mapPatch, tt.oldData, tt.newData, tt.patchData)
 			if !(err == tt.expectedError) {
-				t.Logf("Expected: (%s), got: (%s)\n", tt.expectedError, err)
-				t.Fail()
+				if !strings.Contains(err.Error(), tt.expectedError.Error()) {
+					t.Logf("Expected: (%s), got: (%s)\n", tt.expectedError, err)
+					t.Fail()
+				}
 			}
 		})
 	}
