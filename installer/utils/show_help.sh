@@ -39,6 +39,6 @@ Usage examples
     ${0##*/} -k <name> -d <domain> -z <gce_zone>
     ${0##*/} -k <name> -d <domain> -s -q
     ${0##*/} -k <name> -d <domain> -s -q -p myproxy.com:911 -A minio_access_key -S minio_secret_key
-    ${0##*/} -d <domain> -s -q -A minio_access_key -S minio_secret_key -U url_to_minio -R us-west-2
+    ${0##*/} -k <name> -d <domain> -s -q -A minio_access_key -S minio_secret_key -U url_to_minio -R us-west-2
 EOF
 }

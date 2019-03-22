@@ -32,7 +32,7 @@ else
   INSTALL_MINIO=false
 fi
 
-if [[ $MINIO_URL == *"https"* ]];
+if [[ $MINIO_URL =~ ^https ]];
 then
     export USE_HTTPS=1
 else
@@ -101,7 +101,7 @@ cd dns
 . setup.sh $DNS_DOMAIN_NAME
 cd ..
 
-if $INSTALL_MINIO ; then
+if [[ "$INSTALL_MINIO" ]]; then
     cd minio
     . install.sh $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL
     cd ..
