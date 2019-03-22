@@ -43,7 +43,7 @@ var (
 		Status:     crv1.InferenceEndpointStatus{}}
 )
 
-type clientErr struct {
+type clientError struct {
 	configMapError             error
 	deploymentClientError      error
 	deploymentClientPatchError error
@@ -52,9 +52,16 @@ type clientErr struct {
 	ingressClientPatchError    error
 }
 
-// nilClientError
+var nilClientError = clientError{
+	configMapError:             nil,
+	deploymentClientError:      nil,
+	deploymentClientPatchError: nil,
+	serviceClientError:         nil,
+	ingressClientError:         nil,
+	ingressClientPatchError:    nil,
+}
 
-func createTemplateClients(errs clientErr) map[string]templateClients {
+func createTemplateClients(errs clientError) map[string]templateClients {
 	updateMap := make(map[string]templateClients)
 	configMapClient := newMockClient(errs.configMapError, nil)
 	deploymentClient := newMockClient(errs.deploymentClientError, errs.deploymentClientPatchError)
@@ -70,47 +77,53 @@ var inferenceEndpointsTestAdd = []struct {
 	name              string
 	inferenceEndpoint crv1.InferenceEndpoint
 	expected          string
-	clientErrors      clientErr
+	clientErrors      clientError
 }{
 	{
 		name:              "No template provided",
 		inferenceEndpoint: inferenceEndpointEmpty,
 		expected:          "There is no such template",
-		clientErrors:      clientErr{nil, nil, nil, nil, nil, nil}},
+		clientErrors:      nilClientError,
+	},
 	{
 		name:              "Success to create template",
 		inferenceEndpoint: inferenceEndpoint,
 		expected:          "created successfully",
-		clientErrors:      clientErr{nil, nil, nil, nil, nil, nil}},
+		clientErrors:      nilClientError,
+	},
 	{
 		name:              "Config map creation error",
 		inferenceEndpoint: inferenceEndpoint,
 		expected:          "ERROR during configMap creation",
-		clientErrors:      clientErr{errors.New(""), nil, nil, nil, nil, nil}},
+		clientErrors:      clientError{errors.New(""), nil, nil, nil, nil, nil},
+	},
 	{
 		name:              "Deployment creation error",
 		inferenceEndpoint: inferenceEndpoint,
 		expected:          "ERROR during deployment creation",
-		clientErrors:      clientErr{nil, errors.New(""), nil, nil, nil, nil}},
+		clientErrors:      clientError{nil, errors.New(""), nil, nil, nil, nil},
+	},
 	{
 		name:              "Deployment patch error",
 		inferenceEndpoint: inferenceEndpoint,
 		expected:          "ERROR during adding configDate label to deployment",
-		clientErrors:      clientErr{nil, nil, errors.New(""), nil, nil, nil}},
-
+		clientErrors:      clientError{nil, nil, errors.New(""), nil, nil, nil},
+	},
 	{
 		name:              "Service creation error",
 		inferenceEndpoint: inferenceEndpoint,
 		expected:          "ERROR during service creation",
-		clientErrors:      clientErr{nil, nil, nil, errors.New(""), nil, nil}},
+		clientErrors:      clientError{nil, nil, nil, errors.New(""), nil, nil},
+	},
 	{
 		name:              "Ingress creation error",
 		inferenceEndpoint: inferenceEndpoint,
 		expected:          "ERROR during ingress creation",
-		clientErrors:      clientErr{nil, nil, nil, nil, errors.New(""), nil}},
+		clientErrors:      clientError{nil, nil, nil, nil, errors.New(""), nil},
+	},
 }
 
-func testAdd(infer crv1.InferenceEndpoint, errs clientErr) string {
+func testAdd(infer crv1.InferenceEndpoint, errs clientError) string {
 	var buf bytes.Buffer
 	log.SetOutput(&buf)
 	defer func() {
@@ -129,7 +142,7 @@ var inferenceEndpointsTestUpdate = []struct {
 	oldServer    crv1.InferenceEndpoint
 	newServer    crv1.InferenceEndpoint
 	expected     string
-	clientErrors clientErr
+	clientErrors clientError
 }{
 	{
 		name:      "No such template",
@@ -140,7 +153,8 @@ var inferenceEndpointsTestUpdate = []struct {
 			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "not_exist"},
 			Status:     crv1.InferenceEndpointStatus{}},
 		expected:     "There is no such template",
-		clientErrors: clientErr{nil, nil, nil, nil, nil, nil}},
+		clientErrors: nilClientError,
+	},
 	{
 		name:      "Updating succeeded",
 		oldServer: inferenceEndpoint,
@@ -150,13 +164,15 @@ var inferenceEndpointsTestUpdate = []struct {
 			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "exist"},
 			Status:     crv1.InferenceEndpointStatus{}},
 		expected:     "Updating succeeded for the server",
-		clientErrors: clientErr{nil, nil, nil, nil, nil, nil}},
+		clientErrors: nilClientError,
+	},
 	{
 		name:         "No changes detected",
 		oldServer:    inferenceEndpoint,
 		newServer:    inferenceEndpoint,
 		expected:     "Update not required. No changes detected",
-		clientErrors: clientErr{nil, nil, nil, nil, nil, nil}},
+		clientErrors: nilClientError,
+	},
 	{
 		name:      "SubjectName different",
 		oldServer: inferenceEndpoint,
@@ -166,8 +182,8 @@ var inferenceEndpointsTestUpdate = []struct {
 			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test", SubjectName: "test"},
 			Status:     crv1.InferenceEndpointStatus{}},
 		expected:     "Ingress updated successfully",
-		clientErrors: clientErr{nil, nil, nil, nil, nil, nil}},
-
+		clientErrors: clientError{nil, nil, nil, nil, nil, nil},
+	},
 	{
 		name:      "SubjectName different",
 		oldServer: inferenceEndpoint,
@@ -177,7 +193,8 @@ var inferenceEndpointsTestUpdate = []struct {
 			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test", SubjectName: "test"},
 			Status:     crv1.InferenceEndpointStatus{}},
 		expected:     "ERROR during ingress update operation",
-		clientErrors: clientErr{nil, nil, nil, nil, nil, errors.New("")}},
+		clientErrors: clientError{nil, nil, nil, nil, nil, errors.New("")},
+	},
 	{
 		name:      "ModelName different",
 		oldServer: inferenceEndpoint,
@@ -187,7 +204,8 @@ var inferenceEndpointsTestUpdate = []struct {
 			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test", ModelName: "test"},
 			Status:     crv1.InferenceEndpointStatus{}},
 		expected:     "Deployment updated successfully",
-		clientErrors: clientErr{nil, nil, nil, nil, nil, nil}},
+		clientErrors: clientError{nil, nil, nil, nil, nil, nil},
+	},
 	{
 		name:      "ModelName different",
 		oldServer: inferenceEndpoint,
@@ -197,10 +215,11 @@ var inferenceEndpointsTestUpdate = []struct {
 			Spec:       crv1.InferenceEndpointSpec{EndpointName: "test", TemplateName: "test", ModelName: "test"},
 			Status:     crv1.InferenceEndpointStatus{}},
 		expected:     "ERROR during deployment update operation",
-		clientErrors: clientErr{nil, nil, errors.New(""), nil, nil, nil}},
+		clientErrors: clientError{nil, nil, errors.New(""), nil, nil, nil},
+	},
 }
 
-func testUpdate(oldServer, newServer crv1.InferenceEndpoint, errs clientErr) string {
+func testUpdate(oldServer, newServer crv1.InferenceEndpoint, errs clientError) string {
 	var buf bytes.Buffer
 	log.SetOutput(&buf)
 	defer func() {
@@ -219,47 +238,49 @@ var inferenceEndpointsTestUpdateTemplate = []struct {
 	oldServer    crv1.InferenceEndpoint
 	newServer    crv1.InferenceEndpoint
 	expected     string
-	clientErrors clientErr
+	clientErrors clientError
 }{
 	{
 		name:         "No such template",
 		oldServer:    inferenceEndpointEmpty,
 		newServer:    inferenceEndpoint,
 		expected:     "There is no such template",
-		clientErrors: clientErr{nil, nil, nil, nil, nil, nil}},
+		clientErrors: nilClientError,
+	},
 	{
 		name:         "Success to update template",
 		oldServer:    inferenceEndpoint,
 		newServer:    inferenceEndpoint,
 		expected:     "updated successfully",
-		clientErrors: clientErr{nil, nil, nil, nil, nil, nil}},
+		clientErrors: nilClientError,
+	},
 	{
 		name:         "Config map update error",
 		oldServer:    inferenceEndpoint,
 		newServer:    inferenceEndpoint,
 		expected:     "ERROR during configMap update",
-		clientErrors: clientErr{errors.New(""), nil, nil, nil, nil, nil}},
+		clientErrors: clientError{errors.New(""), nil, nil, nil, nil, nil}},
 	{
 		name:         "Deployment update error",
 		oldServer:    inferenceEndpoint,
 		newServer:    inferenceEndpoint,
 		expected:     "ERROR during deployment update",
-		clientErrors: clientErr{nil, errors.New(""), nil, nil, nil, nil}},
+		clientErrors: clientError{nil, errors.New(""), nil, nil, nil, nil}},
 	{
 		name:         "Service deletion error",
 		oldServer:    inferenceEndpoint,
 		newServer:    inferenceEndpoint,
 		expected:     "ERROR during service delete",
-		clientErrors: clientErr{nil, nil, nil, errors.New(""), nil, nil}},
+		clientErrors: clientError{nil, nil, nil, errors.New(""), nil, nil}},
 	{
 		name:         "Ingress update error",
 		oldServer:    inferenceEndpoint,
 		newServer:    inferenceEndpoint,
 		expected:     "ERROR during ingress update",
-		clientErrors: clientErr{nil, nil, nil, nil, errors.New(""), nil}},
+		clientErrors: clientError{nil, nil, nil, nil, errors.New(""), nil}},
 }
 
-func testUpdateTemplate(oldServer, newServer crv1.InferenceEndpoint, errs clientErr) string {
+func testUpdateTemplate(oldServer, newServer crv1.InferenceEndpoint, errs clientError) string {
 	var buf bytes.Buffer
 	log.SetOutput(&buf)
 	defer func() {

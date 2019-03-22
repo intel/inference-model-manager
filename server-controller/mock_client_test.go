@@ -25,7 +25,7 @@ import (
 )
 
 type mockClient struct {
-	err error
+	err  error
 	errP error
 }
 
