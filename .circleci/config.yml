@@ -281,9 +281,9 @@ jobs:
             export BRANCH=$(git symbolic-ref --short HEAD)
             if [ "$BRANCH" == "master" ]; then
                MGMT_TAG=$(find management/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
-               CTRL_TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
+               CRD_TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
                gcloud container images add-tag gcr.io/constant-cubist-173123/management-api:$MGMT_TAG gcr.io/constant-cubist-173123/management-api:latest
-               gcloud container images add-tag gcr.io/constant-cubist-173123/server-controller-prod:$CTRL_TAG gcr.io/constant-cubist-173123/server-controller-prod:latest
+               gcloud container images add-tag gcr.io/constant-cubist-173123/server-controller-prod:$CRD_TAG gcr.io/constant-cubist-173123/server-controller-prod:latest
             fi
       - run:
           name: clean after success
@@ -367,7 +367,7 @@ jobs:
           command: |
             cd ~/inference-model-manager/
             export MGMT_TAG=$(find management/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
-            export CTRL_TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
+            export CRD_TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
             cd ~/inference-model-manager/installer
             mv ./hooks/example_dns_entry_hook.sh ./hooks/dns_entry_hook.sh
             ./prerequisites_ubuntu.sh
