@@ -31,8 +31,8 @@ type mockClient struct {
 	errDelete error
 }
 
-func newMockClient(err, errP, errU, errD error) resource.Client {
-	return &mockClient{err, errP, errU, errD}
+func newMockClient(err resourceError) resource.Client {
+	return &mockClient{err.createError, err.patchError, err.updateError, err.deleteError}
 }
 
 func (*mockClient) Reify(templateValues interface{}) ([]byte, error) {

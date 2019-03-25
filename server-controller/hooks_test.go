@@ -75,10 +75,10 @@ var nilClientError = clientError{
 
 func createTemplateClients(errs clientError) map[string]templateClients {
 	updateMap := make(map[string]templateClients)
-	configMapClient := newMockClient(errs.configMapError.createError, errs.configMapError.patchError, errs.configMapError.updateError, errs.configMapError.deleteError)
-	deploymentClient := newMockClient(errs.deploymentClientError.createError, errs.deploymentClientError.patchError, errs.deploymentClientError.updateError, errs.deploymentClientError.deleteError)
-	serviceClient := newMockClient(errs.serviceClientError.createError, errs.serviceClientError.patchError, errs.serviceClientError.updateError, errs.serviceClientError.deleteError)
-	ingressClient := newMockClient(errs.ingressClientError.createError, errs.ingressClientError.patchError, errs.ingressClientError.updateError, errs.ingressClientError.deleteError)
+	configMapClient := newMockClient(errs.configMapError)
+	deploymentClient := newMockClient(errs.deploymentClientError)
+	serviceClient := newMockClient(errs.serviceClientError)
+	ingressClient := newMockClient(errs.ingressClientError)
 	k8sClients := templateClients{deploymentClient, serviceClient, ingressClient, configMapClient}
 	updateMap["test"] = k8sClients
 	updateMap["exist"] = k8sClients
