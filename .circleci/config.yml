@@ -41,6 +41,7 @@ jobs:
             cd /go/src/github.com/IntelAI/inference-model-manager/server-controller
             dep ensure -v
             make install-linter
+            make check-coverage
             make test
 
   rebuild_images:

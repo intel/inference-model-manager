@@ -24,6 +24,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
+type resourceError struct {
+	createError error
+	patchError  error
+	updateError error
+	deleteError error
+}
+
 type mockClient struct {
 	errCreate error
 	errPatch  error

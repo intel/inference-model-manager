@@ -45,13 +45,6 @@ var (
 	errorNew = errors.New("")
 )
 
-type resourceError struct {
-	createError error
-	patchError  error
-	updateError error
-	deleteError error
-}
-
 var resourceNoError = resourceError{
 	createError: nil,
 	patchError:  nil,
