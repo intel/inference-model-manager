@@ -24,21 +24,14 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-type resourceError struct {
+type mockClient struct {
 	createError error
 	patchError  error
 	updateError error
 	deleteError error
 }
 
-type mockClient struct {
-	errCreate error
-	errPatch  error
-	errUpdate error
-	errDelete error
-}
-
-func newMockClient(err resourceError) resource.Client {
+func newMockClient(err mockClient) resource.Client {
 	return &mockClient{err.createError, err.patchError, err.updateError, err.deleteError}
 }
 
@@ -47,19 +40,19 @@ func (*mockClient) Reify(templateValues interface{}) ([]byte, error) {
 }
 
 func (c *mockClient) Create(namespace string, templateValues interface{}) error {
-	return c.errCreate
+	return c.createError
 }
 
 func (c *mockClient) Delete(namespace string, name string) error {
-	return c.errDelete
+	return c.deleteError
 }
 
 func (c *mockClient) Update(namespace string, name string, templateValues interface{}) error {
-	return c.errUpdate
+	return c.updateError
 }
 
 func (c *mockClient) Patch(namespace string, name string, data []byte) error {
-	return c.errPatch
+	return c.patchError
 }
 
 func (*mockClient) Get(namespace, name string) (runtime.Object, error) {

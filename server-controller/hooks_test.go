@@ -45,7 +45,7 @@ var (
 	errorNew = errors.New("")
 )
 
-var resourceNoError = resourceError{
+var mockClientNoError = mockClient{
 	createError: nil,
 	patchError:  nil,
 	updateError: nil,
@@ -53,17 +53,17 @@ var resourceNoError = resourceError{
 }
 
 type clientError struct {
-	configMapError        resourceError
-	deploymentClientError resourceError
-	serviceClientError    resourceError
-	ingressClientError    resourceError
+	configMapError        mockClient
+	deploymentClientError mockClient
+	serviceClientError    mockClient
+	ingressClientError    mockClient
 }
 
 var nilClientError = clientError{
-	configMapError:        resourceNoError,
-	deploymentClientError: resourceNoError,
-	serviceClientError:    resourceNoError,
-	ingressClientError:    resourceNoError,
+	configMapError:        mockClientNoError,
+	deploymentClientError: mockClientNoError,
+	serviceClientError:    mockClientNoError,
+	ingressClientError:    mockClientNoError,
 }
 
 func createTemplateClients(errs clientError) map[string]templateClients {
@@ -101,10 +101,10 @@ var inferenceEndpointsTestAdd = []struct {
 		inferenceEndpoint: inferenceEndpoint,
 		expected:          "ERROR during configMap creation",
 		clientErrors: clientError{
-			configMapError:        resourceError{createError: errorNew},
-			deploymentClientError: resourceNoError,
-			serviceClientError:    resourceNoError,
-			ingressClientError:    resourceNoError,
+			configMapError:        mockClient{createError: errorNew},
+			deploymentClientError: mockClientNoError,
+			serviceClientError:    mockClientNoError,
+			ingressClientError:    mockClientNoError,
 		},
 	},
 	{
@@ -112,10 +112,10 @@ var inferenceEndpointsTestAdd = []struct {
 		inferenceEndpoint: inferenceEndpoint,
 		expected:          "ERROR during deployment creation",
 		clientErrors: clientError{
-			configMapError:        resourceNoError,
-			deploymentClientError: resourceError{createError: errorNew},
-			serviceClientError:    resourceNoError,
-			ingressClientError:    resourceNoError,
+			configMapError:        mockClientNoError,
+			deploymentClientError: mockClient{createError: errorNew},
+			serviceClientError:    mockClientNoError,
+			ingressClientError:    mockClientNoError,
 		},
 	},
 	{
@@ -123,10 +123,10 @@ var inferenceEndpointsTestAdd = []struct {
 		inferenceEndpoint: inferenceEndpoint,
 		expected:          "ERROR during adding configDate label to deployment",
 		clientErrors: clientError{
-			configMapError:        resourceNoError,
-			deploymentClientError: resourceError{patchError: errorNew},
-			serviceClientError:    resourceNoError,
-			ingressClientError:    resourceNoError,
+			configMapError:        mockClientNoError,
+			deploymentClientError: mockClient{patchError: errorNew},
+			serviceClientError:    mockClientNoError,
+			ingressClientError:    mockClientNoError,
 		},
 	},
 	{
@@ -134,10 +134,10 @@ var inferenceEndpointsTestAdd = []struct {
 		inferenceEndpoint: inferenceEndpoint,
 		expected:          "ERROR during service creation",
 		clientErrors: clientError{
-			configMapError:        resourceNoError,
-			deploymentClientError: resourceNoError,
-			serviceClientError:    resourceError{createError: errorNew},
-			ingressClientError:    resourceNoError,
+			configMapError:        mockClientNoError,
+			deploymentClientError: mockClientNoError,
+			serviceClientError:    mockClient{createError: errorNew},
+			ingressClientError:    mockClientNoError,
 		},
 	},
 	{
@@ -145,10 +145,10 @@ var inferenceEndpointsTestAdd = []struct {
 		inferenceEndpoint: inferenceEndpoint,
 		expected:          "ERROR during ingress creation",
 		clientErrors: clientError{
-			configMapError:        resourceNoError,
-			deploymentClientError: resourceNoError,
-			serviceClientError:    resourceNoError,
-			ingressClientError:    resourceError{createError: errorNew},
+			configMapError:        mockClientNoError,
+			deploymentClientError: mockClientNoError,
+			serviceClientError:    mockClientNoError,
+			ingressClientError:    mockClient{createError: errorNew},
 		},
 	},
 }
@@ -224,10 +224,10 @@ var inferenceEndpointsTestUpdate = []struct {
 			Status:     crv1.InferenceEndpointStatus{}},
 		expected: "ERROR during ingress update operation",
 		clientErrors: clientError{
-			configMapError:        resourceNoError,
-			deploymentClientError: resourceNoError,
-			serviceClientError:    resourceNoError,
-			ingressClientError:    resourceError{patchError: errorNew},
+			configMapError:        mockClientNoError,
+			deploymentClientError: mockClientNoError,
+			serviceClientError:    mockClientNoError,
+			ingressClientError:    mockClient{patchError: errorNew},
 		},
 	},
 	{
@@ -251,10 +251,10 @@ var inferenceEndpointsTestUpdate = []struct {
 			Status:     crv1.InferenceEndpointStatus{}},
 		expected: "ERROR during deployment update operation",
 		clientErrors: clientError{
-			configMapError:        resourceNoError,
-			deploymentClientError: resourceError{patchError: errorNew},
-			serviceClientError:    resourceNoError,
-			ingressClientError:    resourceNoError,
+			configMapError:        mockClientNoError,
+			deploymentClientError: mockClient{patchError: errorNew},
+			serviceClientError:    mockClientNoError,
+			ingressClientError:    mockClientNoError,
 		},
 	},
 }
@@ -300,10 +300,10 @@ var inferenceEndpointsTestUpdateTemplate = []struct {
 		newServer: inferenceEndpoint,
 		expected:  "ERROR during configMap update",
 		clientErrors: clientError{
-			configMapError:        resourceError{updateError: errorNew},
-			deploymentClientError: resourceNoError,
-			serviceClientError:    resourceNoError,
-			ingressClientError:    resourceNoError,
+			configMapError:        mockClient{updateError: errorNew},
+			deploymentClientError: mockClientNoError,
+			serviceClientError:    mockClientNoError,
+			ingressClientError:    mockClientNoError,
 		},
 	},
 	{
@@ -312,10 +312,10 @@ var inferenceEndpointsTestUpdateTemplate = []struct {
 		newServer: inferenceEndpoint,
 		expected:  "ERROR during deployment update",
 		clientErrors: clientError{
-			configMapError:        resourceNoError,
-			deploymentClientError: resourceError{updateError: errorNew},
-			serviceClientError:    resourceNoError,
-			ingressClientError:    resourceNoError,
+			configMapError:        mockClientNoError,
+			deploymentClientError: mockClient{updateError: errorNew},
+			serviceClientError:    mockClientNoError,
+			ingressClientError:    mockClientNoError,
 		},
 	},
 	{
@@ -324,10 +324,10 @@ var inferenceEndpointsTestUpdateTemplate = []struct {
 		newServer: inferenceEndpoint,
 		expected:  "ERROR during service delete",
 		clientErrors: clientError{
-			configMapError:        resourceNoError,
-			deploymentClientError: resourceNoError,
-			serviceClientError:    resourceError{deleteError: errorNew},
-			ingressClientError:    resourceNoError,
+			configMapError:        mockClientNoError,
+			deploymentClientError: mockClientNoError,
+			serviceClientError:    mockClient{deleteError: errorNew},
+			ingressClientError:    mockClientNoError,
 		},
 	},
 	{
@@ -336,10 +336,10 @@ var inferenceEndpointsTestUpdateTemplate = []struct {
 		newServer: inferenceEndpoint,
 		expected:  "ERROR during service create",
 		clientErrors: clientError{
-			configMapError:        resourceNoError,
-			deploymentClientError: resourceNoError,
-			serviceClientError:    resourceError{createError: errorNew},
-			ingressClientError:    resourceNoError,
+			configMapError:        mockClientNoError,
+			deploymentClientError: mockClientNoError,
+			serviceClientError:    mockClient{createError: errorNew},
+			ingressClientError:    mockClientNoError,
 		},
 	},
 	{
@@ -348,10 +348,10 @@ var inferenceEndpointsTestUpdateTemplate = []struct {
 		newServer: inferenceEndpoint,
 		expected:  "ERROR during ingress update",
 		clientErrors: clientError{
-			configMapError:        resourceNoError,
-			deploymentClientError: resourceNoError,
-			serviceClientError:    resourceNoError,
-			ingressClientError:    resourceError{updateError: errorNew},
+			configMapError:        mockClientNoError,
+			deploymentClientError: mockClientNoError,
+			serviceClientError:    mockClientNoError,
+			ingressClientError:    mockClient{updateError: errorNew},
 		},
 	},
 }

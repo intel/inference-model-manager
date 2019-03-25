@@ -1,3 +1,8 @@
 #!/bin/bash
+COVERAGE=`go test -cover | grep -oP '\d{0,2}(\.\d{1,4})?%'`
 
-go test -cover | aws
+if [[ $COVERAGE < 50 ]]; then
+        echo "Coverage is under 50%"
+        exit 1
+fi
+
