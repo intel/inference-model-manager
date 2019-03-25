@@ -39,6 +39,7 @@ jobs:
             mkdir -p /go/src/github.com/IntelAI/inference-model-manager/server-controller
             mv * /go/src/github.com/IntelAI/inference-model-manager/server-controller
             cd /go/src/github.com/IntelAI/inference-model-manager/server-controller
+            chmod +x check_coverage.sh
             dep ensure -v
             make install-linter
             make check-coverage
