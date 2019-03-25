@@ -17,9 +17,10 @@
 
 . ../utils/messages.sh
 . ../utils/wait_for_pod.sh
+RELEASE_NAME="$1-ingress"
 header "Installing ingress controller"
 cd $HELM_TEMP_DIR/ing-subchart
-helm install .
+helm install --name $RELEASE_NAME .
 header "Waiting for ingress controller pod"
 wait_for_pod 60 nginx-ingress-controller ingress-nginx
 cd -

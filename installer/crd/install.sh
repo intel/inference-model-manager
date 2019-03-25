@@ -21,11 +21,12 @@
 header "Installation of CRD Controller"
 DOMAIN_NAME=$1
 USE_HTTPS=$2
+RELEASE_NAME="$3-crd"
 cd $HELM_TEMP_DIR/crd-subchart
 fill_template "<crd_image>" $CRD_IMAGE values.yaml
 fill_template "<crd_tag>" $CRD_TAG values.yaml
 fill_template "<dns_domain_name>" $DOMAIN_NAME values.yaml
 fill_template "<use_https>" $USE_HTTPS values.yaml
-helm install .
+helm install --name $RELEASE_NAME .
 show_result $? "CRD installation completed" "Failed to install CRD"
 cd -

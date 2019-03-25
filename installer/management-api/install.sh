@@ -22,6 +22,7 @@ MINIO_EXTERNAL_URL=$4
 MINIO_REGION=$5
 MINIO_SIGNATURE=$6
 MGT_API_AUTHORIZATION=$7
+RELEASE_NAME="$8-mgt-api"
 
 export MGMT_DOMAIN_NAME=mgt.$DOMAIN_NAME
 export MGT_NAMESPACE=mgt-api
@@ -65,7 +66,7 @@ fill_template "<adminScope>" admin values.yaml
 fill_template "<platformAdmin>" admin values.yaml
 fill_template "<use_mgt_api_authorization>" $MGT_API_AUTHORIZATION values.yaml
 
-helm install .
+helm install --name $RELEASE_NAME .
 show_result $? "Installation of Management API succeded" "Failed to install Management API"
 
 cd -

@@ -17,6 +17,8 @@
 
 . ../utils/messages.sh
 . ../utils/wait_for_pod.sh
+RELEASE_NAME="$1-openldap"
+export LDAP_DOMAIN_NAME="$RELEASE_NAME-imm-openldap.default"
 DIR=`pwd`
 cd $HELM_TEMP_DIR/ldap-subchart/
 header "Installing LDAP"
@@ -24,10 +26,10 @@ cd certs
 ./genereate_ldap_certs.sh
 cd ..
 if [ "$MGT_API_AUTHORIZATION" == "true" ]; then
-helm install --name imm-openldap -f ./customLdifFiles.yaml .
+helm install --name $RELEASE_NAME -f ./customLdifFiles.yaml .
 else
 # use test configuration
-helm install --name imm-openldap -f ../../../tests/deployment/ldap/customLdifFiles.yaml .
+helm install --name $RELEASE_NAME -f ../../../tests/deployment/ldap/customLdifFiles.yaml .
 fi
 show_result $? "LDAP installation succeded" "Failed to install LDAP"
 header "Waiting for ldap to be ready"

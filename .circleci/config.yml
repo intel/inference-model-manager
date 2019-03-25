@@ -291,7 +291,8 @@ jobs:
           command: |
             export PROJECT=`gcloud config get-value project`
             export ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}' -n mgt-api)
-            helm ls --short | xargs -L1 helm --debug delete
+            cd ~/inference-model-manager/installer
+            ./uninstaller.sh -q
             sleep 3m
             kops delete cluster ${CLUSTER_NAME} --yes
             cd ~/inference-model-manager/installer/utils/route53
@@ -306,7 +307,8 @@ jobs:
             export PROJECT=`gcloud config get-value project`
             export ING_IP=$(kubectl get ing -o=jsonpath='{.items[0].status.loadBalancer.ingress..ip}' -n mgt-api)
             sleep 30m
-            helm ls --short | xargs -L1 helm --debug delete
+            cd ~/inference-model-manager/installer
+            ./uninstaller.sh -q
             sleep 3m
             kops delete cluster ${CLUSTER_NAME} --yes
             cd ~/inference-model-manager/installer/utils/route53
@@ -375,16 +377,16 @@ jobs:
           name: Delete cluster on GKE
           when: on_success
           command: |
-            cd ~/inference-model-manager
-            helm ls --short | xargs -L1 helm --debug delete
+            cd ~/inference-model-manager/installer
+            ./uninstaller.sh -q
             sleep 3m
             echo y | gcloud container clusters delete gke-imm-${SHORT_SHA1}-${CIRCLE_BRANCH} --zone us-west1-a
       - run:
           name: Delete cluster on GKE on failed build
           when: on_fail
           command: |
-            cd ~/inference-model-manager
-            helm ls --short | xargs -L1 helm --debug delete
+            cd ~/inference-model-manager/installer
+            ./uninstaller.sh -q
             sleep 3m
             echo y | gcloud container clusters delete gke-imm-${SHORT_SHA1}-${CIRCLE_BRANCH} --zone us-west1-a
 workflows:

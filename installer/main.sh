@@ -24,6 +24,7 @@ MINIO_ACCESS_KEY="${MINIO_ACCESS_KEY:=my_minio_key}"
 MINIO_SECRET_KEY="${MINIO_SECRET_KEY:=my_minio_secret}"
 MINIO_SIGNATURE="${MINIO_SIGNATURE:=s3v4}"
 MINIO_REGION="${MINIO_REGION:=us-east-1}"
+RELEASE_PREFIX="${RELEASE_PREFIX:=imm}"
 
 if [[ -z "${MINIO_URL}" ]]; then
   MINIO_URL="http://minio.$DNS_DOMAIN_NAME"
@@ -90,11 +91,11 @@ if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ] && [ -z "$SKIP_K8S_INSTALLATION" ]; the
 fi
 
 cd ingress
-. install.sh
+. install.sh $RELEASE_PREFIX
 cd ..
 
 cd crd
-. install.sh $DNS_DOMAIN_NAME $USE_HTTPS
+. install.sh $DNS_DOMAIN_NAME $USE_HTTPS $RELEASE_PREFIX
 cd ..
 
 cd dns
@@ -103,16 +104,16 @@ cd ..
 
 if [[ "$INSTALL_MINIO" ]]; then
     cd minio
-    . install.sh $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL
+    . install.sh $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL $RELEASE_PREFIX
     cd ..
 fi
 
 cd ldap
-. install.sh
+. install.sh $RELEASE_PREFIX
 cd ..
 
 cd dex
-. install.sh $ISSUER $DEX_NAMESPACE $DEX_DOMAIN_NAME
+. install.sh $ISSUER $DEX_NAMESPACE $DEX_DOMAIN_NAME $RELEASE_PREFIX
 cd ..
 
 if [ "$MGT_API_AUTHORIZATION" == "false" ]; then
@@ -130,7 +131,7 @@ if [ "$MGT_API_AUTHORIZATION" == "false" ]; then
 fi
 
 cd management-api
-. ./install.sh $DOMAIN_NAME $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL $MINIO_REGION $MINIO_SIGNATURE $MGT_API_AUTHORIZATION
+. ./install.sh $DOMAIN_NAME $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL $MINIO_REGION $MINIO_SIGNATURE $MGT_API_AUTHORIZATION $RELEASE_PREFIX
 show_result $? "Done" "Aborting"
 cd ..
 

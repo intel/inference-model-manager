@@ -1,4 +1,4 @@
 apiVersion: v1
 description: A Helm chart for Kubernetes
-name: crd-subchart
+name: imm-crd-subchart
 version: 0.2.0

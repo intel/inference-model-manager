@@ -29,7 +29,8 @@ export CURL_CA_BUNDLE=`pwd`/ca.pem
 
 
 if [ "$MGT_API_AUTHORIZATION" == "true" ]; then
-  USER_PASSWD=`kubectl get secret imm-openldap-customldif -o yaml|grep immconfig|awk '{ print $2 }'|base64 --decode|grep userpassword|awk '{ print $2 }'`
+  OPENLDAP_SECRET_LDIFF=`kubectl get secret|grep "customldif   "| awk '{ print $1 }'`
+  USER_PASSWD=`kubectl get secret $OPENLDAP_SECRET_LDIFF -o yaml|grep immconfig|awk '{ print $2 }'|base64 --decode|grep userpassword|awk '{ print $2 }'`
   USER_NAME=user@example.com
   export IMM_USER_CREDENTIALS=$USER_NAME:$USER_PASSWD
 fi

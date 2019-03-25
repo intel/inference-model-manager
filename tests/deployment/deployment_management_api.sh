@@ -27,9 +27,9 @@ if [ "$MGMT_INTERNAL_CERTS" = "true" ]; then
     cd $RETURN_DIR
 fi
 kubectl get secret -n dex ca-secret-dex -o yaml | yq r - 'data."ca.crt"' | $B64DECODE > ../../helm-deployment/management-api-subchart/certs/ca-dex.crt
-MINIO_ENDPOINT="minio.default:9000"
+MINIO_ENDPOINT="imm-minio.default:9000"
 MINIO_URL="http://$MINIO_ENDPOINT"
-helm install --set image=$MGMT_IMAGE --set tag=$MGMT_TAG --set platformDomain=$DOMAIN_NAME \
+helm install --name "imm-mgt-api" --set image=$MGMT_IMAGE --set tag=$MGMT_TAG --set platformDomain=$DOMAIN_NAME \
 --set dexExternalURL=dex.${DOMAIN_NAME}:443 --set ingress.hosts=${MGMT_DOMAIN_NAME} \
 --set ingress.tls.hosts=${MGMT_DOMAIN_NAME} --set minio.endpoint=$MINIO_ENDPOINT \
 --set minio.endpointUrl=$MINIO_URL --set minio.accessKey=$MINIO_ACCESS_KEY \

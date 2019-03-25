@@ -49,7 +49,7 @@ For Management-API set environment variables: `MGMT_IMAGE` and `MGMT_TAG`.
 For CRD set environment variables: `CRD_IMAGE` and `CRD_TAG`.
 
 ## Run
-* Required optons:
+* Required options:
   * `-k` - cluster name
   * `-d` - domain name
 * Additional options
@@ -66,6 +66,7 @@ For CRD set environment variables: `CRD_IMAGE` and `CRD_TAG`.
   * `-t`  - set single tenant mode and use Management API authorization instead of Kubernetes authorization
            (use this option if it's not possible to restart kubernetes API, for 
            example in GKE cluster)
+  * `-f` - set release prefix for all releases deployed using the installer (default: imm)
   * `-h/?` - show help
 * Usage examples
   * Installation with `kops` 
@@ -132,3 +133,17 @@ Single Tenant mode will create tenant which will be default tenant to use while 
     ```
       This problem occurs when you run tests outside virtualenv.
       Please check *Install required dependencies* in **Prerequisites** section.
+      
+## Uninstall
+To uninstall platform from kubernetes cluster you can use script:
+```./uninstaller.sh```
+* Additional options:
+  * `-q` - quiet mode
+  * `-f` - release prefix for all releases deployed using installer (default: imm)
+Usage examples
+    uninstaller.sh
+    uninstaller.sh -f <imm_prefix_used_during_installation>
+    uninstaller.sh -q -f <imm_prefix_used_during_installation>
+
+
+
