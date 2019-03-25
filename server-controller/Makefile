@@ -32,7 +32,7 @@ lint:
 	gometalinter --config=lint.json ./apis/...
 
 check-coverage:
-	./ut_coverage.sh
+	./check_coverage.sh
 
 test: lint
 	go test --cover .
