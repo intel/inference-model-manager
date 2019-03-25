@@ -33,7 +33,7 @@ FAILED=$?
 show_result "$FAILED" "Minio storage installed" "Failed to install Minio storage"
 cd -
 cp minio_ing_tmpl.yaml minio_ing.yaml
-fill_template "<minio_external_uri>" $MINIO_EXTERNAL_URL minio_ing.yaml
+fill_template "<minio_external_uri>" $MINIO_EXTERNAL_URI minio_ing.yaml
 fill_template "<minio_service>" $RELEASE_NAME minio_ing.yaml
 kubectl create -f minio_ing.yaml
 FAILED=$?

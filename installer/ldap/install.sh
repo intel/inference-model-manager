@@ -18,7 +18,7 @@
 . ../utils/messages.sh
 . ../utils/wait_for_pod.sh
 RELEASE_NAME="$1-openldap"
-export LDAP_DOMAIN_NAME="$RELEASE_NAME-imm-openldap.default"
+export LDAP_DOMAIN_NAME="$RELEASE_NAME.default"
 DIR=`pwd`
 cd $HELM_TEMP_DIR/ldap-subchart/
 header "Installing LDAP"
