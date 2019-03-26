@@ -2,7 +2,7 @@ version: 2.0
 jobs:
   style_and_unit_tests_mgt_api:
     docker:
-      - image: circleci/python:3.6.6-jessie-browsers
+      - image: circleci/python:3.6.6-browsers
     working_directory: ~/inference-model-manager
     steps:
       - checkout
@@ -39,7 +39,7 @@ jobs:
             mkdir -p /go/src/github.com/IntelAI/inference-model-manager/server-controller
             mv * /go/src/github.com/IntelAI/inference-model-manager/server-controller
             cd /go/src/github.com/IntelAI/inference-model-manager/server-controller
-            chmod +x ./check_coverage.sh
+            sudo apt-get install bc
             dep ensure -v
             make install-linter
             make check-coverage
@@ -47,7 +47,7 @@ jobs:
 
   rebuild_images:
     docker:
-      - image: circleci/python:3.6.6-jessie-browsers
+      - image: circleci/python:3.6.6-browsers
     working_directory: ~/inference-model-manager
     steps:
       - setup_remote_docker
@@ -105,7 +105,7 @@ jobs:
 
   functional_tests:
     docker:
-      - image: circleci/python:3.6.6-jessie-browsers
+      - image: circleci/python:3.6.6-browsers
     working_directory: ~/inference-model-manager
     steps:
       - setup_remote_docker
@@ -320,7 +320,7 @@ jobs:
 
   gke_deployment:
     docker:
-      - image: circleci/python:3.6.6-jessie-browsers
+      - image: circleci/python:3.6.6-browsers
     working_directory: ~/inference-model-manager
     steps:
       - checkout

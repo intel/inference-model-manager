@@ -200,7 +200,7 @@ var inferenceEndpointsTestUpdate = []struct {
 		name:         "No changes detected",
 		oldServer:    inferenceEndpoint,
 		newServer:    inferenceEndpoint,
-		expected:     "Update not required. No changes detected",
+		expected:     "Deployment and ingress update not required. No changes detected",
 		clientErrors: nilClientError,
 	},
 	{

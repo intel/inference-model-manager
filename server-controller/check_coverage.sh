@@ -18,5 +18,5 @@ COVERAGE=`go test -cover | grep -oP '\d{1,3}(\.\d{1,4})?%' | sed 's/\%//g'`
 
 if [ $(echo "${COVERAGE} < 50" | bc) -ne 0 ]; then
         echo "Coverage is under 50%"
-        exit 1
+        return 1
 fi
