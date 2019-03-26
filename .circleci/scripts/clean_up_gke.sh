@@ -14,7 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
+export MGT_API_AUTHORIZATION="true"
+. ~/inference-model-manager/.venv/bin/activate
+cd ~/inference-model-manager/scripts
+. ./prepare_test_env.sh ${DOMAIN_NAME}
+. ./imm_utils.sh
+get_token admin
 export ING_IP=`kubectl get services -n ingress-nginx|grep ingress-nginx|awk '{ print $(NF-2) }'`
 cd ~/inference-model-manager/installer
 ./uninstaller.sh -q

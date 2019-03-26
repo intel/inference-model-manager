@@ -20,11 +20,11 @@ mark_release_to_be_deleted() {
     [[ $CHARTS_LIST =~ (^|[[:space:]])$release_name($|[[:space:]]) ]] && helm_arr+=("$release_name")
 }
 
-IMM_RELEASE_PREFIX="${IMM_RELEASE_PREFIX:=imm}"
+RELEASE_PREFIX="imm"
 
 while getopts "qf:l:" opt; do
     case "$opt" in
-    f)  export IMM_RELEASE_PREFIX=$OPTARG
+    f)  export RELEASE_PREFIX=$OPTARG
         ;;
     q)  quiet="yes"
         ;;
@@ -33,42 +33,77 @@ done
 
 shift $((OPTIND-1))
 
-CHARTS_LIST="$IMM_RELEASE_PREFIX-mgt-api $IMM_RELEASE_PREFIX-crd $IMM_RELEASE_PREFIX-dex $IMM_RELEASE_PREFIX-ingress $IMM_RELEASE_PREFIX-openldap $IMM_RELEASE_PREFIX-minio"
+
+CHARTS_LIST="$RELEASE_PREFIX-mgt-api $RELEASE_PREFIX-crd $RELEASE_PREFIX-dex $RELEASE_PREFIX-ingress $RELEASE_PREFIX-openldap $RELEASE_PREFIX-minio"
 HELM_LS_OUTPUT=`helm ls --output json`
 HELM_LIST=`jq --arg namearg "Releases" '.[$namearg]' <<< $HELM_LS_OUTPUT`
-K8S_NS_OUTPUT=`kubectl get ns --output=json`
-K8S_NS_LIST=`jq --arg namearg "items" '.[$namearg]' <<< $K8S_NS_OUTPUT`
 helm_arr=()
 K8S_NS_ARR=()
 
 cd ../scripts
-./imm -k rm t default-tenant
+LIST_TENANTS_RESPONSE=`./imm ls t`
 
-CERTS_PATH="`pwd`/certs/$IMM_RELEASE_PREFIX"
-echo "Certificates marked to delete:"
-tree $CERTS_PATH
-read -r -p "Do you want to delete certificates? [y/N] " response
-if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
-    rm -rf $CERTS_PATH
-fi
-cd ../installer
-
-while read i; do
-   echo $i
-   RELEASE_NAME=`jq --arg namearg "Name" '.[$namearg]' <<< $i | tr -d '"'`
-   mark_release_to_be_deleted $RELEASE_NAME
-done <<<"$(jq -c '.[]' <<< $HELM_LIST)"
-
-
-echo "Releases marked to be deleted:"
-
-for i in "${helm_arr[@]}"; do echo "$i" ; done
-
-if [[ "$quiet" == "yes" ]]; then
-    for i in "${helm_arr[@]}"; do helm del --debug --purge $i ; done
+if [[ "$LIST_TENANTS_RESPONSE" =~ "Token not valid" ]]; then
+        echo "Uninstallation aborted. Your token is invalid, please log in and try again."
 else
-    read -p "Do you want to delete helm releases listed above Y/n?" DELETE_CHARTS
-    [[ $DELETE_CHARTS != "n" ]] && for i in "${helm_arr[@]}"; do helm del --debug --purge $i ; done
-fi
+    while read i; do
+        RELEASE_NAME=`jq --arg namearg "Name" '.[$namearg]' <<< $i | tr -d '"'`
+        mark_release_to_be_deleted $RELEASE_NAME
+    done <<<"$(jq -c '.[]' <<< $HELM_LIST)"
 
-kubectl delete ing minio-ingress || true
+    [[ $LIST_TENANTS_RESPONSE =~ '['(.*)']' ]] &&
+        tenants=`echo ${BASH_REMATCH[1]} | tr -d "\""`
+    IFS=', ' read -r -a tenants_arr <<< "$tenants"
+
+    if [[ "$quiet" != "yes" ]]; then
+        echo "Uninstalling IMM. Following components will be removed:"
+        echo "*Helm releases:"
+        for release in "${helm_arr[@]}"; do echo "    - $release" ; done
+        echo "*Tenants with theirs resources(models,endpoints etc.):"
+        for tenant in "${tenants_arr[@]}"; do echo "    - $tenant" ; done
+        echo "Are you sure you want to uninstall IMM? y/N"
+        read DELETE_IMM
+    else
+        DELETE_IMM="y"
+    fi
+    if [[ $DELETE_IMM == "y" ]]; then
+        error=0
+        echo "Deleting tenants..."
+        for tenant in "${tenants_arr[@]}"; do
+            DELETE_TENANT_RESULT=`./imm -k rm t $tenant`
+            if [[ !("$DELETE_TENANT_RESULT" =~ "DELETED") ]]; then
+                error=1
+            fi
+            echo $DELETE_TENANT_RESULT
+        done
+
+        if [[ $error == 0 ]]; then
+            echo "Deleting helm releases..."
+            cd ../installer
+            for i in "${helm_arr[@]}"; do
+                HELM_OUTPUT=$((helm del --purge $i) 2>&1)
+                echo $HELM_OUTPUT
+                if [[ $HELM_OUTPUT =~ E|error ]]; then
+                    error=1
+                fi
+            done
+        fi
+
+        if [[ $error == 0 ]]; then
+            echo "Deleting minio-ingress..."
+            KUBECTL_OUTPUT=$((kubectl delete ing minio-ingress) 2>&1)
+            echo $KUBECTL_OUTPUT
+            if [[ $KUBECTL_OUTPUT =~ E|error ]]; then
+                error=1
+            fi
+        fi
+
+        if [[ $error == 0 ]]; then
+            echo "IMM uninstalled successfully."
+        else
+            echo "IMM uninstallation failed. Not all components have been deleted."
+        fi
+    else
+        echo "Quiting uninstaller."
+    fi
+fi
