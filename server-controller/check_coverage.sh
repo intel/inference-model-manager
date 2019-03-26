@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Copyright (c) 2019 Intel Corporation
 #
@@ -13,12 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#!/bin/bash
 
 COVERAGE=`go test -cover | grep -oP '\d{1,3}(\.\d{1,4})?%' | sed 's/\%//g'`
 
 check_coverage() {
-if [ $(echo "$1 < 50" | bc) -ne 0 ]; then
+if [[ $(echo "$1 < 50" | bc) -ne 0 ]]; then
         echo "Coverage is under 50%"
         return 1
 fi

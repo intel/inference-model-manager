@@ -229,7 +229,7 @@ func (c *serverHooks) Update(oldObj, newObj interface{}) {
 	}
 
 	if len(deploymentPatchLines) == 0 && len(ingressPatchLines) == 0 {
-		log.Printf("Deplpdate not required. No changes detected\n")
+		log.Printf("Deployment and ingress update not required. No changes detected\n")
 		return
 	}
 
