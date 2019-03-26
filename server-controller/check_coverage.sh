@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-COVERAGE=`go test -cover | grep -oP '\d{1,3}(\.\d{1,4})?%' | sed 's/\%//g'`
+COVERAGE=`go test -cover | grep -o '[0-9]\{1,3\}.[0-9]\{1,2\}%' | sed 's/\%//g'`
 
 check_coverage() {
 if [[ $(echo "$1 < 50" | bc) -ne 0 ]]; then
