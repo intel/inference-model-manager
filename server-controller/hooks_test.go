@@ -403,7 +403,7 @@ var dataTestPrepareJSONPatchFromMap = []struct {
 		resourcePath:  "",
 	},
 	{
-		name:          "Wrong resource path",
+		name:          "Wrong resource path in fillTemplate",
 		resourceType:  "test",
 		mapPatch:      make([]interface{}, 0),
 		oldData:       map[string]string{"test": "test"},

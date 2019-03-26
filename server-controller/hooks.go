@@ -207,9 +207,7 @@ func (c *serverHooks) Update(oldObj, newObj interface{}) {
 	}
 
 	log.Printf("Check ModelName and ModelVersionPolicy fields.\n")
-	if oldServer.Spec.ModelName != newServer.Spec.ModelName ||
-		oldServer.Spec.ModelVersionPolicy != newServer.Spec.ModelVersionPolicy {
-
+	if oldServer.Spec.ModelName != newServer.Spec.ModelName || oldServer.Spec.ModelVersionPolicy != newServer.Spec.ModelVersionPolicy {
 		ownerRef := metav1.NewControllerRef(oldServer, crv1.GVK)
 		err := c.templates[servingName].configMapClient.Update(oldServer.Namespace(), oldServer.Spec.EndpointName, struct {
 			*crv1.InferenceEndpoint
@@ -231,7 +229,7 @@ func (c *serverHooks) Update(oldObj, newObj interface{}) {
 	}
 
 	if len(deploymentPatchLines) == 0 && len(ingressPatchLines) == 0 {
-		log.Printf("Deployment and ingress update not required. No changes detected\n")
+		log.Printf("Deplpdate not required. No changes detected\n")
 		return
 	}
 
