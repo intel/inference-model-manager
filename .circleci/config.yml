@@ -2,7 +2,7 @@ version: 2.0
 jobs:
   style_and_unit_tests_mgt_api:
     docker:
-      - image: circleci/python:3.6.6-jessie-browsers
+      - image: circleci/python:3.6.6-browsers
     working_directory: ~/inference-model-manager
     steps:
       - checkout
@@ -45,7 +45,7 @@ jobs:
 
   rebuild_images:
     docker:
-      - image: circleci/python:3.6.6-jessie-browsers
+      - image: circleci/python:3.6.6-browsers
     working_directory: ~/inference-model-manager
     steps:
       - setup_remote_docker
@@ -103,7 +103,7 @@ jobs:
 
   functional_tests:
     docker:
-      - image: circleci/python:3.6.6-jessie-browsers
+      - image: circleci/python:3.6.6-browsers
     working_directory: ~/inference-model-manager
     steps:
       - setup_remote_docker
@@ -320,7 +320,7 @@ jobs:
 
   gke_deployment:
     docker:
-      - image: circleci/python:3.6.6-jessie-browsers
+      - image: circleci/python:3.6.6-browsers
     working_directory: ~/inference-model-manager
     steps:
       - checkout
