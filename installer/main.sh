@@ -28,9 +28,9 @@ RELEASE_PREFIX="${RELEASE_PREFIX:=imm}"
 
 if [[ -z "${MINIO_URL}" ]]; then
   MINIO_URL="http://minio.$DNS_DOMAIN_NAME"
-  INSTALL_MINIO=true
+  INSTALL_MINIO="true"
 else
-  INSTALL_MINIO=false
+  INSTALL_MINIO="false"
 fi
 
 if [[ $MINIO_URL =~ ^https ]];
@@ -102,7 +102,7 @@ cd dns
 . setup.sh $DNS_DOMAIN_NAME
 cd ..
 
-if [[ "$INSTALL_MINIO" ]]; then
+if [[ "$INSTALL_MINIO" == "true" ]]; then
     cd minio
     . install.sh $MINIO_ACCESS_KEY $MINIO_SECRET_KEY $MINIO_URL $RELEASE_PREFIX
     cd ..
