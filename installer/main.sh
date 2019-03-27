@@ -146,4 +146,6 @@ if [[ -n $DEFAULT_TENANT_NAME ]]; then
     . default_tenant.sh $DOMAIN_NAME $PROXY
 fi
 
+if [[ ! -n $SKIP_VALIDATION ]]; then
 . validate.sh
+fi
