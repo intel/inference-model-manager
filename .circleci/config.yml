@@ -39,8 +39,10 @@ jobs:
             mkdir -p /go/src/github.com/IntelAI/inference-model-manager/server-controller
             mv * /go/src/github.com/IntelAI/inference-model-manager/server-controller
             cd /go/src/github.com/IntelAI/inference-model-manager/server-controller
+            sudo apt-get install -y bc
             dep ensure -v
             make install-linter
+            make check-coverage
             make test
 
   rebuild_images:
