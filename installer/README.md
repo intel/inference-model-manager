@@ -141,8 +141,9 @@ To uninstall platform from kubernetes cluster you can use script:
   * `-q` - quiet mode
   * `-f` - release prefix for all releases deployed using installer (default: imm)
 Usage examples
+
     uninstaller.sh
-    uninstaller.sh -f <imm_prefix_used_during_installation>
+    uninstaller.sh -f <imm_prefix_used_during_installation>    
     uninstaller.sh -q -f <imm_prefix_used_during_installation>
 
 

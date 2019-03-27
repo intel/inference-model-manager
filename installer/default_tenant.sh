@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Copyright (c) 2019 Intel Corporation
 #
@@ -13,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#!/bin/bash
 
 DOMAIN_NAME=$1
 PROXY=$2
@@ -31,14 +31,16 @@ export TENANT_RESOURCES={}
 cd ../scripts
 . ./imm_utils.sh
 
-EXPECTED="There are no tenants present on platform" 
+EXPECTED="There are no tenants present on platform"
 
-while [[ "$TENANTS" != $EXPECTED ]]; do 
+while [[ "$TENANTS" != $EXPECTED ]]; do
+	    echo $TENANTS
         get_token admin
-        TENANTS=`./imm ls t`; 
+        TENANTS=`./imm ls t`;
+        ./imm ls t
         if [[ "$TENANTS" != $EXPECTED ]]; then
-          echo "IMM not ready";         
-          sleep 5; 
+          echo "IMM not ready";
+          sleep 5;
         fi
 done
 

@@ -15,7 +15,8 @@
 # limitations under the License.
 #
 
-
+IMM_RELEASE_PREFIX="${IMM_RELEASE_PREFIX:=imm}"
+TENANTS_CERTS_DIR=$TENANTS_CERTS_DIR
 export TENANT_NAME="tenanttest"
 export ENDPOINT_NAME="endpointtest"
 export SERVING_NAME="tf-serving"
@@ -30,9 +31,9 @@ export NUMPY_PATH="10_v1_imgs.npy"
 export IMAGE_LIST="images/airliner.jpeg,images/arctic-fox.jpeg,images/bee.jpeg,images/golden_retriever.jpeg,images/gorilla.jpeg,images/magnetic_compass.jpeg,images/peacock.jpeg,images/pelican.jpeg,images/snail.jpeg,images/zebra.jpeg"
 export LABEL_LIST=" airliner, Arctic fox, bee, golden retriever, gorilla, magnetic compass, peacock, pelican, snail, zebra"
 export JPEGS_INFERENCE_ACCURACY=0
-export SERVER_CERT="server-tf.crt"
-export CLIENT_CERT="client-tf.crt"
-export CLIENT_KEY="client-tf.key"
+export SERVER_CERT="$TENANTS_CERTS_DIR/server-tf.crt"
+export CLIENT_CERT="$TENANTS_CERTS_DIR/client-tf.crt"
+export CLIENT_KEY="$TENANTS_CERTS_DIR/client-tf.key"
 export SAVED_MODEL_SRC="https://storage.googleapis.com/inference-eu/models_zoo/resnet_V1_50/saved_model/saved_model.pb"
 export IMAGES_NUMPY_SRC="https://storage.googleapis.com/inference-eu/models_zoo/resnet_V1_50/datasets/10_v1_imgs.npy"
 
