@@ -22,5 +22,5 @@ def get_logger(name):
     logger = logging.getLogger(name)
     logging_level = os.getenv('LOG_LEVEL', 'INFO')
     logger.setLevel(logging_level)
-    logging.basicConfig(level=logging_level)
+    logging.basicConfig(level=logging_level, format='%(asctime)s %(levelname)s %(message)s')
     return logger
