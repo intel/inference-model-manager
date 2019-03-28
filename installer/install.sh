@@ -33,7 +33,7 @@ domain=""
 gce_zone="us-west1"
 quiet="no"
 
-while getopts "h?qsk:d:z:g:p:f:A:S:U:V:R:t" opt; do
+while getopts "h?qsvtk:d:z:g:p:f:A:S:U:V:R:" opt; do
     case "$opt" in
     h|\?)
         show_help
@@ -67,6 +67,8 @@ while getopts "h?qsk:d:z:g:p:f:A:S:U:V:R:t" opt; do
         ;;
     t)  export MGT_API_AUTHORIZATION="true"
         export DEFAULT_TENANT_NAME="default-tenant"
+        ;;
+    v)  export SKIP_VALIDATION="true"
         ;;
     esac
 done
