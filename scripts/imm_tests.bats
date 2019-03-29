@@ -53,6 +53,13 @@ get_inference_accuracy(){
 }
 
 
+echo "Test echo of SERVER CERT PATH"
+echo $SERVER_CERT
+echo "Test echo of CLIENT CERT PATH"
+echo $CLIENT_CERT
+echo "Test echo of CLIENT KEY PATH"
+echo $CLIENT_KEY
+
 [[ ! -f ${MODEL_PATH} ]] && echo "Downloading model" && wget https://storage.googleapis.com/inference-eu/models_zoo/resnet_V1_50/saved_model/saved_model.pb
 [[ ! -f ${NUMPY_PATH} ]] && echo "Downloading numpy images" && wget https://storage.googleapis.com/inference-eu/models_zoo/resnet_V1_50/datasets/10_v1_imgs.npy
 

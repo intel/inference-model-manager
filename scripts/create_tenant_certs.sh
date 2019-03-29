@@ -18,6 +18,4 @@
 TENANT_NAME=$1
 export TENANT_CERTS_DIR=`pwd`/certs/$IMM_RELEASE_PREFIX/$TENANT_NAME
 . ./generate_certs.sh $TENANT_CERTS_DIR
-echo "Test echo of CERT"
-echo $CERT
 cd -
