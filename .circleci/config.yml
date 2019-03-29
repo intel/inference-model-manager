@@ -262,7 +262,7 @@ jobs:
             cd ~/inference-model-manager/scripts
             . ./imm_utils.sh
             get_token admin
-            while [[ "$TENANTS" != "There are no tenants present on platform" ]]; do TENANTS=`./imm ls t`; sleep 5; done
+            while [[ "$TENANTS" != '{"status": "OK", "data": {"tenants": []}}' ]]; do TENANTS=`./imm ls t`; sleep 5; done
           no_output_timeout: 10m
       - run:
           name: Run imm test
