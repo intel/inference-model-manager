@@ -16,7 +16,6 @@
 #
 
 IMM_RELEASE_PREFIX="${IMM_RELEASE_PREFIX:=imm}"
-TENANT_CERTS_DIR=$TENANT_CERTS_DIR
 export TENANT_NAME="tenanttest"
 export ENDPOINT_NAME="endpointtest"
 export SERVING_NAME="tf-serving"
@@ -31,6 +30,7 @@ export NUMPY_PATH="10_v1_imgs.npy"
 export IMAGE_LIST="images/airliner.jpeg,images/arctic-fox.jpeg,images/bee.jpeg,images/golden_retriever.jpeg,images/gorilla.jpeg,images/magnetic_compass.jpeg,images/peacock.jpeg,images/pelican.jpeg,images/snail.jpeg,images/zebra.jpeg"
 export LABEL_LIST=" airliner, Arctic fox, bee, golden retriever, gorilla, magnetic compass, peacock, pelican, snail, zebra"
 export JPEGS_INFERENCE_ACCURACY=0
+TENANT_CERTS_DIR="${TENANT_CERTS_DIR:=`pwd`/certs/$IMM_RELEASE_PREFIX/$TENANT_NAME}"
 export SERVER_CERT="$TENANT_CERTS_DIR/server-tf.crt"
 export CLIENT_CERT="$TENANT_CERTS_DIR/client-tf.crt"
 export CLIENT_KEY="$TENANT_CERTS_DIR/client-tf.key"

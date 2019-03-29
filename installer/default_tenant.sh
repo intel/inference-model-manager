@@ -37,7 +37,6 @@ while [[ "$TENANTS" != $EXPECTED ]]; do
 	    echo $TENANTS
         get_token admin
         TENANTS=`./imm ls t`;
-        ./imm ls t
         if [[ "$TENANTS" != $EXPECTED ]]; then
           echo "IMM not ready";
           sleep 5;
