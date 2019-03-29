@@ -15,6 +15,7 @@
 #
 
 import falcon
+import json
 from falcon.media.validators import jsonschema
 
 from management_api.tenants.tenants_utils import list_tenants, create_tenant, delete_tenant
@@ -30,7 +31,7 @@ class Tenants(object):
         logger.info("List tenants")
         tenants = list_tenants(id_token=req.params['Authorization'])
         resp.status = falcon.HTTP_200
-        resp.body = tenants
+        resp.body = json.dumps({'status': 'OK', 'data': {'tenants': tenants}})
 
     @jsonschema.validate(tenant_post_schema)
     def on_post(self, req, resp):
@@ -40,11 +41,11 @@ class Tenants(object):
         body = req.media
         name = create_tenant(parameters=body, id_token=req.params['Authorization'])
         resp.status = falcon.HTTP_200
-        resp.body = f'Tenant {name} created\n'
+        resp.body = json.dumps({'status': 'CREATED', 'data': {'name': name}})
 
     @jsonschema.validate(tenant_delete_schema)
     def on_delete(self, req, resp):
         body = req.media
         name = delete_tenant(parameters=body, id_token=req.params['Authorization'])
         resp.status = falcon.HTTP_200
-        resp.body = f'Tenant {name} deleted\n'
+        resp.body = json.dumps({'status': 'DELETED', 'data': {'name': name}})

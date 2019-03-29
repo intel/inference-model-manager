@@ -41,7 +41,7 @@ def test_create_tenant(function_context, minio_client, api_instance, rbac_api_in
     response = requests.post(url, data=data, headers=ADMIN_HEADERS)
     function_context.add_object(object_type='tenant', object_to_delete={'name': TENANT_NAME})
 
-    assert response.text == 'Tenant {} created\n'.format(TENANT_NAME)
+    assert {'status': 'CREATED', 'data': {'name': TENANT_NAME}} == json.loads(response.text)
     assert response.status_code == 200
     assert check_namespace_availability(api_instance,
                                         namespace=TENANT_NAME) == CheckResult.RESOURCE_AVAILABLE
@@ -175,7 +175,7 @@ def test_delete_tenant(minio_client, api_instance):
         'name': new_tenant_name,
     })
     response = requests.delete(url, data=data, headers=ADMIN_HEADERS)
-    assert response.text == 'Tenant {} deleted\n'.format(new_tenant_name)
+    assert {'status': 'DELETED', 'data': {'name': new_tenant_name}} == json.loads(response.text)
     assert response.status_code == 200
 
     assert check_bucket_existence(
@@ -190,5 +190,5 @@ def test_list_tenants(session_tenant):
     namespace, _ = session_tenant
     url = TENANTS_MANAGEMENT_API_URL
     response = requests.get(url, headers=ADMIN_HEADERS)
-    assert f"Tenants present on platform: ['{namespace}']" in response.text
+    assert {'status': 'OK', 'data': {'tenants': namespace}} == json.loads(response.text)
     assert response.status_code == 200

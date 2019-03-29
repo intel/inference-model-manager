@@ -22,8 +22,7 @@ from urllib.parse import urlparse
 from jwt import JWT
 from falcon.media.validators import jsonschema
 
-from management_api.config import AuthParameters
-from management_api.config import USE_SERVICE_ACCOUNT, SERVICE_ACCOUNT_TOKEN_FILE
+from management_api.config import AuthParameters, USE_SERVICE_ACCOUNT, SERVICE_ACCOUNT_TOKEN_FILE
 from management_api.authenticate.auth_controller import get_auth_controller_url, get_token,\
     get_keys_from_dex
 from management_api.utils.logger import get_logger

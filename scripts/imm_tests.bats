@@ -169,7 +169,7 @@ get_inference_accuracy(){
 
 @test "Delete tenant" {
     response="$(./imm rm t ${TENANT_NAME})"
-    grep -E "${TENANT_NAME} deleted" <<< $response
+    grep -E "DELETED" <<< $response
 }
 
 @test "List tenants after removal" {
