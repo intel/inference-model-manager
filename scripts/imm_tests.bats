@@ -52,14 +52,6 @@ get_inference_accuracy(){
     echo "${JPEGS_INFERENCE_ACCURACY}"
 }
 
-
-echo "Test echo of SERVER CERT PATH"
-echo $SERVER_CERT
-echo "Test echo of CLIENT CERT PATH"
-echo $CLIENT_CERT
-echo "Test echo of CLIENT KEY PATH"
-echo $CLIENT_KEY
-
 [[ ! -f ${MODEL_PATH} ]] && echo "Downloading model" && wget https://storage.googleapis.com/inference-eu/models_zoo/resnet_V1_50/saved_model/saved_model.pb
 [[ ! -f ${NUMPY_PATH} ]] && echo "Downloading numpy images" && wget https://storage.googleapis.com/inference-eu/models_zoo/resnet_V1_50/datasets/10_v1_imgs.npy
 
@@ -113,7 +105,7 @@ echo $CLIENT_KEY
 }
 
 @test "Check if endpoint is up and running" {
-    sleep 20
+    sleep 60
     run bash -c "./get_cert.sh ${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME} ${DOMAIN_NAME} ${PROXY} > ${SERVER_CERT}"
     cat $SERVER_CERT
     while [[ ! $status =~ 'AVAILABLE' ]]; do sleep 5; status="$(./imm g ms ${ENDPOINT_NAME}-${TENANT_NAME}.${DOMAIN_NAME}:443 ${MODEL_NAME} ${SERVER_CERT} ${CLIENT_CERT} ${CLIENT_KEY})"; done
