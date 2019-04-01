@@ -190,5 +190,5 @@ def test_list_tenants(session_tenant):
     namespace, _ = session_tenant
     url = TENANTS_MANAGEMENT_API_URL
     response = requests.get(url, headers=ADMIN_HEADERS)
-    assert {'status': 'OK', 'data': {'tenants': namespace}} == json.loads(response.text)
+    assert {'status': 'OK', 'data': {'tenants': [namespace]}} == json.loads(response.text)
     assert response.status_code == 200

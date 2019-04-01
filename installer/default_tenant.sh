@@ -44,5 +44,5 @@ done
 
 response=`yes | ./imm create t $DEFAULT_TENANT_NAME $SCOPE`
 echo $response
-[[ $response =~ "Tenant $DEFAULT_TENANT_NAME created" ]] && success "Successfully created default tenant $DEFAULT_TENANT_NAME" || failure "Failed to create default tenant $DEFAULT_TENANT_NAME"
+[[ $response =~ '{"status": "CREATED", "data": {"name": "'""$DEFAULT_TENANT_NAME'"}}' ]] && success "Successfully created default tenant $DEFAULT_TENANT_NAME" || failure "Failed to create default tenant $DEFAULT_TENANT_NAME"
 cd -
