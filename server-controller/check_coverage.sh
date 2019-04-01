@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,4 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-helm install --name "imm-ingress" ../../helm-deployment/ing-subchart/
+
+COVERAGE=`go test -cover | grep -o '[0-9]\{1,3\}.[0-9]\{1,2\}%' | sed 's/\%//g'`
+
+check_coverage() {
+if [[ $(echo "$1 < 50" | bc) -ne 0 ]]; then
+        echo "Coverage is under 50%"
+        return 1
+fi
+}
+
+check_coverage $COVERAGE

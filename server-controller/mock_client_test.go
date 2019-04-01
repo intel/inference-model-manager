@@ -25,11 +25,14 @@ import (
 )
 
 type mockClient struct {
-	err error
+	createError error
+	patchError  error
+	updateError error
+	deleteError error
 }
 
-func newMockClient(err error) resource.Client {
-	return &mockClient{err}
+func newMockClient(err mockClient) resource.Client {
+	return &err
 }
 
 func (*mockClient) Reify(templateValues interface{}) ([]byte, error) {
@@ -37,19 +40,19 @@ func (*mockClient) Reify(templateValues interface{}) ([]byte, error) {
 }
 
 func (c *mockClient) Create(namespace string, templateValues interface{}) error {
-	return c.err
+	return c.createError
 }
 
-func (*mockClient) Delete(namespace string, name string) error {
-	return nil
+func (c *mockClient) Delete(namespace string, name string) error {
+	return c.deleteError
 }
 
-func (*mockClient) Update(namespace string, name string, templateValues interface{}) error {
-	return nil
+func (c *mockClient) Update(namespace string, name string, templateValues interface{}) error {
+	return c.updateError
 }
 
-func (*mockClient) Patch(namespace string, name string, data []byte) error {
-	return nil
+func (c *mockClient) Patch(namespace string, name string, data []byte) error {
+	return c.patchError
 }
 
 func (*mockClient) Get(namespace, name string) (runtime.Object, error) {

@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,5 +15,10 @@
 # limitations under the License.
 #
 
-helm dep up ../../helm-deployment/minio-subchart/
-helm install --name "imm-minio" --set minio.accessKey=$MINIO_ACCESS_KEY --set minio.secretKey=$MINIO_SECRET_KEY ../../helm-deployment/minio-subchart/
+export ING_IP=`kubectl get services -n ingress-nginx|grep ingress-nginx|awk '{ print $(NF-2) }'`
+cd ~/inference-model-manager/installer
+./uninstaller.sh -q
+sleep 3m
+echo y | gcloud container clusters delete gke-imm-${SHORT_SHA1}-${CIRCLE_BRANCH} --zone us-west1-a
+cd ~/inference-model-manager/installer/utils/route53
+./apply.sh DELETE ${ING_IP} ${DOMAIN_NAME}

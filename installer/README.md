@@ -67,6 +67,7 @@ For CRD set environment variables: `CRD_IMAGE` and `CRD_TAG`.
            (use this option if it's not possible to restart kubernetes API, for 
            example in GKE cluster)
   * `-f` - set release prefix for all releases deployed using the installer (default: imm)
+  * `-v` - disable validation at the end of installer
   * `-h/?` - show help
 * Usage examples
   * Installation with `kops` 
@@ -79,8 +80,8 @@ For CRD set environment variables: `CRD_IMAGE` and `CRD_TAG`.
   * `./install.sh -k <name> -d <domain> -s -q -p <proxy_address:port> -A <minio_access_key> -S <minio_secret_key>`
   * Installation on existing GKE kubernetes cluster in single tenant mode
   * `./install.sh -d <domain> -s -t`
-  * Installation on existing kubernetes cluster using AWS S3:
-  `./install.sh -d <domain> -s -A <minio_access_key> -S <minio_secret_key> -R us-east-1 -U https://s3.amazonaws.com`
+  * Installation on existing kubernetes cluster using AWS S3 without validation at the end:
+  `./install.sh -d <domain> -s -A <minio_access_key> -S <minio_secret_key> -R us-east-1 -U https://s3.amazonaws.com -v`
 ### Update DNS records for new domain
 #### Using AWS Route53
 * set up [awscli](https://aws.amazon.com/cli/)

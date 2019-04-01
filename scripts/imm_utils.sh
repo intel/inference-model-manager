@@ -15,7 +15,8 @@
 # limitations under the License.
 #
 
-IMM_CONFIG_PATH=~/.immconfig
+DEFAULT_CFG_FILE=~/.immconfig
+IMM_CONFIG_PATH=${IMM_CONFIG_PATH:=${DEFAULT_CFG_FILE}}
 
 get_token() {
 	user=$1

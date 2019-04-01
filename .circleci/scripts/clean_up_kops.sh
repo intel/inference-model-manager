@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,4 +15,12 @@
 # limitations under the License.
 #
 
-helm install --name "imm-crd" --set image=$CRD_IMAGE --set tag=$CRD_TAG --set platformDomain=$DOMAIN_NAME --set s3_use_https=0 ../../helm-deployment/crd-subchart/
+export ING_IP=`kubectl get services -n ingress-nginx|grep ingress-nginx|awk '{ print $(NF-2) }'`
+cd ~/inference-model-manager/installer
+./uninstaller.sh -q
+sleep 3m
+kops delete cluster ${CLUSTER_NAME} --yes
+cd ~/inference-model-manager/installer/utils/route53
+. ~/inference-model-manager/.venv/bin/activate
+./apply.sh DELETE ${ING_IP} ${DOMAIN_NAME}
+deactivate

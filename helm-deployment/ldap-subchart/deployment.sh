@@ -17,4 +17,4 @@
 cd certs
 ./genereate_ldap_certs.sh
 cd ..
-helm install --name imm-openldap -f ../../tests/deployment/ldap/customLdifFiles.yaml .
+helm install --name imm-openldap -f ../../installer/ldap/customLdifFiles.yaml .

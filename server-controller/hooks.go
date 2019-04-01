@@ -207,8 +207,7 @@ func (c *serverHooks) Update(oldObj, newObj interface{}) {
 	}
 
 	log.Printf("Check ModelName and ModelVersionPolicy fields.\n")
-	if oldServer.Spec.ModelName != newServer.Spec.ModelName ||
-		oldServer.Spec.ModelVersionPolicy != newServer.Spec.ModelVersionPolicy {
+	if oldServer.Spec.ModelName != newServer.Spec.ModelName || oldServer.Spec.ModelVersionPolicy != newServer.Spec.ModelVersionPolicy {
 		ownerRef := metav1.NewControllerRef(oldServer, crv1.GVK)
 		err := c.templates[servingName].configMapClient.Update(oldServer.Namespace(), oldServer.Spec.EndpointName, struct {
 			*crv1.InferenceEndpoint
@@ -230,7 +229,7 @@ func (c *serverHooks) Update(oldObj, newObj interface{}) {
 	}
 
 	if len(deploymentPatchLines) == 0 && len(ingressPatchLines) == 0 {
-		log.Printf("Update not required. No changes detected\n")
+		log.Printf("Deployment and ingress update not required. No changes detected\n")
 		return
 	}
 
@@ -244,9 +243,10 @@ func (c *serverHooks) Update(oldObj, newObj interface{}) {
 		log.Printf("JsonPatch which will be applied: %s\n", string(patchBytes))
 		err = c.templates[servingName].deploymentClient.Patch(oldServer.Namespace(), oldServer.Spec.EndpointName, patchBytes)
 		if err != nil {
-			log.Printf("ERROR during update operation %v\n", err.Error())
+			log.Printf("ERROR during deployment update operation %v\n", err.Error())
 			return
 		}
+		log.Printf("Deployment updated successfully.\n")
 
 	}
 
@@ -260,9 +260,10 @@ func (c *serverHooks) Update(oldObj, newObj interface{}) {
 		log.Printf("JsonPatch which will be applied: %s\n", string(patchBytes))
 		err = c.templates[servingName].ingressClient.Patch(oldServer.Namespace(), oldServer.Spec.EndpointName, patchBytes)
 		if err != nil {
-			log.Printf("ERROR during update operation %v\n", err.Error())
+			log.Printf("ERROR during ingress update operation %v\n", err.Error())
 			return
 		}
+		log.Printf("Ingress updated successfully.\n")
 	}
 	log.Printf("Server %v updated successfully\n", oldServer.ObjectMeta.SelfLink)
 }
@@ -403,7 +404,6 @@ func prepareJSONPatchFromMap(resourceType string, mapPatch []interface{}, oldDat
 
 	}
 	return mapPatch, nil
-
 }
 
 func fillTemplate(templateToFill string, data patchData) (string, error) {
