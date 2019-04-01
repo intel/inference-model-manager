@@ -144,16 +144,22 @@ jobs:
             pip install -q -r ~/inference-model-manager/scripts/requirements.txt
             pip install -q awscli --upgrade
       - run:
-          name: Install required dependencies to install platform using Kops
+          name: Install required dependencies to install platform using Kops and login to Gcloud
           command: |
             cd ~/inference-model-manager/.circleci/scripts
             ./prepare_host.sh
+            echo "${GOOGLE_IMM_KEY}" | base64 -d > /tmp/gcp-key.json
+            export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
+            echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+            curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+            sudo apt-get update && sudo apt-get install -y google-cloud-sdk
+            gcloud auth activate-service-account --key-file /tmp/gcp-key.json
+            gcloud config set project "${GOOGLE_PROJECT_ID}"
       - run:
           name: Deploy platform (including Kops cluster creation)
           command: |
             cd ~/inference-model-manager/
             . ~/inference-model-manager/.venv/bin/activate
-            echo "${GOOGLE_IMM_KEY}" | base64 -d > /tmp/gcp-key.json
             export PROJECT=`gcloud config get-value project`
             export MGMT_TAG=$(find management/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
             export CRD_TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
