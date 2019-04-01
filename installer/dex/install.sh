@@ -31,7 +31,7 @@ cp ../../ldap-subchart/certs/ca.crt ./ldap.ca
 cd -
 
 header "Installing DEX"
-cp ../../tests/deployment/dex_config.yaml ./
+cp ../configs/test_dex_config.yaml dex_config.yaml
 export OPENLDAP_SVC=`kubectl get svc|grep "openldap   "| awk '{ print $1 }'`
 export OPENLDAP_SVC_ADDRESS="$OPENLDAP_SVC.default:636"
 fill_template toreplacedbyissuer $ISSUER dex_config.yaml

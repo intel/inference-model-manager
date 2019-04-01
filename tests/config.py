@@ -94,9 +94,17 @@ USER2_HEADERS = {
 
 CERT = os.environ.get('CERT', 'WRONG_CERT')
 
-CERT_BAD_CLIENT = "../helm-deployment/management-api-subchart/certs/bad-client.crt"
-CERT_BAD_CLIENT_KEY = "../helm-deployment/management-api-subchart/certs/bad-client.key"
-CERT_CLIENT = "../helm-deployment/management-api-subchart/certs/client-tf.crt"
-CERT_CLIENT_KEY = "../helm-deployment/management-api-subchart/certs/client-tf.key"
-CERT_SERVER = "../helm-deployment/management-api-subchart/certs/server-tf.crt"
-CERT_SERVER_KEY = "../helm-deployment/management-api-subchart/certs/server-tf.key"
+CERT_BAD_CLIENT = os.environ.get("CERT_BAD_CLIENT", "../helm-deployment/management-api-subchart/"
+                                                    "certs/bad-client.crt")
+CERT_BAD_CLIENT_KEY = os.environ.get("CERT_BAD_CLIENT_KEY", "../helm-deployment/"
+                                                            "management-api-subchart/certs/"
+                                                            "bad-client.key")
+CERT_CLIENT = os.environ.get("CERT_CLIENT", "../helm-deployment/management-api-subchart/certs/"
+                                            "client-tf.crt")
+CERT_CLIENT_KEY = os.environ.get("CERT_CLIENT_KEY", "../helm-deployment/"
+                                                    "management-api-subchart/certs/"
+                                                    "client-tf.key")
+CERT_SERVER = os.environ.get("CERT_SERVER", "../helm-deployment/management-api-subchart/certs/"
+                                            "server-tf.crt")
+CERT_SERVER_KEY = os.environ.get("CERT_SERVER", "../helm-deployment/management-api-subchart/"
+                                                "certs/server-tf.key")

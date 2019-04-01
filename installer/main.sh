@@ -117,13 +117,13 @@ cd dex
 cd ..
 
 if [ "$MGT_API_AUTHORIZATION" == "false" ]; then
-        if [ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ] && [ ! -z "$SKIP_K8S_INSTALLATION" ]; then
+        if [[ ! -z "$DESIRED_KOPS_CLUSTER_NAME" ]] && [[ -z "$SKIP_K8S_INSTALLATION" ]]; then
                 cd k8s
                 . ./restart_k8sapi.sh $DESIRED_KOPS_CLUSTER_NAME $ISSUER $DEX_NAMESPACE
                 cd ..
         else
                 cd k8s
-                DEX_CA=`./get_ing_ca_cert.sh`
+                DEX_CA=`./get_ing_ca_crt.sh`
                 action_required "Please restart K8S API with OIDC config:\n oidcIssuerURL: $ISSUER: \noidcCA: $DEX_CA\noidcClientID: example-app\noidcGroupsClaim: groups\noidcUsernameClaim: email"
                 read -p "Press [ENTER] when ready"
                 cd -
@@ -148,4 +148,6 @@ fi
 
 if [[ ! -n $SKIP_VALIDATION ]]; then
 . validate.sh
+else
+    success "If you want to run tests please run:\n . ./prepare_test_env.sh $DOMAIN_NAME $PROXY\n . validate.sh\n"
 fi
