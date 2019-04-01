@@ -32,7 +32,6 @@ kops_env=""
 domain=""
 gce_zone="us-west1"
 quiet="no"
-imm_release_prefix="imm"
 
 while getopts "h?qsk:d:z:g:p:f:A:S:U:V:R:t" opt; do
     case "$opt" in
@@ -54,7 +53,7 @@ while getopts "h?qsk:d:z:g:p:f:A:S:U:V:R:t" opt; do
         ;;
     p)  export PROXY=$OPTARG
         ;;
-    f)  imm_release_prefix=$OPTARG
+    f)  IMM_RELEASE_PREFIX=$OPTARG
         ;;
     A)  export MINIO_ACCESS_KEY=$OPTARG
         ;;
@@ -82,6 +81,5 @@ if [[ "$quiet" == "yes" ]]; then
     FILTER_CMD="grep --color=none '[[:cntrl:]]'"
 fi
 
-export IMM_RELEASE_PREFIX=$imm_release_prefix
+export IMM_RELEASE_PREFIX="${IMM_RELEASE_PREFIX:=imm}"
 unbuffer ./main.sh "$kops_env" "$domain" "$gce_zone" 2>&1 | tee install.log | ${FILTER_CMD}
-

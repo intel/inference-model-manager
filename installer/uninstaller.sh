@@ -44,7 +44,14 @@ K8S_NS_ARR=()
 
 cd ../scripts
 ./imm -k rm t default-tenant
-rm -rf ./certs/$IMM_RELEASE_PREFIX
+
+CERTS_PATH="`pwd`/certs/$IMM_RELEASE_PREFIX"
+echo "Certificates marked to delete:"
+tree $CERTS_PATH
+read -r -p "Do you want to delete certificates? [Y/n] " response
+if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
+    rm -rf $CERTS_PATH
+fi
 cd ../installer
 
 while read i; do

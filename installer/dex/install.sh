@@ -20,7 +20,7 @@
 export ISSUER=$1
 export DEX_NAMESPACE=$2
 export DEX_DOMAIN_NAME=$3
-RELEASE_NAME="$4-dex"
+RELEASE_NAME="$IMM_RELEASE_PREFIX-dex"
 header "Generating certificates for DEX"
 cp ../certs/dex-ing-ca.yaml $HELM_TEMP_DIR/dex-subchart/templates/
 cd $HELM_TEMP_DIR/dex-subchart/certs

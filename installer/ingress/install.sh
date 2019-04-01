@@ -17,7 +17,7 @@
 
 . ../utils/messages.sh
 . ../utils/wait_for_pod.sh
-RELEASE_NAME="$1-ingress"
+RELEASE_NAME="$IMM_RELEASE_PREFIX-ingress"
 header "Installing ingress controller"
 cd $HELM_TEMP_DIR/ing-subchart
 helm install --name $RELEASE_NAME .
