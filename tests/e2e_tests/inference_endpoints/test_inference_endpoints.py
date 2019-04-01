@@ -171,11 +171,13 @@ def test_create_endpoint(model_name, endpoint_name):
         'servingName': 'tf-serving',
     }
     endpoint_response = create_endpoint(params)
-    assert "created" in endpoint_response.text
+    endpoint_url = get_url_from_response(endpoint_response)
+    assert {'status': 'CREATED', 'data': {'endpoint': endpoint_url}} \
+           in json.loads(endpoint_response.text)
     assert endpoint_response.status_code == 200
     running, pod_name = wait_endpoint_setup()
     assert running is True
-    endpoint_info.info = get_url_from_response(endpoint_response)
+    endpoint_info.info = endpoint_url
     endpoint_info.pod_name = pod_name
     subject_name = get_ingress_subject_name(endpoint_name, TENANT_NAME)
     assert subject_name == 'CN=client'
@@ -256,7 +258,9 @@ def test_prediction_batch_with_certificates():
 def test_update_version_policy():
     params = {'modelVersionPolicy': UPDATE_ENDPOINT_VP}
     endpoint_response = update_endpoint(params)
-    assert "patched" in endpoint_response.text
+    endpoint_url = get_url_from_response(endpoint_response)
+    assert {'status': 'PATCHED', 'data': {'endpoint': endpoint_url, 'values': params}} \
+           in json.loads(endpoint_response.text)
     assert endpoint_response.status_code == 200
     time.sleep(10)
     running, pod_name = wait_endpoint_setup()
@@ -385,6 +389,5 @@ def test_remove_tenant():
 
 
 def get_url_from_response(endpoint_response):
-    res = endpoint_response.text.replace('Endpoint created\n ', '').replace('\'', '\"')
-    url = json.loads(res)['url']
+    url = json.loads(endpoint_response.text)['data']['url']
     return url
