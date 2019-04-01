@@ -33,7 +33,6 @@ done
 
 shift $((OPTIND-1))
 
-
 CHARTS_LIST="$IMM_RELEASE_PREFIX-mgt-api $IMM_RELEASE_PREFIX-crd $IMM_RELEASE_PREFIX-dex $IMM_RELEASE_PREFIX-ingress $IMM_RELEASE_PREFIX-openldap $IMM_RELEASE_PREFIX-minio"
 HELM_LS_OUTPUT=`helm ls --output json`
 HELM_LIST=`jq --arg namearg "Releases" '.[$namearg]' <<< $HELM_LS_OUTPUT`
@@ -48,7 +47,7 @@ cd ../scripts
 CERTS_PATH="`pwd`/certs/$IMM_RELEASE_PREFIX"
 echo "Certificates marked to delete:"
 tree $CERTS_PATH
-read -r -p "Do you want to delete certificates? [Y/n] " response
+read -r -p "Do you want to delete certificates? [y/N] " response
 if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
     rm -rf $CERTS_PATH
 fi

@@ -31,7 +31,7 @@ export TENANT_RESOURCES={}
 cd ../scripts
 . ./imm_utils.sh
 
-EXPECTED='{"status": "OK", "data": {"tenants": []}}'
+EXPECTED="There are no tenants present on platform"
 
 while [[ "$TENANTS" != $EXPECTED ]]; do
 	    echo $TENANTS
