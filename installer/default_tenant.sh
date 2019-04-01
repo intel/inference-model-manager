@@ -31,7 +31,7 @@ export TENANT_RESOURCES={}
 cd ../scripts
 . ./imm_utils.sh
 
-EXPECTED="There are no tenants present on platform" 
+EXPECTED='{"status": "OK", "data": {"tenants": []}}'
 
 while [[ "$TENANTS" != $EXPECTED ]]; do 
         get_token admin
@@ -44,5 +44,5 @@ done
 
 response=`yes | ./imm create t $DEFAULT_TENANT_NAME $SCOPE`
 echo $response
-[[ $response =~ "Tenant $DEFAULT_TENANT_NAME created" ]] && success "Successfully created default tenant $DEFAULT_TENANT_NAME" || failure "Failed to create default tenant $DEFAULT_TENANT_NAME"
+[[ $response =~ '{"status": "CREATED", "data": {"name": "'""$DEFAULT_TENANT_NAME'"}}' ]] && success "Successfully created default tenant $DEFAULT_TENANT_NAME" || failure "Failed to create default tenant $DEFAULT_TENANT_NAME"
 cd -

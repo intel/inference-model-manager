@@ -69,7 +69,7 @@ RPC_TIMEOUT = 30
 
 def test_create_tenant():
     tenant_response = create_tenant()
-    assert tenant_response.text == 'Tenant {} created\n'.format(TENANT_NAME)
+    assert {'status': 'CREATED', 'data': {'name': TENANT_NAME}} == json.loads(tenant_response.text)
     assert tenant_response.status_code == 200
     time.sleep(30)
 
