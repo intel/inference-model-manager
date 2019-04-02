@@ -62,7 +62,6 @@ else
         for release in "${helm_arr[@]}"; do echo "    - $release" ; done
         echo "*Tenants with theirs resources(models,endpoints etc.):"
         for tenant in "${tenants_arr[@]}"; do echo "    - $tenant" ; done
-        echo "*Certificates under $CERTS_PATH"
         echo "Are you sure you want to uninstall IMM? y/N"
         read DELETE_IMM
     else
@@ -100,11 +99,19 @@ else
             fi
         fi
         if [[ $error == 0 ]]; then
-            echo "Deleting certificates..."
-            CERT_RM_OUTPUT=$((rm -rf $CERTS_PATH) 2>&1)
-            echo $CERT_RM_OUTPUT
-            if [[ $CERT_RM_OUTPUT =~ E|error ]]; then
-                error=1
+            if [[ "$quiet" != "yes" ]]; then
+                echo "Do you want to delete certificates under $CERTS_PATH? y/N"
+                read DELETE_CERTS
+            else
+                DELETE_CERTS="y"
+            fi
+            if [[ $DELETE_CERTS == "y" ]]; then
+                echo "Deleting certificates..."
+                CERT_RM_OUTPUT=$((rm -rf $CERTS_PATH) 2>&1)
+                echo $CERT_RM_OUTPUT
+                if [[ $CERT_RM_OUTPUT =~ E|error ]]; then
+                    error=1
+                fi
             fi
         fi
 
