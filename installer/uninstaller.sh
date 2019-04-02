@@ -20,11 +20,11 @@ mark_release_to_be_deleted() {
     [[ $CHARTS_LIST =~ (^|[[:space:]])$release_name($|[[:space:]]) ]] && helm_arr+=("$release_name")
 }
 
-RELEASE_PREFIX="imm"
+IMM_RELEASE_PREFIX="${IMM_RELEASE_PREFIX:=imm}"
 
 while getopts "qf:l:" opt; do
     case "$opt" in
-    f)  export RELEASE_PREFIX=$OPTARG
+    f)  export IMM_RELEASE_PREFIX=$OPTARG
         ;;
     q)  quiet="yes"
         ;;
@@ -34,12 +34,13 @@ done
 shift $((OPTIND-1))
 
 
-CHARTS_LIST="$RELEASE_PREFIX-mgt-api $RELEASE_PREFIX-crd $RELEASE_PREFIX-dex $RELEASE_PREFIX-ingress $RELEASE_PREFIX-openldap $RELEASE_PREFIX-minio"
+CHARTS_LIST="$IMM_RELEASE_PREFIX-mgt-api $IMM_RELEASE_PREFIX-crd $IMM_RELEASE_PREFIX-dex $IMM_RELEASE_PREFIX-ingress $IMM_RELEASE_PREFIX-openldap $IMM_RELEASE_PREFIX-minio"
 HELM_LS_OUTPUT=`helm ls --output json`
 HELM_LIST=`jq --arg namearg "Releases" '.[$namearg]' <<< $HELM_LS_OUTPUT`
 helm_arr=()
 K8S_NS_ARR=()
 
+CERTS_PATH="`pwd`/certs/$IMM_RELEASE_PREFIX"
 cd ../scripts
 LIST_TENANTS_RESPONSE=`./imm ls t`
 
@@ -61,6 +62,7 @@ else
         for release in "${helm_arr[@]}"; do echo "    - $release" ; done
         echo "*Tenants with theirs resources(models,endpoints etc.):"
         for tenant in "${tenants_arr[@]}"; do echo "    - $tenant" ; done
+        echo "*Certificates under $CERTS_PATH"
         echo "Are you sure you want to uninstall IMM? y/N"
         read DELETE_IMM
     else
@@ -94,6 +96,14 @@ else
             KUBECTL_OUTPUT=$((kubectl delete ing minio-ingress) 2>&1)
             echo $KUBECTL_OUTPUT
             if [[ $KUBECTL_OUTPUT =~ E|error ]]; then
+                error=1
+            fi
+        fi
+        if [[ $error == 0 ]]; then
+            echo "Deleting certificates..."
+            CERT_RM_OUTPUT=$((rm -rf $CERTS_PATH) 2>&1)
+            echo $CERT_RM_OUTPUT
+            if [[ $CERT_RM_OUTPUT =~ E|error ]]; then
                 error=1
             fi
         fi
