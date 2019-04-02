@@ -153,6 +153,7 @@ jobs:
           command: |
             cd ~/inference-model-manager/
             . ~/inference-model-manager/.venv/bin/activate
+            echo "${GOOGLE_IMM_KEY}" | base64 -d > /tmp/gcp-key.json
             export PROJECT=`gcloud config get-value project`
             export MGMT_TAG=$(find management/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
             export CRD_TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
