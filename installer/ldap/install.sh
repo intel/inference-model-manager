@@ -17,7 +17,7 @@
 
 . ../utils/messages.sh
 . ../utils/wait_for_pod.sh
-RELEASE_NAME="$1-openldap"
+RELEASE_NAME="$IMM_RELEASE_PREFIX-openldap"
 export LDAP_DOMAIN_NAME="$RELEASE_NAME.default"
 cd $HELM_TEMP_DIR/ldap-subchart/certs
 header "Installing LDAP"

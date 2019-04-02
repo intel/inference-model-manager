@@ -27,6 +27,8 @@ Options:
 	c - path to config file
 	k - allowing connection to management api endpoints with not trusted certificates
 	o - login without launching browser (offline)
+	f - prefix of installed IMM platform
+
 Examples:
 	.${0##*/} -a mgmt.example.com -p 443 -v create tenant mytenant
 	.${0##*/} create t mytenant myscope
@@ -50,21 +52,19 @@ Environment variables:
 	TENANT_RESOURCES - quota used for tenant creation
 	ENDPOINT_RESOURCES - quota used for endpoint creation
 	IMM_TOKEN - token required to perform request, by default it is provided within IMM_CONFIG_PATH file
+	IMM_RELEASE_PREFIX - prefix of installed IMM platform, by default it is 'imm'
 EOF
 }
 
 . ./imm_utils.sh
 
-generate_client_certs() {
- . ./generate_certs.sh
-}
-
 VERBOSE=0
 OPTIND=1
 DEFAULT_CFG_FILE=~/.immconfig
 IMM_CONFIG_PATH=${IMM_CONFIG_PATH:=${DEFAULT_CFG_FILE}}
+IMM_RELEASE_PREFIX="${IMM_RELEASE_PREFIX:=imm}"
 
-while getopts "okhva:p:c:" opt; do
+while getopts "okhvaf:p:c:" opt; do
 	case $opt in
 		h)	show_help
 			exit 0
@@ -84,6 +84,8 @@ while getopts "okhva:p:c:" opt; do
 			;;
 		o)  OFFLINE=--offline
 			;;
+		f) export IMM_RELEASE_PREFIX=$OPTARG
+		    ;;
 		*)	show_help >&2
 			exit 1
 			;;
@@ -133,7 +135,7 @@ case "$OPERATION" in
 				[[ -z ${PARAM_1} ]] && read -p "Please provide tenant name " PARAM_1
 				[[ -z ${PARAM_2} ]] && read -p "Please provide scope (group name) " PARAM_2
 				read -p "Do you want to generate client certificates Y/n?" GENERATE_CERTS
-				[[ $GENERATE_CERTS != "n" ]] && generate_client_certs && echo "Client certificates for inference are stored in `pwd`"
+				[[ $GENERATE_CERTS != "n" ]] && . create_tenant_certs.sh $PARAM_1
 				CURL='curl $INSECURE -s -S -H "accept: application/json" \
 					-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json" \
 					-d "{\"name\": \"${PARAM_1}\", \"cert\": \"${CERT}\", \"scope\":\"${PARAM_2}\",\"quota\": ${TENANT_RESOURCES}}" \
@@ -170,6 +172,7 @@ case "$OPERATION" in
 					-H "Authorization: ${IMM_TOKEN}" -H "Content-Type: application/json"  \
 					-d "{\"name\": \"${PARAM_1}\"}" -X DELETE \
 					"https://${MANAGEMENT_API_ADDRESS}:${MANAGEMENT_API_PORT}/tenants"'
+				./delete_tenant_certs.sh $PARAM_1
 				[[ ${VERBOSE} == 1 ]] && echo $CURL
 				[[ ${VERBOSE} == 2 ]] && eval echo $CURL
 				eval "$CURL"

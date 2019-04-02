@@ -20,7 +20,7 @@
 MINIO_ACCESS_KEY=$1
 MINIO_SECRET_KEY=$2
 MINIO_EXTERNAL_URI=`echo "$3" | awk -F/ '{print $3}'`
-RELEASE_NAME="$4-minio"
+RELEASE_NAME="$IMM_RELEASE_PREFIX-minio"
 
 header "Installing test minio storage"
 

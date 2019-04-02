@@ -21,7 +21,7 @@
 header "Installation of CRD Controller"
 DOMAIN_NAME=$1
 USE_HTTPS=$2
-RELEASE_NAME="$3-crd"
+RELEASE_NAME="$IMM_RELEASE_PREFIX-crd"
 cd $HELM_TEMP_DIR/crd-subchart
 fill_template "<crd_image>" $CRD_IMAGE values.yaml
 fill_template "<crd_tag>" $CRD_TAG values.yaml

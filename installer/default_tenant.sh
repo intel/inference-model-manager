@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Copyright (c) 2019 Intel Corporation
 #
@@ -13,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#!/bin/bash
 
 DOMAIN_NAME=$1
 PROXY=$2
@@ -33,12 +33,13 @@ cd ../scripts
 
 EXPECTED='{"status": "OK", "data": {"tenants": []}}'
 
-while [[ "$TENANTS" != $EXPECTED ]]; do 
+while [[ "$TENANTS" != $EXPECTED ]]; do
+	    echo $TENANTS
         get_token admin
-        TENANTS=`./imm ls t`; 
+        TENANTS=`./imm ls t`;
         if [[ "$TENANTS" != $EXPECTED ]]; then
-          echo "IMM not ready";         
-          sleep 5; 
+          echo "IMM not ready";
+          sleep 5;
         fi
 done
 

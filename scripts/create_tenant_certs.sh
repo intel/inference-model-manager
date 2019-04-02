@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2018-2019 Intel Corporation
+# Copyright (c) 2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,15 +15,7 @@
 # limitations under the License.
 #
 
-ADDRESS=$1
-SUBJECT=$2
-PROXY=$3
-
-if [ ! -z "$PROXY" ]; then
-    proxytunnel -p $PROXY -d $ADDRESS:443 -a 7000 &
-    openssl s_client -connect localhost:7000 -servername $ADDRESS -showcerts  < /dev/null 2>/dev/null |grep "s:.*CN.*${SUBJECT}" -A 100 | openssl x509 -outform pem
-    kill `ps -ef | grep proxytunnel | awk '{print $2}'`
-else
-    openssl s_client -connect $ADDRESS:443 -servername $ADDRESS -showcerts  < /dev/null 2>/dev/null | grep "s:.*CN.*${SUBJECT}" -A 100|  openssl x509 -outform pem
-fi
-
+TENANT_NAME=$1
+export TENANT_CERTS_DIR=`pwd`/certs/$IMM_RELEASE_PREFIX/$TENANT_NAME
+. ./generate_certs.sh $TENANT_CERTS_DIR
+cd -
