@@ -379,3 +379,8 @@ def get_ingress_subject_name(name, namespace):
     metadata = get_endpoint_ingress(name, namespace).metadata
     subject_name = metadata.annotations['allowed-values']
     return subject_name
+
+
+def get_url_from_response(endpoint_response):
+    url = json.loads(endpoint_response.text)['data']['url']
+    return url

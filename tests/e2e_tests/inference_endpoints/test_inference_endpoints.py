@@ -42,7 +42,7 @@ from management_api_tests.authenticate import get_user_token
 from config import MANAGEMENT_API_URL, CERT_BAD_CLIENT, CERT_BAD_CLIENT_KEY, CERT_CLIENT, \
     CERT_CLIENT_KEY, CERT_SERVER, SENSIBLE_ENDPOINT_RESOURCES
 from conftest import get_all_pods_in_namespace, get_logs_of_pod, list_namespaces, \
-    download_saved_model_from_path, get_ingress_subject_name
+    download_saved_model_from_path, get_ingress_subject_name, get_url_from_response
 
 
 class EndpointInfo:
@@ -172,7 +172,7 @@ def test_create_endpoint(model_name, endpoint_name):
     }
     endpoint_response = create_endpoint(params)
     endpoint_url = get_url_from_response(endpoint_response)
-    assert {'status': 'CREATED', 'data': {'endpoint': endpoint_url}} \
+    assert {'status': 'CREATED', 'data': {'endpoint': endpoint_url, 'warning': ''}} \
            in json.loads(endpoint_response.text)
     assert endpoint_response.status_code == 200
     running, pod_name = wait_endpoint_setup()
@@ -386,8 +386,3 @@ def test_remove_tenant():
         logging.info("Waiting 10 sec")
         time.sleep(10)
     assert not ns_exists
-
-
-def get_url_from_response(endpoint_response):
-    url = json.loads(endpoint_response.text)['data']['url']
-    return url

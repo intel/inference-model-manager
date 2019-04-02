@@ -48,7 +48,8 @@ class Endpoints(object):
         warning_message = '' if model_existence else \
             WarningMessage.MODEL_AVAILABILITY.format(body["modelName"])
         logger.warning(warning_message)
-        resp.body = json.dumps({'status': 'CREATED', 'data': {'endpoint': endpoint_url}})
+        resp.body = json.dumps({'status': 'CREATED', 'data': {'endpoint': endpoint_url,
+                                                              'warning': warning_message}})
 
     @jsonschema.validate(endpoint_delete_schema)
     def on_delete(self, req, resp, tenant_name):

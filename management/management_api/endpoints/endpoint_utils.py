@@ -99,9 +99,7 @@ def create_url_to_service(endpoint_name, namespace):
                 namespace=namespace,
                 platform_domain=PLATFORM_DOMAIN,
                 inference_port=port)
-    data_for_request = {'url': path}
-
-    return data_for_request
+    return path
 
 
 def scale_endpoint(parameters: dict, namespace: str, endpoint_name: str, id_token: str):
@@ -180,7 +178,7 @@ def view_endpoint(endpoint_name: str, namespace: str, id_token: str):
                  }
     message = f"Endpoint {endpoint_name} in {namespace} tenant: {view_dict}\n"
     logger.info(message)
-    return message
+    return view_dict
 
 
 def list_endpoints(namespace: str, id_token: str):
@@ -205,14 +203,13 @@ def get_endpoints_name_status(deployments, namespace):
             endpoint_name_status = dict()
             name = deployment.metadata.labels['endpoint']
             endpoint_name_status['name'] = name
-            endpoint_name_status['url'] = create_url_to_service(name, namespace)['url']
+            endpoint_name_status['url'] = create_url_to_service(name, namespace)
             endpoint_name_status['status'] = STATUSES[
                 not None if deployment.status.unavailable_replicas is not None else None,
                 not None if deployment.status.available_replicas is not None else None]
             endpoints_name_status.append(endpoint_name_status)
-        name_status = 'Endpoints present in {} tenant: {}\n'.format(
-            namespace, endpoints_name_status)
-    return name_status
+    logger.info('Endpoints present in {} tenant: {}\n'.format(namespace, endpoints_name_status))
+    return endpoints_name_status
 
 
 def get_endpoint_number(apps_api_instance, namespace):
