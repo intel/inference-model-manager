@@ -128,7 +128,7 @@ get_inference_accuracy(){
 
 @test "Scale endpoint" {
     response="$(./imm s e ${ENDPOINT_NAME} ${REPLICAS} ${TENANT_NAME})"
-    grep -E "patched successfully. New values: {'replicas': ${REPLICAS}}" <<< $response
+    grep -E "${REPLICAS}" <<< $response
 }
 
 @test "List endpoints after scale" {
@@ -138,12 +138,12 @@ get_inference_accuracy(){
 
 @test "Delete endpoint" {
     response="$(./imm rm e ${ENDPOINT_NAME} ${TENANT_NAME})"
-    grep -E "${ENDPOINT_NAME}.*deleted" <<< $response
+    grep -E "${ENDPOINT_NAME}" <<< $response
 }
 
 @test "List endpoints after removal" {
     response="$(./imm ls e ${TENANT_NAME})"
-    grep -E "no endpoints present in ${TENANT_NAME} tenant" <<< $response
+    grep -E '{"endpoints": \[\]}' <<< $response
 }
 
 @test "Delete model" {

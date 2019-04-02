@@ -164,20 +164,19 @@ def view_endpoint(endpoint_name: str, namespace: str, id_token: str):
 
     endpoint_status = get_endpoint_status(api_instance=api_instance, namespace=namespace,
                                           endpoint_name=endpoint_name)
-    model_path = create_url_to_service(endpoint_name, namespace)
+    endpoint_url = create_url_to_service(endpoint_name, namespace)
     subject_name, resources = get_crd_subject_name_and_resources(
         custom_api_instance=custom_api_instance, namespace=namespace, endpoint_name=endpoint_name)
     replicas = get_replicas(apps_api_instance=apps_api_instance, namespace=namespace,
                             endpoint_name=endpoint_name)
 
     view_dict = {'Endpoint status': endpoint_status,
-                 'Model path': model_path,
+                 'Endpoint url': endpoint_url,
                  'Subject name': subject_name,
                  'Resources': resources,
                  'Replicas': replicas,
                  }
-    message = f"Endpoint {endpoint_name} in {namespace} tenant: {view_dict}\n"
-    logger.info(message)
+    logger.info("Endpoint {} in {} tenant: {}".format(endpoint_name, namespace, view_dict))
     return view_dict
 
 
@@ -196,7 +195,7 @@ def list_endpoints(namespace: str, id_token: str):
 
 def get_endpoints_name_status(deployments, namespace):
     deployments = deployments.items
-    name_status = "There are no endpoints present in {} tenant".format(namespace)
+    name_status = list()
     if not deployments == []:
         endpoints_name_status = list()
         for deployment in deployments:
@@ -208,8 +207,11 @@ def get_endpoints_name_status(deployments, namespace):
                 not None if deployment.status.unavailable_replicas is not None else None,
                 not None if deployment.status.available_replicas is not None else None]
             endpoints_name_status.append(endpoint_name_status)
-    logger.info('Endpoints present in {} tenant: {}\n'.format(namespace, endpoints_name_status))
-    return endpoints_name_status
+        logger.info('Endpoints present in {} tenant: {}\n'.format(namespace, endpoints_name_status))
+        return endpoints_name_status
+    else:
+        logger.info(name_status)
+        return name_status
 
 
 def get_endpoint_number(apps_api_instance, namespace):

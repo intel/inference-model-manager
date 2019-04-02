@@ -104,7 +104,7 @@ class ValidityMessage:
 
 
 class WarningMessage:
-    MODEL_AVAILABILITY = "{} model is not available on the platform.\n"
+    MODEL_AVAILABILITY = "{} model is not available on the platform"
 
 
 class EndpointPodStatus:

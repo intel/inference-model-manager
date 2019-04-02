@@ -54,13 +54,18 @@ def test_create_endpoint(request, function_context, apps_api_instance, get_k8s_c
     url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=namespace)
 
     response = requests.post(url, data=data, headers=DEFAULT_HEADERS)
-    endpoint_url = get_url_from_response(response)
     response_text = json.loads(response.text)
+    endpoint_url = get_url_from_response(response)
     assert response.status_code == 200
-    assert {'status': 'CREATED', 'data': {'endpoint': endpoint_url}} in response_text
+    assert '"status": "CREATED"' in response.text
+    assert endpoint_url in response.text
     if warning:
-        assert '{} model is not available on the platform'.\
-                   format(data['modelName']) in response_text
+        assert {'status': 'CREATED',
+                'data': {'url': endpoint_url,
+                         'warning': '{} model is not available on the platform'.format(
+                             params['modelName'])}} == response_text
+    else:
+        assert {'status': 'CREATED', 'data': {'url': endpoint_url, 'warning': ''}} == response_text
 
     function_context.add_object(object_type='CRD', object_to_delete={'name': crd_server_name,
                                                                      'namespace': namespace})
@@ -81,7 +86,7 @@ def test_delete_endpoint(apps_api_instance, get_k8s_custom_obj_client,
     response = requests.delete(url, data=data, headers=DEFAULT_HEADERS)
     endpoint_url = get_url_from_response(response)
     assert response.status_code == 200
-    assert {'status': 'DELETED', 'data': {'endpoint': endpoint_url}} in json.loads(response.text)
+    assert {'status': 'DELETED', 'data': {'url': endpoint_url}} == json.loads(response.text)
     assert check_server_existence(get_k8s_custom_obj_client, namespace, body['spec']['endpointName']
                                   ) == CheckResult.RESOURCE_DOES_NOT_EXIST
     assert wait_server_setup(apps_api_instance, namespace, body['spec']['endpointName'], 1
@@ -122,7 +127,10 @@ def test_create_endpoint_with_2_replicas(get_k8s_custom_obj_client, apps_api_ins
     endpoint_url = get_url_from_response(response)
 
     assert response.status_code == 200
-    assert {'status': 'CREATED', 'data': {'endpoint': endpoint_url}} in json.loads(response.text)
+    assert {'status': 'CREATED',
+            'data': {'url': endpoint_url,
+                     'warning': '{} model is not available on the platform'.format(
+                         model_name)}} == json.loads(response.text)
 
     function_context.add_object(object_type='CRD', object_to_delete={'name': crd_server_name,
                                                                      'namespace': namespace})
@@ -152,16 +160,15 @@ def test_scale_endpoint(get_k8s_custom_obj_client, apps_api_instance,
 
 def simulate_scaling(custom_obj_api, apps_api_instance, headers, namespace, name, replicas):
     url = ENDPOINT_MANAGEMENT_API_URL_SCALE.format(endpoint_name=name, tenant_name=namespace)
-    data = json.dumps({
-        'replicas': replicas
-    })
+    scaling_dict = {'replicas': replicas}
+    data = json.dumps(scaling_dict)
 
     response = requests.patch(url, data=data, headers=headers)
     endpoint_url = get_url_from_response(response)
 
     assert response.status_code == 200
-    assert {'status': 'PATCHED', 'data': {'endpoint': endpoint_url,
-                                          'values': data}} in response.text
+    assert {'status': 'PATCHED', 'data': {'url': endpoint_url,
+                                          'values': scaling_dict}} == json.loads(response.text)
     assert check_replicas_number_matching_provided(
         custom_obj_api, namespace, name, provided_number=replicas
     ) == CheckResult.CONTENTS_MATCHING
@@ -194,8 +201,8 @@ def test_fail_to_scale_endpoint(auth, tenant_with_endpoint, endpoint_name, scale
 
 
 CORRECT_UPDATE_PARAMS = [
-    {'modelName': 'new-name', 'modelVersionPolicy': '{specific {versions: 2}}'},
-    {'modelName': 'new-name', 'modelVersionPolicy': '{specific {versions: 2}}', 'resources':
+    {'modelName': 'new-name', 'modelVersionPolicy': '{specific{versions:2 }}'},
+    {'modelName': 'new-name', 'modelVersionPolicy': '{specific{versions:2 }}', 'resources':
         {'limits.cpu': '500m', 'limits.memory': '500Mi', 'requests.cpu': '200m',
          'requests.memory': '200Mi'}},
     {'subjectName': 'updated'}
@@ -218,8 +225,8 @@ def test_update_endpoint(get_k8s_custom_obj_client, apps_api_instance,
     endpoint_url = get_url_from_response(response)
 
     assert response.status_code == 200
-    assert {'status': 'PATCHED', 'data': {'endpoint': endpoint_url,
-                                          'values': data}} in json.loads(response.text)
+    assert {'status': 'PATCHED', 'data': {'url': endpoint_url,
+                                          'values': new_values}} == json.loads(response.text)
     time.sleep(2)
     assert check_model_params_matching_provided(
         get_k8s_custom_obj_client, namespace, crd_server_name, provided_params=new_values
@@ -292,32 +299,38 @@ def test_not_create_endpoint_with_incompliant_resource_quota(session_tenant, inc
 
 
 @pytest.mark.parametrize("tenant_fix, auth_headers, expected_status, expected_message",
-                         [('tenant_with_endpoint', DEFAULT_HEADERS, 200,
-                           "{'status': 'OK'}"),
-                          ('empty_tenant', DEFAULT_HEADERS, 200,
-                           "{'status': 'OK'}"),
+                         [('tenant_with_endpoint', DEFAULT_HEADERS, 200, 'OK'),
+                          ('empty_tenant', DEFAULT_HEADERS, 200, 'OK'),
                           ('fake_tenant_endpoint', USER2_HEADERS, 404, "Tenant {} does not exist")
                           ])
 def test_list_endpoints(request, tenant_fix, auth_headers,
                         expected_status, expected_message):
-    namespace, _ = request.getfixturevalue(tenant_fix)
+    namespace, endpoint_body = request.getfixturevalue(tenant_fix)
     url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=namespace)
     response = requests.get(url, headers=auth_headers)
 
     assert expected_status == response.status_code
+
+    if expected_status == 200:
+        assert endpoint_body['spec']['endpointName'] in response.text
+
     assert expected_message.format(namespace) in response.text
 
 
 @pytest.mark.parametrize("endpoint_fix, endpoint_name, expected_status, expected_message",
-                         [('tenant_with_endpoint', 'predict', 200, "{'status': 'OK'}"),
+                         [('tenant_with_endpoint', 'predict', 200, 'OK'),
                           ('tenant_with_endpoint', 'not_exist', 404, 'Endpoint {} does not exist')])
 def test_view_endpoint(request, endpoint_fix, endpoint_name, expected_status, expected_message):
-    namespace, _ = request.getfixturevalue(endpoint_fix)
+    namespace, endpoint_body = request.getfixturevalue(endpoint_fix)
     url = ENDPOINT_MANAGEMENT_API_URL.format(endpoint_name=endpoint_name, tenant_name=namespace)
     response = requests.get(url, headers=DEFAULT_HEADERS)
 
     assert expected_status == response.status_code
-    assert expected_message.format(endpoint_name, namespace) in response.text
+
+    if expected_status == 200:
+        assert '"Endpoint url": "{}"'.format(endpoint_body['spec']['endpointName']) in response.text
+
+    assert expected_message.format(endpoint_name) in response.text
 
 
 def test_not_create_endpoint_tenant_not_exist():
@@ -351,7 +364,8 @@ def test_success_to_create_second_endpoint_with_max_endpoints_gt_one(
     response = requests.post(url, data=json.dumps(body['spec']), headers=DEFAULT_HEADERS)
     endpoint_url = get_url_from_response(response)
     assert response.status_code == 200
-    assert {'status': 'OK', 'data': {'endpoints': endpoint_url}} in response.text
+    assert '"status": "CREATED"' in response.text
+    assert endpoint_url in response.text
 
 
 @pytest.mark.parametrize('tenant_with_endpoint_parametrized_max_endpoints', [1], indirect=True)

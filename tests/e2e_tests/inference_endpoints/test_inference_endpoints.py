@@ -172,8 +172,8 @@ def test_create_endpoint(model_name, endpoint_name):
     }
     endpoint_response = create_endpoint(params)
     endpoint_url = get_url_from_response(endpoint_response)
-    assert {'status': 'CREATED', 'data': {'endpoint': endpoint_url, 'warning': ''}} \
-           in json.loads(endpoint_response.text)
+    assert {'status': 'CREATED', 'data': {'url': endpoint_url,
+                                          'warning': ''}} == json.loads(endpoint_response.text)
     assert endpoint_response.status_code == 200
     running, pod_name = wait_endpoint_setup()
     assert running is True
@@ -259,8 +259,8 @@ def test_update_version_policy():
     params = {'modelVersionPolicy': UPDATE_ENDPOINT_VP}
     endpoint_response = update_endpoint(params)
     endpoint_url = get_url_from_response(endpoint_response)
-    assert {'status': 'PATCHED', 'data': {'endpoint': endpoint_url, 'values': params}} \
-           in json.loads(endpoint_response.text)
+    assert {'status': 'PATCHED', 'data': {'url': endpoint_url,
+                                          'values': params}} == json.loads(endpoint_response.text)
     assert endpoint_response.status_code == 200
     time.sleep(10)
     running, pod_name = wait_endpoint_setup()

@@ -48,7 +48,7 @@ class Endpoints(object):
         warning_message = '' if model_existence else \
             WarningMessage.MODEL_AVAILABILITY.format(body["modelName"])
         logger.warning(warning_message)
-        resp.body = json.dumps({'status': 'CREATED', 'data': {'endpoint': endpoint_url,
+        resp.body = json.dumps({'status': 'CREATED', 'data': {'url': endpoint_url,
                                                               'warning': warning_message}})
 
     @jsonschema.validate(endpoint_delete_schema)
@@ -58,7 +58,7 @@ class Endpoints(object):
         endpoint_url = delete_endpoint(parameters=body, namespace=namespace,
                                        id_token=req.params['Authorization'])
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps({'status': 'DELETED', 'data': {'endpoint': endpoint_url}})
+        resp.body = json.dumps({'status': 'DELETED', 'data': {'url': endpoint_url}})
 
 
 class EndpointScale(object):
@@ -72,7 +72,7 @@ class EndpointScale(object):
 
         message = 'Endpoint {} patched successfully. New values: {}\n'.format(endpoint_url, body)
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps({'status': 'PATCHED', 'data': {'endpoint': endpoint_url, 'values': body}})
+        resp.body = json.dumps({'status': 'PATCHED', 'data': {'url': endpoint_url, 'values': body}})
         logger.info(message)
 
 
@@ -82,7 +82,7 @@ class Endpoint(object):
         endpoint = view_endpoint(endpoint_name=endpoint_name, namespace=namespace,
                                  id_token=req.params['Authorization'])
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps({'status': 'OK', 'data': {'endpoint': endpoint}})
+        resp.body = json.dumps({'status': 'OK', 'data': {'url': endpoint}})
 
     @jsonschema.validate(endpoint_update_schema)
     def on_patch(self, req, resp, tenant_name, endpoint_name):
@@ -92,5 +92,5 @@ class Endpoint(object):
                                        id_token=req.params['Authorization'])
         message = 'Endpoint {} patched successfully. New values: {}\n'.format(endpoint_url, body)
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps({'status': 'PATCHED', 'data': {'endpoint': endpoint_url, 'values': body}})
+        resp.body = json.dumps({'status': 'PATCHED', 'data': {'url': endpoint_url, 'values': body}})
         logger.info(message)

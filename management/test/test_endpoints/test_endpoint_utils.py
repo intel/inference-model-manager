@@ -175,7 +175,7 @@ def test_create_url_to_service(mocker):
                                          'get_ingress_external_ip')
     external_address_mock.return_value = mock_return_value
     external_address = "{}:{}".format(mock_return_value[0], mock_return_value[1])
-    expected_output = {'url': external_address}
+    expected_output = external_address
     output = create_url_to_service(endpoint_name='t_end', namespace="t_ns")
     assert expected_output == output
 
