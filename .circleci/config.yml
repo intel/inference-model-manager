@@ -186,16 +186,6 @@ jobs:
             cd ~/inference-model-manager/tests
             . run_test.sh
       - run:
-          name: Set images tags to latest on master
-          command: |
-            export BRANCH=$(git symbolic-ref --short HEAD)
-            if [ "$BRANCH" == "master" ]; then
-               MGMT_TAG=$(find management/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
-               CRD_TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
-               gcloud container images add-tag gcr.io/constant-cubist-173123/management-api:$MGMT_TAG gcr.io/constant-cubist-173123/management-api:latest
-               gcloud container images add-tag gcr.io/constant-cubist-173123/server-controller-prod:$CRD_TAG gcr.io/constant-cubist-173123/server-controller-prod:latest
-            fi
-      - run:
           name: clean after success
           when: on_success
           command: |
@@ -273,6 +263,34 @@ jobs:
             cd ~/inference-model-manager/.circleci/scripts
             ./clean_up_gke.sh
             sleep 150
+
+  mark_images_as_latest:
+    docker:
+      - image: circleci/python:3.6.6-browsers
+    working_directory: ~/inference-model-manager
+    steps:
+      - checkout
+      - run:
+          name: Set images tags to latest on master
+          command: |
+            export BRANCH=$(git symbolic-ref --short HEAD)
+            if [ "$BRANCH" == "master" ]; then
+              echo "${GOOGLE_IMM_KEY}" | base64 -d > /tmp/gcp-key.json
+              export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
+              echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+              curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+              sudo apt-get update && sudo apt-get install -y google-cloud-sdk
+              sudo apt-get update && sudo apt-get --only-upgrade install kubectl google-cloud-sdk google-cloud-sdk-app-engine-grpc google-cloud-sdk-pubsub-emulator \
+              google-cloud-sdk-app-engine-go google-cloud-sdk-cloud-build-local google-cloud-sdk-datastore-emulator google-cloud-sdk-app-engine-python google-cloud-sdk-cbt \
+              google-cloud-sdk-bigtable-emulator google-cloud-sdk-app-engine-python-extras google-cloud-sdk-datalab google-cloud-sdk-app-engine-java
+              gcloud auth activate-service-account --key-file /tmp/gcp-key.json
+              gcloud config set project "${GOOGLE_PROJECT_ID}"
+              cd ~/inference-model-manager/
+              MGMT_TAG=$(find management/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
+              CRD_TAG=$(find server-controller/ -type f -exec sha256sum {} \; | cut -d " " -f1 | sort | xargs echo | sha256sum | cut -d " " -f1)
+              gcloud container images add-tag gcr.io/constant-cubist-173123/management-api:$MGMT_TAG gcr.io/constant-cubist-173123/management-api:latest
+              gcloud container images add-tag gcr.io/constant-cubist-173123/server-controller-prod:$CRD_TAG gcr.io/constant-cubist-173123/server-controller-prod:latest
+            fi
 workflows:
   version: 2
   deploy-test:
@@ -286,3 +304,7 @@ workflows:
       - gke_deployment:
           requires:
             - rebuild_images
+      - mark_images_as_latest:
+          requires:
+            - gke_deployment
+            - functional_tests
