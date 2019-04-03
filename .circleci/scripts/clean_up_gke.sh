@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 export MGT_API_AUTHORIZATION="true"
+export SKIP_BUNDLES_EXPORT="true"
 . ~/inference-model-manager/.venv/bin/activate
 cd ~/inference-model-manager/scripts
 . ./prepare_test_env.sh ${DOMAIN_NAME}

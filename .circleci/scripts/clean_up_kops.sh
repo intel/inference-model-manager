@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+export SKIP_BUNDLES_EXPORT="true"
 . ~/inference-model-manager/.venv/bin/activate
 cd ~/inference-model-manager/scripts
 . ./prepare_test_env.sh ${DOMAIN_NAME}
