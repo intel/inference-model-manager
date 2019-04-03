@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-export SKIP_BUNDLES_EXPORT="true"
 . ~/inference-model-manager/.venv/bin/activate
 cd ~/inference-model-manager/scripts
 . ./prepare_test_env.sh ${DOMAIN_NAME}
@@ -26,5 +25,8 @@ cd ~/inference-model-manager/installer
 sleep 3m
 kops delete cluster ${CLUSTER_NAME} --yes
 cd ~/inference-model-manager/installer/utils/route53
+unset REQUESTS_CA_BUNDLE
+unset MANAGEMENT_CA_CERT_PATH
+unset CURL_CA_BUNDLE
 ./apply.sh DELETE ${ING_IP} ${DOMAIN_NAME}
 deactivate

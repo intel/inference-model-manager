@@ -24,11 +24,9 @@ echo "Fetching CA for $MGMT_DOMAIN_NAME"
 ./get_cert_kubectl.sh > ca.pem
 cat ./ca.pem
 
-if [ "$SKIP_BUNDLES_EXPORT" != "true" ]; then
-    export REQUESTS_CA_BUNDLE=`pwd`/ca.pem
-    export MANAGEMENT_CA_CERT_PATH=`pwd`/ca.pem
-    export CURL_CA_BUNDLE=`pwd`/ca.pem
-fi
+export REQUESTS_CA_BUNDLE=`pwd`/ca.pem
+export MANAGEMENT_CA_CERT_PATH=`pwd`/ca.pem
+export CURL_CA_BUNDLE=`pwd`/ca.pem
 
 
 if [ "$MGT_API_AUTHORIZATION" == "true" ]; then

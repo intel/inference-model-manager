@@ -15,7 +15,6 @@
 # limitations under the License.
 #
 export MGT_API_AUTHORIZATION="true"
-export SKIP_BUNDLES_EXPORT="true"
 . ~/inference-model-manager/.venv/bin/activate
 cd ~/inference-model-manager/scripts
 . ./prepare_test_env.sh ${DOMAIN_NAME}
@@ -27,4 +26,7 @@ cd ~/inference-model-manager/installer
 sleep 3m
 echo y | gcloud container clusters delete gke-imm-${SHORT_SHA1}-${CIRCLE_BRANCH} --zone us-west1-a
 cd ~/inference-model-manager/installer/utils/route53
+unset REQUESTS_CA_BUNDLE
+unset MANAGEMENT_CA_CERT_PATH
+unset CURL_CA_BUNDLE
 ./apply.sh DELETE ${ING_IP} ${DOMAIN_NAME}
