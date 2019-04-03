@@ -16,6 +16,7 @@
 #
 . ~/inference-model-manager/.venv/bin/activate
 cd ~/inference-model-manager/scripts
+. ./prepare_test_env.sh ${DOMAIN_NAME}
 . ./imm_utils.sh
 get_token admin
 export ING_IP=`kubectl get services -n ingress-nginx|grep ingress-nginx|awk '{ print $(NF-2) }'`
@@ -24,6 +25,5 @@ cd ~/inference-model-manager/installer
 sleep 3m
 kops delete cluster ${CLUSTER_NAME} --yes
 cd ~/inference-model-manager/installer/utils/route53
-. ~/inference-model-manager/.venv/bin/activate
 ./apply.sh DELETE ${ING_IP} ${DOMAIN_NAME}
 deactivate
