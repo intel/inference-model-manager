@@ -360,8 +360,10 @@ def test_success_to_create_second_endpoint_with_max_endpoints_gt_one(
     response = requests.post(url, data=json.dumps(body['spec']), headers=DEFAULT_HEADERS)
     endpoint_url = get_url_from_response(response)
     assert response.status_code == 200
-    assert '"status": "CREATED"' in response.text
-    assert endpoint_url in response.text
+    assert {'status': 'CREATED',
+            'data': {'url': endpoint_url,
+                     'warning': '{} model is not available on the platform'.format(
+                         body['spec']['modelName'])}} == json.loads(response.text)
 
 
 @pytest.mark.parametrize('tenant_with_endpoint_parametrized_max_endpoints', [1], indirect=True)

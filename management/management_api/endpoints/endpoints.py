@@ -82,7 +82,7 @@ class Endpoint(object):
         endpoint = view_endpoint(endpoint_name=endpoint_name, namespace=namespace,
                                  id_token=req.params['Authorization'])
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps({'status': 'OK', 'data': {'url': endpoint}})
+        resp.body = json.dumps({'status': 'OK', 'data': endpoint})
 
     @jsonschema.validate(endpoint_update_schema)
     def on_patch(self, req, resp, tenant_name, endpoint_name):
