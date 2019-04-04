@@ -111,7 +111,7 @@ def test_endpoints_patch(mocker, client, functionality, method_name, body, expec
                          [("", "list_endpoints", falcon.HTTP_OK,
                            {"status": "OK", "data": {"endpoints": "test"}}),
                           ("/predict", "view_endpoint", falcon.HTTP_OK,
-                           {"status": "OK", "data": {"url": "test"}})])
+                           {"status": "OK", "data": "test"})])
 def test_endpoints_get(mocker, client, functionality, method_name,
                        expected_status, expected_message):
     namespace = 'test'
