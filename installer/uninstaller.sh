@@ -38,7 +38,6 @@ CHARTS_LIST="$IMM_RELEASE_PREFIX-mgt-api $IMM_RELEASE_PREFIX-crd $IMM_RELEASE_PR
 HELM_LS_OUTPUT=`helm ls --output json`
 HELM_LIST=`jq --arg namearg "Releases" '.[$namearg]' <<< $HELM_LS_OUTPUT`
 helm_arr=()
-K8S_NS_ARR=()
 
 CERTS_PATH="`pwd`/certs/$IMM_RELEASE_PREFIX"
 cd ../scripts
@@ -91,11 +90,17 @@ else
         fi
 
         if [[ $error == 0 ]]; then
-            echo "Deleting minio-ingress..."
-            KUBECTL_OUTPUT=$((kubectl delete ing minio-ingress) 2>&1)
-            echo $KUBECTL_OUTPUT
-            if [[ $KUBECTL_OUTPUT =~ E|error ]]; then
-                error=1
+            DELETE_MINIO_ING="false"
+            for release in "${helm_arr[@]}"; do
+                [[ $release == "$IMM_RELEASE_PREFIX-minio" ]] && DELETE_MINIO_ING="true"
+            done
+            if [[ $DELETE_MINIO_ING == "true" ]]; then
+                echo "Deleting minio-ingress..."
+                KUBECTL_OUTPUT=$((kubectl delete ing minio-ingress) 2>&1)
+                echo $KUBECTL_OUTPUT
+                if [[ $KUBECTL_OUTPUT =~ E|error ]]; then
+                    error=1
+                fi
             fi
         fi
         if [[ $error == 0 ]]; then
