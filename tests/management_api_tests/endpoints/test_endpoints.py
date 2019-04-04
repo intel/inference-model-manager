@@ -310,10 +310,6 @@ def test_list_endpoints(request, tenant_fix, auth_headers,
     response = requests.get(url, headers=auth_headers)
 
     assert expected_status == response.status_code
-
-    if expected_status == 200:
-        assert endpoint_body['spec']['endpointName'] in response.text
-
     assert expected_message.format(namespace) in response.text
 
 
@@ -328,7 +324,7 @@ def test_view_endpoint(request, endpoint_fix, endpoint_name, expected_status, ex
     assert expected_status == response.status_code
 
     if expected_status == 200:
-        assert '"Endpoint url": "{}"'.format(endpoint_body['spec']['endpointName']) in response.text
+        assert endpoint_body['spec']['endpointName'] in response.text
 
     assert expected_message.format(endpoint_name) in response.text
 
