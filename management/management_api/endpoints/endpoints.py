@@ -70,7 +70,7 @@ class EndpointScale(object):
                                       endpoint_name=endpoint_name,
                                       id_token=req.params['Authorization'])
 
-        message = 'Endpoint {} patched successfully. New values: {}\n'.format(endpoint_url, body)
+        message = f'Endpoint {endpoint_url} patched successfully. New values: {body}\n'
         resp.status = falcon.HTTP_200
         resp.body = json.dumps({'status': 'PATCHED', 'data': {'url': endpoint_url, 'values': body}})
         logger.info(message)
@@ -90,7 +90,7 @@ class Endpoint(object):
         body = req.media
         endpoint_url = update_endpoint(body, namespace, endpoint_name,
                                        id_token=req.params['Authorization'])
-        message = 'Endpoint {} patched successfully. New values: {}\n'.format(endpoint_url, body)
+        message = f'Endpoint {endpoint_url} patched successfully. New values: {body}\n'
         resp.status = falcon.HTTP_200
         resp.body = json.dumps({'status': 'PATCHED', 'data': {'url': endpoint_url, 'values': body}})
         logger.info(message)

@@ -385,3 +385,10 @@ def get_ingress_subject_name(name, namespace):
 def get_url_from_response(endpoint_response):
     url = json.loads(endpoint_response.text)['data']['url']
     return url
+
+def get_created_message(endpoint_url, warning=True, model_name=''):
+    message = {'status': 'CREATED', 'data': {'url': endpoint_url, 'warning': ''}}
+    if warning:
+        message['data']['warning'] = '{} model is not available on the platform'.format(
+            model_name)
+    return message

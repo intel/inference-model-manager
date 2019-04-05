@@ -176,7 +176,7 @@ def view_endpoint(endpoint_name: str, namespace: str, id_token: str):
                  'resources': resources,
                  'replicas': replicas,
                  }
-    logger.info("Endpoint {} in {} tenant: {}".format(endpoint_name, namespace, view_dict))
+    logger.info(f"Endpoint {endpoint_name} in {namespace} tenant: {view_dict}")
     return view_dict
 
 
@@ -195,19 +195,19 @@ def list_endpoints(namespace: str, id_token: str):
 
 def get_endpoints_name_status(deployments, namespace):
     deployments = deployments.items
-    endpoints_name_status = list()
+    endpoints_metadata = list()
     if not deployments == []:
         for deployment in deployments:
-            endpoint_name_status = dict()
+            endpoint_metadata = dict()
             name = deployment.metadata.labels['endpoint']
-            endpoint_name_status['name'] = name
-            endpoint_name_status['url'] = create_url_to_service(name, namespace)
-            endpoint_name_status['status'] = STATUSES[
+            endpoint_metadata['name'] = name
+            endpoint_metadata['url'] = create_url_to_service(name, namespace)
+            endpoint_metadata['status'] = STATUSES[
                 not None if deployment.status.unavailable_replicas is not None else None,
                 not None if deployment.status.available_replicas is not None else None]
-            endpoints_name_status.append(endpoint_name_status)
-    logger.info('Endpoints present in {} tenant: {}\n'.format(namespace, endpoints_name_status))
-    return endpoints_name_status
+            endpoints_metadata.append(endpoint_metadata)
+    logger.info(f'Endpoints present in {namespace} tenant: {endpoints_metadata}\n')
+    return endpoints_metadata
 
 
 def get_endpoint_number(apps_api_instance, namespace):

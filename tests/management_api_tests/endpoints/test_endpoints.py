@@ -27,7 +27,7 @@ from management_api_tests.endpoints.endpoint_utils import check_replicas_number_
     check_model_params_matching_provided, wait_server_setup, check_server_existence, \
     check_server_update_result
 from management_api_tests.reused import normalize_version_policy
-from conftest import get_url_from_response
+from conftest import get_url_from_response, get_created_message
 
 crd_server_name = 'predict'
 replicas = 1
@@ -57,15 +57,11 @@ def test_create_endpoint(request, function_context, apps_api_instance, get_k8s_c
     response_text = json.loads(response.text)
     endpoint_url = get_url_from_response(response)
     assert response.status_code == 200
-    assert '"status": "CREATED"' in response.text
-    assert endpoint_url in response.text
     if warning:
-        assert {'status': 'CREATED',
-                'data': {'url': endpoint_url,
-                         'warning': '{} model is not available on the platform'.format(
-                             params['modelName'])}} == response_text
+        assert get_created_message(endpoint_url=endpoint_url, warning=True,
+                                   model_name=params['model_name']) == response_text
     else:
-        assert {'status': 'CREATED', 'data': {'url': endpoint_url, 'warning': ''}} == response_text
+        assert get_created_message(endpoint_url=endpoint_url, warning=False) == response_text
 
     function_context.add_object(object_type='CRD', object_to_delete={'name': crd_server_name,
                                                                      'namespace': namespace})
@@ -127,10 +123,8 @@ def test_create_endpoint_with_2_replicas(get_k8s_custom_obj_client, apps_api_ins
     endpoint_url = get_url_from_response(response)
 
     assert response.status_code == 200
-    assert {'status': 'CREATED',
-            'data': {'url': endpoint_url,
-                     'warning': '{} model is not available on the platform'.format(
-                         model_name)}} == json.loads(response.text)
+    assert get_created_message(endpoint_url=endpoint_url, warning=True,
+                               model_name=model_name) == json.loads(response.text)
 
     function_context.add_object(object_type='CRD', object_to_delete={'name': crd_server_name,
                                                                      'namespace': namespace})
@@ -360,10 +354,8 @@ def test_success_to_create_second_endpoint_with_max_endpoints_gt_one(
     response = requests.post(url, data=json.dumps(body['spec']), headers=DEFAULT_HEADERS)
     endpoint_url = get_url_from_response(response)
     assert response.status_code == 200
-    assert {'status': 'CREATED',
-            'data': {'url': endpoint_url,
-                     'warning': '{} model is not available on the platform'.format(
-                         body['spec']['modelName'])}} == json.loads(response.text)
+    assert get_created_message(endpoint_url=endpoint_url, warning=True,
+                               model_name=body['spec']['modelName']) == json.loads(response.text)
 
 
 @pytest.mark.parametrize('tenant_with_endpoint_parametrized_max_endpoints', [1], indirect=True)
