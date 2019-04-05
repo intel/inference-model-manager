@@ -386,6 +386,7 @@ def get_url_from_response(endpoint_response):
     url = json.loads(endpoint_response.text)['data']['url']
     return url
 
+
 def get_created_message(endpoint_url, warning=True, model_name=''):
     message = {'status': 'CREATED', 'data': {'url': endpoint_url, 'warning': ''}}
     if warning:
