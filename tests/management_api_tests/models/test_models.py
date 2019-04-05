@@ -23,7 +23,8 @@ from config import DEFAULT_HEADERS, MODEL_MANAGEMENT_API_URL
 
 @pytest.mark.parametrize("endpoint_fix, expected_status, expected_message",
                          [("endpoint_with_fake_model", 200,
-                           '"models": ["path": {}, "name": {}, "version": {}'),
+                           '"models": [{{"path": "{}", "name": "{}", '
+                           '"version": "{}"'),
                           ("tenant_with_endpoint", 200,
                            '"models": []')])
 def test_list_models(request, endpoint_fix, expected_status, expected_message):
@@ -50,6 +51,6 @@ def test_delete_model(request, endpoint_fix, expected_status, expected_message):
     url = MODEL_MANAGEMENT_API_URL.format(tenant_name=namespace)
     response = requests.delete(url, data=data, headers=DEFAULT_HEADERS)
     model_path = f'{model_name}/{model_version}/'
-    assert '"status": "DELETE"' in response.text
+    assert '"status": "DELETED"' in response.text
     assert json.loads(expected_message.format(model_path)) == json.loads(response.text)
     assert expected_status == response.status_code
