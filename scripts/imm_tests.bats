@@ -148,12 +148,12 @@ get_inference_accuracy(){
 
 @test "Delete model" {
     response="$(./imm rm m ${MODEL_NAME} ${MODEL_VERSION} ${TENANT_NAME})"
-    grep -E "Model deleted: ${MODEL_NAME}" <<< $response
+    grep -E "${MODEL_NAME}" <<< $response
 }
 
 @test "List models after removal" {
     response="$(./imm ls m ${TENANT_NAME})"
-    grep -E "no models present in ${TENANT_NAME} tenant" <<< $response
+    grep -E  '{"models": \[\]}' <<< $response
 }
 
 @test "User logout" {
