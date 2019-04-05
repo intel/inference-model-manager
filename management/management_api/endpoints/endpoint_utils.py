@@ -188,12 +188,12 @@ def list_endpoints(namespace: str, id_token: str):
         deployments = apps_api_instance.list_namespaced_deployment(namespace)
     except ApiException as apiException:
         raise KubernetesGetException('endpoint', apiException)
-    endpoints_name_status = get_endpoints_name_status(deployments, namespace)
+    endpoints_name_status = get_endpoints_metadata(deployments, namespace)
     logger.info(endpoints_name_status)
     return endpoints_name_status
 
 
-def get_endpoints_name_status(deployments, namespace):
+def get_endpoints_metadata(deployments, namespace):
     deployments = deployments.items
     endpoints_metadata = list()
     if not deployments == []:

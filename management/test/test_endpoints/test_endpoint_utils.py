@@ -152,7 +152,7 @@ def test_list_endpoints(mocker, apps_client_mock_endpoint_utils, tenant_exceptio
                 list_endpoints(namespace="test", id_token=user_token)
         else:
             endpoints_name_status_mock = mocker.patch(
-                'management_api.endpoints.endpoint_utils.get_endpoints_name_status')
+                'management_api.endpoints.endpoint_utils.get_endpoints_metadata')
             endpoints_name_status_mock.return_value = {}
             apps_client.list_namespaced_deployment.return_value = {}
             list_endpoints(namespace="test",  id_token=user_token)
