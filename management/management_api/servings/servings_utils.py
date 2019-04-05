@@ -37,11 +37,7 @@ def list_servings(id_token):
     for item in config_maps.to_dict()['items']:
         crd_config_maps.append(item['metadata']['name'])
 
-    if not crd_config_maps:
-        return f"There are no serving templates present in {CRD_NAMESPACE}\n"
-    else:
-        return f'Serving templates in {CRD_NAMESPACE}: ' \
-               f'{sorted(crd_config_maps)}\n'
+    return crd_config_maps
 
 
 def get_serving(id_token, serving_name):
@@ -55,13 +51,10 @@ def get_serving(id_token, serving_name):
     except ApiException as apiException:
         raise KubernetesGetException('config map', apiException)
 
-    crd_config_map = None
+    crd_config_map = dict()
     try:
         crd_config_map = config_map.to_dict()['data']
     except KeyError:
         raise ResourceIsNotAvailableException('serving template configuration', serving_name)
 
-    if not crd_config_map:
-        return f"There are no configuration for {serving_name} template\n"
-    else:
-        return f'{crd_config_map}\n'
+    return crd_config_map
