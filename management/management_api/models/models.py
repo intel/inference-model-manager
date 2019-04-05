@@ -16,6 +16,7 @@
 
 import falcon
 from falcon.media.validators import jsonschema
+import json
 
 from management_api.models.model_utils import list_models, delete_model
 from management_api.schemas.models import model_delete_schema
@@ -26,7 +27,7 @@ class Models(object):
         namespace = tenant_name
         response = list_models(namespace, req.params['Authorization'])
         resp.status = falcon.HTTP_OK
-        resp.body = response
+        resp.body = json.dumps({'status': 'OK', 'data': {'models': response}})
 
     @jsonschema.validate(model_delete_schema)
     def on_delete(self, req, resp, tenant_name):
@@ -35,4 +36,4 @@ class Models(object):
         body = req.media
         response = delete_model(body, namespace, req.params['Authorization'])
         resp.status = falcon.HTTP_OK
-        resp.body = f'Model deleted: {response}\n'
+        resp.body = json.dumps({'status': 'DELETED', 'data': {'model_path': response}})
