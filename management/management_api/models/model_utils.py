@@ -66,7 +66,6 @@ def delete_model(parameters: dict, namespace: str, id_token):
     for key in model_in_bucket:
         key.delete()
 
-
     logger.info(f'Model {model_path} deleted')
     return model_path
 
