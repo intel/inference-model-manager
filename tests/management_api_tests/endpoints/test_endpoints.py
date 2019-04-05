@@ -59,7 +59,7 @@ def test_create_endpoint(request, function_context, apps_api_instance, get_k8s_c
     assert response.status_code == 200
     if warning:
         assert get_created_message(endpoint_url=endpoint_url, warning=True,
-                                   model_name=params['model_name']) == response_text
+                                   model_name=params['modelName']) == response_text
     else:
         assert get_created_message(endpoint_url=endpoint_url, warning=False) == response_text
 
