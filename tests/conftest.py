@@ -252,7 +252,8 @@ def ovms_endpoint(function_context, ovms_tenant):
     response = requests.post(url, data=data, headers=DEFAULT_HEADERS, verify=False)
     endpoint_url = get_url_from_response(response)
     assert response.status_code == 200
-    assert get_created_message(endpoint_url=endpoint_url, warning=False) == json.loads(response.text)
+    assert get_created_message(endpoint_url=endpoint_url,
+                               warning=False) == json.loads(response.text)
 
     function_context.add_object(object_type='CRD', object_to_delete={'name': crd_server_name,
                                                                      'namespace': namespace})
