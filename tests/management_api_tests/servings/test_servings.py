@@ -16,16 +16,17 @@
 
 import pytest
 import requests
+import json
 
 from config import ADMIN_HEADERS, SERVINGS_MANAGEMENT_API_URL, SERVING_MANAGEMENT_API_URL
 
 
 @pytest.mark.parametrize("expected_status, expected_message",
-                         [(200, "['ovms', 'tf-serving']")])
+                         [(200, {"status": "OK", "data": ["ovms", "tf-serving"]})])
 def test_list_servings(expected_status, expected_message):
     response = requests.get(SERVINGS_MANAGEMENT_API_URL,
                             headers=ADMIN_HEADERS)
-    assert expected_message in response.text
+    assert expected_message == json.loads(response.text)
     assert expected_status == response.status_code
 
 

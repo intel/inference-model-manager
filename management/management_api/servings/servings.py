@@ -15,6 +15,7 @@
 #
 
 import falcon
+import json
 
 from management_api.servings.servings_utils import list_servings, get_serving
 
@@ -23,11 +24,11 @@ class Servings(object):
     def on_get(self, req, resp):
         response = list_servings(req.params['Authorization'])
         resp.status = falcon.HTTP_OK
-        resp.body = response
+        resp.body = json.dumps({'status': 'OK', 'data': response})
 
 
 class Serving(object):
     def on_get(self, req, resp, serving_name):
         response = get_serving(req.params['Authorization'], serving_name)
         resp.status = falcon.HTTP_OK
-        resp.body = response
+        resp.body = json.dumps({'status': 'OK', 'data': response})
