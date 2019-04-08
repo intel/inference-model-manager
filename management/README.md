@@ -44,7 +44,7 @@ curl -X POST "https://<management_api_address>/tenants" -H "accept: application/
 
 When an operation ends with success, it returns a statement (example for a tenant with a name `test`):
 
-```Tenant test created```
+```{"status": "CREATED", "data": {"name": "test"}}```
 
 #### Quota configuration for tenant
 
@@ -70,7 +70,7 @@ curl -X GET "https://<management_api_address>/tenants" -H "accept: application/j
 
 When an operation ends with success, it returns a statement (example for a tenant with a name `test`):
  
-```Tenants present of platform: test```
+```{"status": "OK", "data": {"tenants": ["test"]}}```
 
 
 #### Delete tenant
@@ -83,7 +83,7 @@ curl -X DELETE "https://<management_api_address>/tenants" -H "accept: applicatio
 
 When an operation ends with success, it returns a statement (example for a tenant with a name `test`):
  
-```Tenant test deleted```
+```{"status": "DELETED", "data": {"name": "test"}```
 
 ##
 ### Models 
@@ -106,8 +106,9 @@ curl -X GET "https://<management_api_address>/tenants/<tenant-name>/models" -H "
 
 When an operation ends with success, it returns a statement (example for a tenant `test`):
 ```
-Models in test tenant (model name, model version, model size, deployed count): 
-[('resnet', '1', 102619858, 0), ('resnet', '2', 102619858, 0)]
+{"status": "OK", "data": {"models": [{"path": "resnet/1/saved_model.pb",
+"name": "resnet", "version": "1", "size": 102619858}, {"path": "resnet/2/saved_model.pb",
+"name": "resnet", "version": "2", "size": 102619858}]}}
 ```
 
 #### Delete model
@@ -119,7 +120,7 @@ curl -X DELETE "https://<management_api_address>/tenants/<tenant-name>/models" -
 ```
 When an operation ends with success, it returns a statement (example for a model `resnet` in version 1):
 ```
-Model deleted: resnet-1
+{"status": "DELETED", "data": {"model_path": "resnet/1/"}}
 ```
 
 ##
@@ -158,8 +159,14 @@ application/json" \
 When an operation ends with success, it returns a statement (example for an endpoint with a name 
 `endpoint` in a `test` tenant with a `test-domain.com` domain):
 ```
-Endpoint created:
-{‘url’: ‘endpoint-test.test-domain.com:443’}
+{"status": "CREATED", "data": {"url": "endpoint-test.test-domain.com:443", "warning": ""}}
+```
+
+`warning` field is responsible for passing warning information about the non-existence of the 
+model to which endpoint is pointing. In this case, response from platform will be:
+```
+{"status": "CREATED", "data": {"url": "endpoint-test.test-domain.com:443", 
+"warning": "resnet model is not available on the platform"}}
 ```
 
 #### List endpoints
@@ -172,9 +179,9 @@ curl -X GET "https://<management_api_address>/tenants/<tenant-name>/endpoints" -
 When an operation ends with success, it returns a statement (example for endpoins `endpoint1` and 
 `endpoint2` in a `test` tenant with a `test-domain` domain):
 ```
-Endpoints present in test tenant: 
-[{'name': 'endpoint1', 'url': 'endpoint1-test.test-domain.com:443', 'status': 'Available'}, 
-{'name': 'endpoint2', 'url': 'endpoint2-test.test-domain.com:443', 'status': 'Available'}]
+{"status": "OK", "data": {"endpoints": 
+[{'name': 'endpoint1', 'url': 'endpoint1-test.test-domain.com:443', 'status': 'available'}, 
+{'name': 'endpoint2', 'url': 'endpoint2-test.test-domain.com:443', 'status': available'}]}}
 ```
 
 #### Delete endpoint
@@ -185,9 +192,9 @@ curl -X DELETE "https://<management_api_address>/tenants/<tenant-name>/endpoints
 -d "{\"endpointName\": <string>}"
 ``` 
 
-When an operation ends with success, it returns a statement (example for an `endpoint` with a name `test`):
+When an operation ends with success, it returns a statement (example for an `endpoint` in tenant `test`):
 ```
-Endpoint test deleted
+{"status": "DELETED", "data": {"url": "endpoint-test.test-domain.com:443"}}
 ```
 
 #### View endpoint
@@ -199,13 +206,12 @@ curl -X GET "https://<management_api_address>/tenants/<tenant-name>/endpoints/<e
 ```
 
 When an operation ends with success, it returns a statement (example for an endpoint with a name 
-`test-endpoint` from `test` tenant):
+`endpoint` from `test` tenant):
 ```
-Endpoint test-endpoint in test tenant: 
-{'Endpoint status': {'Running pods': 1, 'Pending pods': 0, 'Failed pods': 0}, 
-'Model path': {'url': 'endpoint-test.example-domain.com:443'}, 'Subject name': 'client', 
-'Resources': {'limits': {'cpu': '2', 'memory': '2Gi'}, 'requests': {'cpu': '1', 'memory': '1Gi'}}, 
-'Replicas': {'Available': 1, 'Unavailable': None}}
+{"status": "OK", "data": {"endpoint status": {"running pods": 1, "pending pods": 0, "failed pods": 0}, 
+"endpoint url": "endpoint-test.test-domain.com:443", "subject name": "client", 
+"resources": {"requests": {"cpu": "1", "memory": "1Gi"}, "limits": {"cpu": "2", "memory": "2Gi"}}, 
+"replicas": {"available": 1, "unavailable": None}}}
 ```
 
 #### Update endpoint
@@ -221,8 +227,8 @@ Parameters: `modelName`, `modelVersionPolicy`, `resources`, `subjectName` are op
 When an operation ends with success, it returns a statement (example for an endpoint with a name 
 `endpoint` from `test` with modelName and modelVersionPolicy updated):
 ```
-Endpoint {'url': 'endpoint-test.example-domain.com:443'} patched successfully. 
-New values: {'modelName': 'new-model', 'modelVersionPolicy': '{latest {}}'}
+{"status": "PATCHED", "data": {"url": "endpoint-test.example-domain.com:443", 
+"values": {"modelName": "new-model", "modelVersionPolicy": "{latest {}}"}}}
 ```
 
 #### Scale endpoint
@@ -237,7 +243,7 @@ curl -X PATCH "https://<management_api_address>/tenants/<tenant-name>/endpoints/
 When an operation ends with success, it returns a statement (example for an endpoint with a name 
 `endpoint` from `test`):
 ```
-Endpoint {'url': 'endpoint-test.example-domain.com:443'} patched successfully. New values: {'replicas': 2}
+{"status": "PATCHED", "data": {"url": "endpoint-test.example-domain.com:443", "values": {"replicas": 2}}}
 ```
 
 ### Servings
@@ -251,7 +257,7 @@ curl -X GET "https://<management_api_address>/servings" -H "accept: application/
 
 When an operation ends with success, it returns a statement (example for a two default serving templates):
 ```
-Servings in crd: ['ovms', 'tf-serving']
+{"status": "OK", "data": ["ovms", "tf-serving"]}
 ```
 
 #### Get serving
@@ -264,9 +270,8 @@ curl -X GET "https://<management_api_address>/servings/<serving_name>" -H "accep
 
 When an operation ends with success, it returns a statement (example for a `tf-serving`):
 ```
-Serving template tf-serving: 
-<configMap.tmpl: <yaml template> deployment.tmpl: <yaml template> ingress.tmpl: <yaml template>
-service.tmpl: <yaml tmeplate>
+{"status": "OK", "data": {"configMap.tmpl": <yaml template>, "deployment.tmpl": <yaml template>,
+"ingress.tmpl": <yaml template>, "service.tmpl": <yaml template>}}
 ```
 
 ## Script for API calls
