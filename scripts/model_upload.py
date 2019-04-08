@@ -31,7 +31,7 @@ def upload_part(url, params, headers, data, parts, verify):
         raise Exception(response)
 
     print("Part nr {} of current upload sent successfully".format(params['partNumber']))
-    part_etag = response.json()['ETag']
+    part_etag = response.json()['data']['ETag']
     parts.append({'ETag': part_etag, 'PartNumber': params['partNumber']})
 
 
@@ -117,7 +117,7 @@ def upload_file(url, params, headers, part_size, verify=False):
     if response.status_code != 200:
         print("Could not initiate upload: {}".format(response.text))
         raise Exception(response)
-    upload_id = response.json()['uploadId']
+    upload_id = response.json()['data']['uploadId']
     print("Model upload initiated successfully. Upload id = {}".format(upload_id))
 
     # --- Uploading parts

@@ -42,7 +42,8 @@ class StartMultiModel(object):
         upload_id = create_upload(bucket=namespace, key=key)
         logger.info("Key: " + key + " ID: " + upload_id)
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps({'uploadId': upload_id})
+        resp.body = json.dumps({'status': 'OK', 'data': {'uploadId': upload_id,
+                                                         'op': 'upload_init'}})
 
 
 class WriteMultiModel(object):
@@ -74,7 +75,7 @@ class WriteMultiModel(object):
                                 key=key, multipart_id=multipart_id)
         logger.info(f"ETag: {part_etag}")
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps({'ETag': part_etag})
+        resp.body = json.dumps({'status': 'OK', 'data': {'ETag': part_etag, 'op': 'upload_part'}})
 
 
 class CompleteMultiModel(object):
@@ -89,7 +90,8 @@ class CompleteMultiModel(object):
         complete_upload(bucket=namespace, key=key, multipart_id=body['uploadId'],
                         parts=body['parts'])
         resp.status = falcon.HTTP_200
-        resp.body = f"Upload with ID: {body['uploadId']} completed successfully"
+        resp.body = json.dumps({'status': 'OK', 'data': {'uploadId': body['uploadId'],
+                                                         'op': 'upload_complete'}})
 
 
 class AbortMultiModel(object):
@@ -103,7 +105,8 @@ class AbortMultiModel(object):
 
         abort_upload(bucket=namespace, key=key, multipart_id=body['uploadId'])
         resp.status = falcon.HTTP_200
-        resp.body = f"Upload with ID: {body['uploadId']} aborted successfully"
+        resp.body = json.dumps({'status': 'OK', 'data': {'uploadId': body['uploadId'],
+                                                         'op': 'upload_abort'}})
 
 
 class UploadDir(object):
@@ -116,4 +119,4 @@ class UploadDir(object):
             raise TenantDoesNotExistException(tenant_name=namespace)
         response = create_dir(tenant_name, key)
         resp.status = falcon.HTTP_200
-        resp.body = f"Dir created: {response}"
+        resp.body = json.dumps({'status': 'OK', 'data': {'dir': response, 'op': 'create_dir'}})
