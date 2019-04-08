@@ -114,7 +114,7 @@ class EndpointPodStatus:
     SCALED_TO_ZERO = (None, None)
 
 
-STATUSES = {EndpointPodStatus.UNAVAILABLE_AND_AVAILABLE: 'Not fully available',
-            EndpointPodStatus.ONLY_UNAVAILABLE: 'Unavailable',
-            EndpointPodStatus.ONLY_AVAILABLE: 'Available',
-            EndpointPodStatus.SCALED_TO_ZERO: 'Scaled to 0'}
+STATUSES = {EndpointPodStatus.UNAVAILABLE_AND_AVAILABLE: 'not fully available',
+            EndpointPodStatus.ONLY_UNAVAILABLE: 'unavailable',
+            EndpointPodStatus.ONLY_AVAILABLE: 'available',
+            EndpointPodStatus.SCALED_TO_ZERO: 'scaled to 0'}
