@@ -59,7 +59,7 @@ def prepare_images(kwargs):
     if kwargs['images_list']:
         images = kwargs['images_list'].split(',')
         imgs = load_images_from_list(images, kwargs['image_size'], len(images))
-    while int(kwargs['batch_size']) >= imgs.shape[0]:
+    while int(kwargs['batch_size']) > imgs.shape[0]:
         imgs = np.append(imgs, imgs, axis=0)
     return imgs
 
@@ -197,7 +197,7 @@ def run_grpc_client():
                         help='Output tensor of model. Default: out')
 
     parser.add_argument('--image_size', required=False, default=224,
-                        help='Size of images. Default: 224')
+                        help='Size of images. Default: 224', type=int)
     parser.add_argument('--images_number', required=False, default=0,
                         help='Define number of images to inference. '
                              'Specify if you want to use only part of numpy array')
