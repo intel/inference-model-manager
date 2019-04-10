@@ -250,9 +250,10 @@ def ovms_endpoint(function_context, ovms_tenant):
     url = ENDPOINTS_MANAGEMENT_API_URL.format(tenant_name=namespace)
 
     response = requests.post(url, data=data, headers=DEFAULT_HEADERS, verify=False)
-
+    endpoint_url = get_url_from_response(response)
     assert response.status_code == 200
-    assert "created" in response.text
+    assert get_created_message(endpoint_url=endpoint_url,
+                               warning=False) == json.loads(response.text)
 
     function_context.add_object(object_type='CRD', object_to_delete={'name': crd_server_name,
                                                                      'namespace': namespace})
@@ -262,12 +263,12 @@ def ovms_endpoint(function_context, ovms_tenant):
 @pytest.fixture(scope="function")
 def tenant_with_endpoint_parametrized_max_endpoints(
         request, api_instance, minio_client, function_context, get_k8s_custom_obj_client):
-    name = TENANT_NAME
+    namespace = TENANT_NAME
     tenant_quota = TENANT_RESOURCES
     tenant_quota["maxEndpoints"] = request.param
-    create_tenant(name, tenant_quota, function_context)
-    body = create_endpoint(get_k8s_custom_obj_client, name, function_context)
-    return name, body
+    create_tenant(namespace, tenant_quota, function_context)
+    endpoint_url = create_endpoint(get_k8s_custom_obj_client, namespace, function_context)
+    return namespace, endpoint_url
 
 
 @pytest.fixture(scope="function")
@@ -379,3 +380,16 @@ def get_ingress_subject_name(name, namespace):
     metadata = get_endpoint_ingress(name, namespace).metadata
     subject_name = metadata.annotations['allowed-values']
     return subject_name
+
+
+def get_url_from_response(endpoint_response):
+    url = json.loads(endpoint_response.text)['data']['url']
+    return url
+
+
+def get_created_message(endpoint_url, warning=True, model_name=''):
+    message = {'status': 'CREATED', 'data': {'url': endpoint_url, 'warning': ''}}
+    if warning:
+        message['data']['warning'] = '{} model is not available on the platform'.format(
+            model_name)
+    return message

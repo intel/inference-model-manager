@@ -16,24 +16,23 @@
 
 import pytest
 import falcon
+import json
+
+CREATED_MESSAGE = '"status": "CREATED"'
 
 
 @pytest.mark.parametrize("body, expected_message, expected_status, model_availability",
                          [({'modelName': 'test', 'modelVersionPolicy':
-                             '{latest{}}', 'endpointName': 'test', 'subjectName': 'test',
-                            'servingName': 'test'}, 'Endpoint created\n test',
-                           falcon.HTTP_OK, True),
+                            '{latest{}}', 'endpointName': 'test', 'subjectName': 'test',
+                            'servingName': 'test'}, CREATED_MESSAGE, falcon.HTTP_OK, True),
                           ({'modelName': 'test', 'endpointName': 'test', 'subjectName': 'test',
-                            'servingName': 'test'}, 'Endpoint created\n test',
-                           falcon.HTTP_OK, True),
+                            'servingName': 'test'}, CREATED_MESSAGE, falcon.HTTP_OK, True),
                           ({'modelName': 'test', 'endpointName': 'test', 'subjectName': 'test',
-                            'servingName': 'test'}, 'Endpoint created\n test',
-                           falcon.HTTP_OK, False),
+                            'servingName': 'test'}, CREATED_MESSAGE, falcon.HTTP_OK, False),
                           ({'modelName': 'test', 'modelVersionPolicy':
                               '{ all { } }', 'endpointName': 'test', 'subjectName': 'test',
                             'servingName': 'test', 'resources': {'requests.cpu': '1'}},
-                           'Endpoint created\n test',
-                           falcon.HTTP_OK, True),
+                           CREATED_MESSAGE, falcon.HTTP_OK, True),
                           ({'modelName': 'test', 'modelVersionPolicy':
                               'specific {versions: 3}}', 'endpointName': 'test',
                             'subjectName': 'test', 'servingName': 'test'}, 'Failed data validation',
@@ -54,7 +53,7 @@ def test_endpoints_post(mocker, client, body, expected_message, expected_status,
     assert expected_status == result.status
     assert expected_message in result.text
     if not model_availability:
-        assert "WARNING" in result.text
+        assert "test model is not available on the platform" in result.text
     if result.status == falcon.HTTP_OK:
         create_endpoint_mock.assert_called_once()
 
@@ -63,22 +62,30 @@ def test_endpoints_delete(mocker, client):
     delete_endpoint_mock = mocker.patch('management_api.endpoints.endpoints.delete_endpoint')
     delete_endpoint_mock.return_value = "test"
     expected_status = falcon.HTTP_OK
+    expected_message = {"status": "DELETED", "data": {"url": "test"}}
     body = {'endpointName': 'test'}
 
     result = client.simulate_request(method='DELETE', path='/tenants/default/endpoints', headers={},
                                      json=body)
     assert expected_status == result.status
+    assert expected_message == json.loads(result.text)
     delete_endpoint_mock.assert_called_once()
 
 
 @pytest.mark.parametrize("functionality, method_name, body, expected_message, expected_status",
-                         [("replicas", "scale_endpoint", {'replicas': 3}, 'patched successfully',
+                         [("replicas", "scale_endpoint", {'replicas': 3},
+                           '{"status": "PATCHED", "data": {"url": "test", '
+                           '"values": {"replicas": 3}}}',
                           falcon.HTTP_OK),
                           ("", "update_endpoint",
                            {'modelName': 'test', 'modelVersionPolicy': '{specific {versions: 3}}'},
-                           'patched successfully', falcon.HTTP_OK),
-                          ("", "update_endpoint",
-                           {'modelName': 'test'}, 'patched successfully', falcon.HTTP_OK),
+                           '{"status": "PATCHED", "data": {"url": "test", "values": {"modelName": '
+                           '"test", "modelVersionPolicy": "{specific {versions: 3}}"}}}',
+                           falcon.HTTP_OK),
+                          ("", "update_endpoint", {'modelName': 'test'},
+                           '{"status": "PATCHED", "data": {"url": "test", "values": {"modelName": '
+                           '"test"}}}',
+                           falcon.HTTP_OK),
                           ("", "update_endpoint",
                            {'modelName': 'test', 'modelVersionPolicy': '1,2'},
                            'Failed data validation', falcon.HTTP_BAD_REQUEST),
@@ -102,9 +109,9 @@ def test_endpoints_patch(mocker, client, functionality, method_name, body, expec
 
 @pytest.mark.parametrize("functionality, method_name, expected_status, expected_message",
                          [("", "list_endpoints", falcon.HTTP_OK,
-                           "There's no endpoints presented in {0} tenant"),
+                           {"status": "OK", "data": {"endpoints": "test"}}),
                           ("/predict", "view_endpoint", falcon.HTTP_OK,
-                           "Endpoint {1} in {0} tenant")])
+                           {"status": "OK", "data": "test"})])
 def test_endpoints_get(mocker, client, functionality, method_name,
                        expected_status, expected_message):
     namespace = 'test'
@@ -117,5 +124,5 @@ def test_endpoints_get(mocker, client, functionality, method_name,
                                      headers=header)
 
     assert expected_status == result.status
-    assert result.text in expected_message.format(namespace, "predict")
+    assert expected_message == json.loads(result.text)
     get_endpoint_mock.assert_called_once()

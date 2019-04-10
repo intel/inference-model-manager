@@ -152,7 +152,7 @@ def test_list_endpoints(mocker, apps_client_mock_endpoint_utils, tenant_exceptio
                 list_endpoints(namespace="test", id_token=user_token)
         else:
             endpoints_name_status_mock = mocker.patch(
-                'management_api.endpoints.endpoint_utils.get_endpoints_name_status')
+                'management_api.endpoints.endpoint_utils.get_endpoints_metadata')
             endpoints_name_status_mock.return_value = {}
             apps_client.list_namespaced_deployment.return_value = {}
             list_endpoints(namespace="test",  id_token=user_token)
@@ -175,7 +175,7 @@ def test_create_url_to_service(mocker):
                                          'get_ingress_external_ip')
     external_address_mock.return_value = mock_return_value
     external_address = "{}:{}".format(mock_return_value[0], mock_return_value[1])
-    expected_output = {'url': external_address}
+    expected_output = external_address
     output = create_url_to_service(endpoint_name='t_end', namespace="t_ns")
     assert expected_output == output
 

@@ -176,7 +176,7 @@ def get_replicas(apps_api_instance, namespace, endpoint_name):
         raise KubernetesGetException('deployment', apiException)
     available_replicas = deployment_status.to_dict()['status']['available_replicas']
     unavailable_replicas = deployment_status.to_dict()['status']['unavailable_replicas']
-    return {'Available': available_replicas, 'Unavailable': unavailable_replicas}
+    return {'available': available_replicas, 'unavailable': unavailable_replicas}
 
 
 def get_endpoint_status(api_instance, namespace, endpoint_name):
@@ -192,7 +192,7 @@ def get_endpoint_status(api_instance, namespace, endpoint_name):
     running = sum(pod_phase == 'Running' for pod_phase in pod_phases)
     pending = sum(pod_phase == 'Pending' for pod_phase in pod_phases)
     failed = sum(pod_phase == 'Failed' for pod_phase in pod_phases)
-    status = {'Running pods': running, 'Pending pods': pending, 'Failed pods': failed}
+    status = {'running pods': running, 'pending pods': pending, 'failed pods': failed}
     return status
 
 

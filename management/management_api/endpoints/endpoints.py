@@ -15,6 +15,7 @@
 #
 
 import falcon
+import json
 from falcon.media.validators import jsonschema
 
 from management_api.utils.logger import get_logger
@@ -34,7 +35,7 @@ class Endpoints(object):
         namespace = tenant_name
         endpoints = list_endpoints(namespace, id_token=req.params['Authorization'])
         resp.status = falcon.HTTP_200
-        resp.body = endpoints
+        resp.body = json.dumps({'status': 'OK', 'data': {'endpoints': endpoints}})
 
     @jsonschema.validate(endpoint_post_schema)
     def on_post(self, req, resp, tenant_name):
@@ -46,7 +47,9 @@ class Endpoints(object):
         model_existence = check_endpoint_model(namespace, body["modelName"])
         warning_message = '' if model_existence else \
             WarningMessage.MODEL_AVAILABILITY.format(body["modelName"])
-        resp.body = '{}Endpoint created\n {}'.format(warning_message, endpoint_url)
+        logger.warning(warning_message)
+        resp.body = json.dumps({'status': 'CREATED', 'data': {'url': endpoint_url,
+                                                              'warning': warning_message}})
 
     @jsonschema.validate(endpoint_delete_schema)
     def on_delete(self, req, resp, tenant_name):
@@ -55,7 +58,7 @@ class Endpoints(object):
         endpoint_url = delete_endpoint(parameters=body, namespace=namespace,
                                        id_token=req.params['Authorization'])
         resp.status = falcon.HTTP_200
-        resp.body = 'Endpoint {} deleted\n'.format(endpoint_url)
+        resp.body = json.dumps({'status': 'DELETED', 'data': {'url': endpoint_url}})
 
 
 class EndpointScale(object):
@@ -67,9 +70,9 @@ class EndpointScale(object):
                                       endpoint_name=endpoint_name,
                                       id_token=req.params['Authorization'])
 
-        message = 'Endpoint {} patched successfully. New values: {}\n'.format(endpoint_url, body)
+        message = f'Endpoint {endpoint_url} patched successfully. New values: {body}\n'
         resp.status = falcon.HTTP_200
-        resp.body = message
+        resp.body = json.dumps({'status': 'PATCHED', 'data': {'url': endpoint_url, 'values': body}})
         logger.info(message)
 
 
@@ -79,7 +82,7 @@ class Endpoint(object):
         endpoint = view_endpoint(endpoint_name=endpoint_name, namespace=namespace,
                                  id_token=req.params['Authorization'])
         resp.status = falcon.HTTP_200
-        resp.body = endpoint
+        resp.body = json.dumps({'status': 'OK', 'data': endpoint})
 
     @jsonschema.validate(endpoint_update_schema)
     def on_patch(self, req, resp, tenant_name, endpoint_name):
@@ -87,7 +90,7 @@ class Endpoint(object):
         body = req.media
         endpoint_url = update_endpoint(body, namespace, endpoint_name,
                                        id_token=req.params['Authorization'])
-        message = 'Endpoint {} patched successfully. New values: {}\n'.format(endpoint_url, body)
+        message = f'Endpoint {endpoint_url} patched successfully. New values: {body}\n'
         resp.status = falcon.HTTP_200
-        resp.body = message
+        resp.body = json.dumps({'status': 'PATCHED', 'data': {'url': endpoint_url, 'values': body}})
         logger.info(message)

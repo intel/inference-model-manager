@@ -99,9 +99,7 @@ def create_url_to_service(endpoint_name, namespace):
                 namespace=namespace,
                 platform_domain=PLATFORM_DOMAIN,
                 inference_port=port)
-    data_for_request = {'url': path}
-
-    return data_for_request
+    return path
 
 
 def scale_endpoint(parameters: dict, namespace: str, endpoint_name: str, id_token: str):
@@ -166,21 +164,20 @@ def view_endpoint(endpoint_name: str, namespace: str, id_token: str):
 
     endpoint_status = get_endpoint_status(api_instance=api_instance, namespace=namespace,
                                           endpoint_name=endpoint_name)
-    model_path = create_url_to_service(endpoint_name, namespace)
+    endpoint_url = create_url_to_service(endpoint_name, namespace)
     subject_name, resources = get_crd_subject_name_and_resources(
         custom_api_instance=custom_api_instance, namespace=namespace, endpoint_name=endpoint_name)
     replicas = get_replicas(apps_api_instance=apps_api_instance, namespace=namespace,
                             endpoint_name=endpoint_name)
 
-    view_dict = {'Endpoint status': endpoint_status,
-                 'Model path': model_path,
-                 'Subject name': subject_name,
-                 'Resources': resources,
-                 'Replicas': replicas,
+    view_dict = {'endpoint status': endpoint_status,
+                 'endpoint url': endpoint_url,
+                 'subject name': subject_name,
+                 'resources': resources,
+                 'replicas': replicas,
                  }
-    message = f"Endpoint {endpoint_name} in {namespace} tenant: {view_dict}\n"
-    logger.info(message)
-    return message
+    logger.info(f"Endpoint {endpoint_name} in {namespace} tenant: {view_dict}")
+    return view_dict
 
 
 def list_endpoints(namespace: str, id_token: str):
@@ -191,28 +188,26 @@ def list_endpoints(namespace: str, id_token: str):
         deployments = apps_api_instance.list_namespaced_deployment(namespace)
     except ApiException as apiException:
         raise KubernetesGetException('endpoint', apiException)
-    endpoints_name_status = get_endpoints_name_status(deployments, namespace)
+    endpoints_name_status = get_endpoints_metadata(deployments, namespace)
     logger.info(endpoints_name_status)
     return endpoints_name_status
 
 
-def get_endpoints_name_status(deployments, namespace):
+def get_endpoints_metadata(deployments, namespace):
     deployments = deployments.items
-    name_status = "There are no endpoints present in {} tenant".format(namespace)
+    endpoints_metadata = list()
     if not deployments == []:
-        endpoints_name_status = list()
         for deployment in deployments:
-            endpoint_name_status = dict()
+            endpoint_metadata = dict()
             name = deployment.metadata.labels['endpoint']
-            endpoint_name_status['name'] = name
-            endpoint_name_status['url'] = create_url_to_service(name, namespace)['url']
-            endpoint_name_status['status'] = STATUSES[
+            endpoint_metadata['name'] = name
+            endpoint_metadata['url'] = create_url_to_service(name, namespace)
+            endpoint_metadata['status'] = STATUSES[
                 not None if deployment.status.unavailable_replicas is not None else None,
                 not None if deployment.status.available_replicas is not None else None]
-            endpoints_name_status.append(endpoint_name_status)
-        name_status = 'Endpoints present in {} tenant: {}\n'.format(
-            namespace, endpoints_name_status)
-    return name_status
+            endpoints_metadata.append(endpoint_metadata)
+    logger.info(f'Endpoints present in {namespace} tenant: {endpoints_metadata}\n')
+    return endpoints_metadata
 
 
 def get_endpoint_number(apps_api_instance, namespace):

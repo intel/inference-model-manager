@@ -30,8 +30,7 @@ from grpc_client_utils import prepare_certs, prepare_stub_and_request
 
 def test_ovms_serving_status(ovms_endpoint):
     ovms_endpoint_response, namespace = ovms_endpoint
-    res = ovms_endpoint_response.text.replace('Endpoint created\n ', '').replace('\'', '\"')
-    url = json.loads(res)['url']
+    url = json.loads(ovms_endpoint_response.text)['data']['url']
     start_time = time.time()
     tick = start_time
     running = False

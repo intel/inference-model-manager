@@ -42,7 +42,7 @@ from management_api_tests.authenticate import get_user_token
 from config import MANAGEMENT_API_URL, CERT_BAD_CLIENT, CERT_BAD_CLIENT_KEY, CERT_CLIENT, \
     CERT_CLIENT_KEY, CERT_SERVER, SENSIBLE_ENDPOINT_RESOURCES
 from conftest import get_all_pods_in_namespace, get_logs_of_pod, list_namespaces, \
-    download_saved_model_from_path, get_ingress_subject_name
+    download_saved_model_from_path, get_ingress_subject_name, get_url_from_response
 
 
 class EndpointInfo:
@@ -171,11 +171,13 @@ def test_create_endpoint(model_name, endpoint_name):
         'servingName': 'tf-serving',
     }
     endpoint_response = create_endpoint(params)
-    assert "created" in endpoint_response.text
+    endpoint_url = get_url_from_response(endpoint_response)
+    assert {'status': 'CREATED', 'data': {'url': endpoint_url,
+                                          'warning': ''}} == json.loads(endpoint_response.text)
     assert endpoint_response.status_code == 200
     running, pod_name = wait_endpoint_setup()
     assert running is True
-    endpoint_info.info = get_url_from_response(endpoint_response)
+    endpoint_info.info = endpoint_url
     endpoint_info.pod_name = pod_name
     subject_name = get_ingress_subject_name(endpoint_name, TENANT_NAME)
     assert subject_name == 'CN=client'
@@ -256,7 +258,9 @@ def test_prediction_batch_with_certificates():
 def test_update_version_policy():
     params = {'modelVersionPolicy': UPDATE_ENDPOINT_VP}
     endpoint_response = update_endpoint(params)
-    assert "patched" in endpoint_response.text
+    endpoint_url = get_url_from_response(endpoint_response)
+    assert {'status': 'PATCHED', 'data': {'url': endpoint_url,
+                                          'values': params}} == json.loads(endpoint_response.text)
     assert endpoint_response.status_code == 200
     time.sleep(10)
     running, pod_name = wait_endpoint_setup()
@@ -382,9 +386,3 @@ def test_remove_tenant():
         logging.info("Waiting 10 sec")
         time.sleep(10)
     assert not ns_exists
-
-
-def get_url_from_response(endpoint_response):
-    res = endpoint_response.text.replace('Endpoint created\n ', '').replace('\'', '\"')
-    url = json.loads(res)['url']
-    return url
