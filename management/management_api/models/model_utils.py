@@ -21,6 +21,9 @@ from management_api.config import minio_resource
 from management_api.utils.errors_handling import ModelDoesNotExistException, \
     TenantDoesNotExistException, MinioCallException
 from management_api.tenants.tenants_utils import tenant_exists
+from management_api.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 def list_models(namespace: str, id_token):
@@ -36,17 +39,16 @@ def list_models(namespace: str, id_token):
     models = []
     for object in bucket.objects.all():
         if object.size > 0:
+            model = dict()
             model_path = object.key.split('/', 2)
-            model_name = model_path[0]
-            model_version = model_path[1]
-            model_size = object.size
-            models.append((model_name, model_version, model_size))
+            model['path'] = object.key
+            model['name'] = model_path[0]
+            model['version'] = model_path[1]
+            model['size'] = object.size
+            models.append(model)
 
-    if not models:
-        return f"There are no models present in {namespace} tenant\n"
-    else:
-        return f'Models in {namespace} tenant ' \
-               f'(model name, model version, model size, deployed count): {models}\n'
+    logger.info(f'Models present in {namespace} tenant: {models}')
+    return models
 
 
 def delete_model(parameters: dict, namespace: str, id_token):
@@ -64,6 +66,7 @@ def delete_model(parameters: dict, namespace: str, id_token):
     for key in model_in_bucket:
         key.delete()
 
+    logger.info(f'Model {model_path} deleted')
     return model_path
 
 
